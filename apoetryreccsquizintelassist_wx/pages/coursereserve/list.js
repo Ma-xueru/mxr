@@ -123,6 +123,12 @@ Page({
         searchForm[nowTable + 'account'] = wx.getStorageSync('nickname')
       }
     }
+    if (!this.data.isAuthStatus && nowTable === 'student') {
+      const studentaccount = getApp().globalData.userInfo.studentaccount || wx.getStorageSync('nickname')
+      if (studentaccount) {
+        searchForm.studentaccount = studentaccount
+      }
+    }
 
     if (this.data.studentname) {
       searchForm['studentname'] = '%' + this.data.studentname + '%'
@@ -295,6 +301,12 @@ Page({
       isAuthObj['editAuth'] = utils.isAuthFront("coursereserve", "修改")
     }
     //前后台权限判断
+    if (!this.data.isAuthStatus && nowTable === 'student') {
+      const studentaccount = getApp().globalData.userInfo.studentaccount || wx.getStorageSync('nickname')
+      if (studentaccount) {
+        obj.studentaccount = studentaccount
+      }
+    }
     this.setData(isAuthObj)
 
 

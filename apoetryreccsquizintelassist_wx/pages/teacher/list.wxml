@@ -1,7 +1,7 @@
 <view class="goodsClassify-container">
     <!-- 顶部装饰条 -->
     <view class="top-decoration"></view>
-    
+
     <view class="content">
         <view class="list-box">
             <!-- 页面标题 -->
@@ -28,7 +28,7 @@
                         </view>
                         <text class="nodata-text">暂无教师数据</text>
                     </view>
-                    
+
                     <!-- 教师卡片 -->
                     <view class="goods-item" bind:tap="detailBtn" data-item="{{item}}" wx:for="{{goodsListData}}" wx:key="index">
                         <view class="card-decoration"></view>
@@ -41,9 +41,13 @@
                                 <text class="iconfont icon-phone"></text>
                                 {{item.lianxidianhua}}
                             </view>
+                            <view class="reserve-count">可约人数：{{item.reservecount || 0}}</view>
                         </view>
 
                         <view class="operate-box">
+                            <view catchtap="reserveBtn" data-item="{{item}}" class="reserve-box">
+                                <text class="reserve-text">预约</text>
+                            </view>
                             <view bind:tap="editBtn" class="edit-box" wx:if="{{editAuth}}">
                                 <text class="iconfont icon-xiugai3 edit-icons"></text>
                                 <text data-id="{{item.id}}" class="edit-text">修改</text>
@@ -69,4 +73,4 @@
         </view>
     </view>
 </view>
-    
+

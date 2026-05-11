@@ -264,6 +264,33 @@ wx.navigateTo({
 url: `/pages/teacher/update-and-add?id=${id}&isAuth=${this.data.isAuthStatus}`
 })
 },
+reserveBtn(e) {
+const item = e.currentTarget.dataset.item;
+if (!wx.getStorageSync('token')) {
+    wx.showToast({
+        title: '请先登录后再预约',
+        icon: 'none'
+    })
+    return
+}
+if (wx.getStorageSync('nowTable') !== 'student') {
+    wx.showToast({
+        title: '请使用学生账号预约',
+        icon: 'none'
+    })
+    return
+}
+getApp().globalData.detailId = item?.id
+getApp().globalData.detailList = item
+wx.setStorageSync('crossTable','teacher');
+wx.setStorageSync('crossObj', item);
+wx.setStorageSync('statusColumnName', '');
+wx.setStorageSync('tips', '');
+wx.setStorageSync('statusColumnValue', '');
+wx.navigateTo({
+    url: `/pages/coursereserve/update-and-add?cross=true`
+})
+},
 async detailBtn(e) {
 const item = e.currentTarget.dataset.item;
 getApp().globalData.detailId = item?.id

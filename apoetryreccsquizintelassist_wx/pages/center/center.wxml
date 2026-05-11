@@ -45,7 +45,7 @@
     <view class="growth-board" wx:if="{{userInfo.id && isStudent}}">
       <view class="section-title">成长概览</view>
       <view class="medal-grid">
-        <view class="medal-card">
+        <view class="medal-card" bindtap="toMedalWall">
           <view class="medal-icon">🏅</view>
           <view class="medal-value">{{ownMedalCount || 0}}</view>
           <view class="medal-label">我的勋章</view>
@@ -236,16 +236,46 @@
               </view>
             </view>
           </view>
-          <view class="treeList">
-            <view class="title c1" bindtap="toggleMenu" data-index="6">
-              <text class="iconfont icon-customer-service--line list-img"></text>
-              <text class="txt">智能助手</text>
-              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[6] ? '180deg' : '0deg'}});">v</text>
+          <view class="treeList" wx:if="{{isStudent}}">
+            <view class="title c1" bindtap="toggleMenu" data-index="7">
+              <text class="iconfont icon-common18 list-img"></text>
+              <text class="txt">背诵任务</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[7] ? '180deg' : '0deg'}});">v</text>
             </view>
-            <view class="list" wx:if="menuOpen[6]">
-              <view class="list-item" bindtap="toAichat">
+            <view class="list" wx:if="menuOpen[7]">
+              <view class="list-item" bindtap="toRecitationTask">
                 <text class="iconfont icon-caret-right list-arrow"></text>
-                <text class="list-text">智能助手</text>
+                <text class="list-text">我的背诵任务</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+          </view>
+
+          <view class="treeList" wx:if="{{isStudent}}">
+            <view class="title c1" bindtap="toggleMenu" data-index="8">
+              <text class="iconfont icon-common18 list-img"></text>
+              <text class="txt">预约记录</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[8] ? '180deg' : '0deg'}});">v</text>
+            </view>
+            <view class="list" wx:if="menuOpen[8]">
+              <view class="list-item" bindtap="toCoursereserve">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">我的预约记录</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+          </view>
+
+          <view class="treeList" wx:if="{{isStudent}}">
+            <view class="title c1" bindtap="toggleMenu" data-index="9">
+              <text class="iconfont icon-common18 list-img"></text>
+              <text class="txt">我的勋章</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[9] ? '180deg' : '0deg'}});">v</text>
+            </view>
+            <view class="list" wx:if="menuOpen[9]">
+              <view class="list-item" bindtap="toMedalWall">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">勋章墙</text>
                 <view class="list-icon">></view>
               </view>
             </view>

@@ -1,0 +1,299 @@
+page {
+  background: #f4f7fb;
+}
+
+.medalwall-page {
+  min-height: 100vh;
+  padding: 28rpx;
+  box-sizing: border-box;
+}
+
+.hero {
+  border-radius: 18rpx;
+  padding: 36rpx 34rpx;
+  color: #ffffff;
+  background: #4169e1;
+  box-shadow: 0 10rpx 28rpx rgba(65, 105, 225, 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hero-title {
+  font-size: 44rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+.hero-medal {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+}
+
+.rank-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin: 24rpx 0;
+}
+
+.summary-item {
+  background: #ffffff;
+  border-radius: 14rpx;
+  padding: 24rpx 10rpx;
+  text-align: center;
+  border: 2rpx solid #e3e9f4;
+  box-shadow: 0 4rpx 16rpx rgba(31, 45, 61, 0.06);
+}
+
+.summary-item.primary {
+  border-color: #4169e1;
+  background: #eef3ff;
+}
+
+.summary-value {
+  color: #4169e1;
+  font-size: 40rpx;
+  font-weight: 800;
+}
+
+.summary-label {
+  margin-top: 8rpx;
+  color: #596477;
+  font-size: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  color: #202938;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.section-note {
+  color: #7b8798;
+  font-size: 22rpx;
+}
+
+.podium,
+.chart-card,
+.my-rank-card,
+.empty-card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 26rpx;
+  box-shadow: 0 6rpx 18rpx rgba(31, 45, 61, 0.07);
+  border: 2rpx solid #e7edf6;
+}
+
+.chart-card,
+.my-rank-card {
+  margin-top: 22rpx;
+}
+
+.podium-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12rpx;
+}
+
+.podium-card {
+  border-radius: 16rpx;
+  padding: 18rpx 20rpx 18rpx 28rpx;
+  border: 2rpx solid #dce4f2;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  min-height: 96rpx;
+}
+
+.podium-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8rpx;
+  background: #4169e1;
+}
+
+.rank-1 {
+  border-color: #f2c94c;
+  background: #fff9e6;
+}
+
+.rank-1::before {
+  background: #f2c94c;
+}
+
+.rank-2 {
+  border-color: #b8c0cc;
+  background: #f7f9fc;
+}
+
+.rank-2::before {
+  background: #b8c0cc;
+}
+
+.rank-3 {
+  border-color: #d98c5f;
+  background: #fff3ec;
+}
+
+.rank-3::before {
+  background: #d98c5f;
+}
+
+.student-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #edf1f7;
+  flex-shrink: 0;
+}
+
+.podium-body {
+  min-width: 0;
+  flex: 1;
+  margin-left: 18rpx;
+}
+
+.rank-line {
+  display: flex;
+  align-items: center;
+}
+
+.rank-crown {
+  font-size: 26rpx;
+  line-height: 1;
+  margin-right: 8rpx;
+}
+
+.rank-badge {
+  color: #4169e1;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.student-name {
+  margin-top: 6rpx;
+  color: #202938;
+  font-size: 28rpx;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-medal {
+  color: #4169e1;
+  font-size: 26rpx;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.chart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 190rpx 1fr 58rpx;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx;
+  border-radius: 14rpx;
+  background: #f8fafd;
+}
+
+.chart-row-me {
+  background: #eef3ff;
+  border: 2rpx solid #4169e1;
+}
+
+.chart-head {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.chart-rank {
+  width: 38rpx;
+  height: 38rpx;
+  border-radius: 50%;
+  background: #4169e1;
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chart-name {
+  margin-left: 10rpx;
+  color: #202938;
+  font-size: 24rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-track {
+  height: 28rpx;
+  border-radius: 999rpx;
+  background: #e5ebf5;
+  overflow: hidden;
+}
+
+.chart-bar {
+  height: 100%;
+  min-width: 10rpx;
+  border-radius: 999rpx;
+  background: #4169e1;
+}
+
+.chart-value {
+  color: #4169e1;
+  font-size: 26rpx;
+  font-weight: 800;
+  text-align: right;
+}
+
+.my-rank-title,
+.empty-title {
+  color: #202938;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.my-rank-text,
+.empty-text {
+  margin-top: 12rpx;
+  color: #596477;
+  font-size: 26rpx;
+  line-height: 1.6;
+}

@@ -1,0 +1,85 @@
+<view class="medalwall-page">
+  <view class="hero">
+    <view>
+      <view class="hero-title">勋章墙</view>
+      <view class="hero-subtitle">{{className || '未设置班级'}}</view>
+    </view>
+    <view class="hero-medal">🏅</view>
+  </view>
+
+  <view class="rank-summary">
+    <view class="summary-item primary">
+      <view class="summary-value">{{myMedalCount}}</view>
+      <view class="summary-label">我的勋章</view>
+    </view>
+    <view class="summary-item">
+      <view class="summary-value">{{myRank || '-'}}</view>
+      <view class="summary-label">我的排名</view>
+    </view>
+    <view class="summary-item">
+      <view class="summary-value">{{totalStudents}}</view>
+      <view class="summary-label">同班人数</view>
+    </view>
+  </view>
+
+  <view class="empty-card" wx:if="{{!className}}">
+    <view class="empty-title">暂未设置班级</view>
+    <view class="empty-text">完善班级信息后即可查看同班同学勋章排名。</view>
+  </view>
+
+  <view class="empty-card" wx:elif="{{topThree.length === 0}}">
+    <view class="empty-title">暂无勋章数据</view>
+    <view class="empty-text">班级同学获得勋章后会在这里展示。</view>
+  </view>
+
+  <view wx:else>
+    <view class="podium">
+      <view class="section-header">
+        <view class="section-title">班级前三名</view>
+        <view class="section-note">按勋章数量排序</view>
+      </view>
+      <view class="podium-grid">
+        <view class="podium-card rank-{{index + 1}}" wx:for="{{topThree}}" wx:key="studentaccount">
+          <image class="student-avatar" src="{{item.avatarUrl}}" mode="cover"></image>
+          <view class="podium-body">
+            <view class="rank-line">
+              <text class="rank-crown">{{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}}</text>
+              <text class="rank-badge">第{{index + 1}}名</text>
+            </view>
+            <view class="student-name">{{item.studentname || item.studentaccount}}</view>
+          </view>
+          <view class="student-medal">{{item.medalcount || 0}} 枚</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="chart-card">
+      <view class="section-header">
+        <view class="section-title">前三名勋章柱状图</view>
+        <view class="section-note">当前第一名为满格</view>
+      </view>
+      <view class="chart-list">
+        <view class="chart-row {{item.isMe ? 'chart-row-me' : ''}}" wx:for="{{chartList}}" wx:key="studentaccount">
+          <view class="chart-head">
+            <view class="chart-rank">{{item.rank}}</view>
+            <view class="chart-name">{{item.studentname || item.studentaccount}}</view>
+          </view>
+          <view class="chart-track">
+            <view class="chart-bar" style="width: {{item.barWidth}}%;"></view>
+          </view>
+          <view class="chart-value">{{item.medalcount || 0}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="my-rank-card">
+      <view class="my-rank-title">我的班级位置</view>
+      <view class="my-rank-text" wx:if="{{myRank}}">
+        你当前排在第 {{myRank}} 名，拥有 {{myMedalCount}} 枚勋章。
+      </view>
+      <view class="my-rank-text" wx:else>
+        暂未在班级排名中找到你的记录。
+      </view>
+    </view>
+  </view>
+</view>

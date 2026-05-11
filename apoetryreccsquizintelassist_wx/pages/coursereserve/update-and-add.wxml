@@ -18,9 +18,10 @@
       <com-date isShowPicker="{{showreservetime}}" bind:dateHandler="reservetimeTap"></com-date>
       <view class="item-box">
         <view class="item-label">预约教师</view>
-        <picker class="down-item-picker" bindchange="teacherChange" disabled="{{ro.teacheraccount==true}}" value="{{teacherIndex}}" range="{{teacherList}}" range-key="teachername">
+        <view wx:if="{{fromTeacherReserve}}" class="item-input">{{teachername}}</view>
+        <picker wx:else class="down-item-picker" bindchange="teacherChange" disabled="{{ro.teacheraccount==true}}" value="{{teacherIndex}}" range="{{teacherList}}" range-key="teachername">
           <view class="down-item-picker-text">
-            {{teacherIndex>=0?teacherList[teacherIndex].teachername + '(' + teacherList[teacherIndex].teacheraccount + ')':"请选择教师"}}
+            {{teacherIndex>=0?teacherList[teacherIndex].teachername + '(' + teacherList[teacherIndex].teacheraccount + ')':(teachername?teachername + '(' + teacheraccount + ')':'请选择教师')}}
           </view>
         </picker>
       </view>

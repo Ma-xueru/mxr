@@ -342,8 +342,13 @@ Page({
       url: '/pages/classpk/list',
     })
   },
+  toMedalWall() {
+    wx.navigateTo({
+      url: '/pages/medalwall/list',
+    })
+  },
   toRecitationTask() {
-    wx.switchTab({
+    wx.navigateTo({
       url: '/pages/recitationtask/list',
     })
   },

@@ -44,6 +44,7 @@ Page({
     teachername: "",
     teacherList: [],
     teacherIndex: -1,
+    fromTeacherReserve: false,
     reservestatus: '已预约',
     sfsh: '待审核',
     reservecount: "",
@@ -148,6 +149,17 @@ Page({
       }
       refobjempty['reservecount'] = 0;
       ro['reservecount'] = false;
+      if (wx.getStorageSync('crossTable') === 'teacher') {
+        refobjempty.teacheraccount = obj.teacheraccount || ''
+        refobjempty.teachername = obj.teachername || ''
+        refobjempty.reservecount = 1
+        refobjempty.fromTeacherReserve = true
+        ro.teacheraccount = true
+        const idx = this.data.teacherList.findIndex(item => item.teacheraccount === refobjempty.teacheraccount)
+        if (idx > -1) {
+          refobjempty.teacherIndex = idx
+        }
+      }
 
       let statusColumnName = wx.getStorageSync('statusColumnName');
       statusColumnName = statusColumnName.replace('[', "").replace(']', "");
@@ -159,7 +171,7 @@ Page({
       this.setData(refobjempty)
     }
 
-    if (id) {
+    if (id && wx.getStorageSync('crossTable') !== 'teacher') {
       // 如果上一级页面传递了id，获取改id数据信息
       const data = getApp().globalData.detailList
       const def_6 = "已预约";
@@ -211,13 +223,14 @@ Page({
 
     // ss读取
     let sessionReadArr = []
-    let studentaccount = getApp().globalData.userInfo.studentaccount
+    const loginUser = getApp().globalData.userInfo || {}
+    let studentaccount = loginUser.studentaccount || wx.getStorageSync('nickname') || ''
     ro.studentaccount = true
     this.setData({
       studentaccount,
     })
     sessionReadArr.push('studentaccount')
-    let studentname = getApp().globalData.userInfo.studentname
+    let studentname = loginUser.studentname || ''
     ro.studentname = true
     this.setData({
       studentname,
@@ -464,6 +477,25 @@ Page({
       reservestatus: this.data.reservestatus,
       sfsh: this.data.sfsh,
       reservecount: this.data.reservecount,
+    }
+    const isStudentCreate = wx.getStorageSync("nowTable") === 'student' && !this.data.editStatus
+    if (isStudentCreate) {
+      const res = await book('coursereserve', obj)
+      if (res.code != 0) {
+        wx.showToast({
+          title: res.msg || '预约失败',
+          icon: 'none'
+        })
+        return
+      }
+      wx.showToast({
+        title: '预约成功',
+        icon: 'none'
+      })
+      wx.navigateBack({
+        delta: 1
+      })
+      return
     }
     const detailId = getApp().globalData.detailId
     const tableName = `coursereserve`

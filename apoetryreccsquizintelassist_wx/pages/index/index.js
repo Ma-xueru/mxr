@@ -112,6 +112,11 @@ const {
           })
       }
   },
+  toAichat() {
+      wx.navigateTo({
+          url: '/pages/chat/chat',
+      })
+  },
       
   
   onSearch() {},

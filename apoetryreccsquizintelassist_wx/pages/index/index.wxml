@@ -1,19 +1,19 @@
 <view class="index-container">
     <view class="content">
         <!-- 轮播图区域 -->
-        <swiper 
-            indicator-dots="{{true}}" 
-            autoplay="{{true}}" 
-            interval="{{5000}}" 
-            duration="{{500}}" 
-            class="swiper" 
+        <swiper
+            indicator-dots="{{true}}"
+            autoplay="{{true}}"
+            interval="{{5000}}"
+            duration="{{500}}"
+            class="swiper"
             circular="{{true}}"
-            indicator-color="rgba(255,255,255,0.5)" 
+            indicator-color="rgba(255,255,255,0.5)"
             indicator-active-color="#4169e1">
             <swiper-item class="swiper-item" wx:for="{{swiperList}}" wx:if="{{index<=2}}" wx:key="index">
-                <image 
-                    src="{{item.img}}" 
-                    mode="aspectFill" 
+                <image
+                    src="{{item.img}}"
+                    mode="aspectFill"
                     class="swiper-img"
                     lazy-load="true"
                     binderror="imageErrorHandler">
@@ -32,17 +32,17 @@
                 <text class="section-more" bind:tap="toCourseList">更多</text>
             </view>
             <view class="course-list">
-                <view 
-                    class="course-item" 
-                    wx:for="{{courseList}}" 
-                    wx:key="index" 
-                    bind:tap="toCourseDetail" 
+                <view
+                    class="course-item"
+                    wx:for="{{courseList}}"
+                    wx:key="index"
+                    bind:tap="toCourseDetail"
                     data-id="{{item.id}}">
                     <view class="course-card">
                         <view class="course-cover">
-                            <image 
-                                src="{{baseURL}}{{item.picture || 'static/images/default-course.png'}}" 
-                                mode="aspectFill" 
+                            <image
+                                src="{{baseURL}}{{item.picture || 'static/images/default-course.png'}}"
+                                mode="aspectFill"
                                 class="course-image"
                                 lazy-load="true"
                                 binderror="imageErrorHandler">
@@ -71,17 +71,17 @@
                 <view class="news-title-text">公告信息</view>
                 <text class="news-title-more" bind:tap="toNewsList">更多</text>
             </view>
-            
+
             <view class="news-list-box">
-                <view 
-                    class="news-list-item" 
-                    wx:for="{{newsList}}" 
-                    bind:tap="toNewsDetail" 
-                    data-id="{{item.id}}" 
+                <view
+                    class="news-list-item"
+                    wx:for="{{newsList}}"
+                    bind:tap="toNewsDetail"
+                    data-id="{{item.id}}"
                     wx:key="index">
-                    <image   
-                        class="list-item-image" 
-                        src="{{baseURL+'/'+item.picture}}" 
+                    <image
+                        class="list-item-image"
+                        src="{{baseURL+'/'+item.picture}}"
                         mode="aspectFill"
                         lazy-load="true"
                         binderror="imageErrorHandler">
@@ -95,5 +95,12 @@
             </view>
         </view>
     </view>
+    <view class="ai-float" bindtap="toAichat">
+        <view class="ai-face">
+            <view class="ai-eye"></view>
+            <view class="ai-eye"></view>
+        </view>
+        <text class="ai-text">智能助手</text>
+    </view>
 </view>
-    
+

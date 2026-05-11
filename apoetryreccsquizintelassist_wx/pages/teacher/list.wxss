@@ -269,6 +269,14 @@ page {
   color: var(--primary-color);
 }
 
+.reserve-count {
+  padding: 0 5rpx;
+  margin-top: 8rpx;
+  color: var(--text-secondary);
+  font-size: 24rpx;
+  line-height: 36rpx;
+}
+
 .goodsList-box {
   padding: 20rpx 0;
   margin: 0;
@@ -289,6 +297,28 @@ page {
   height: auto;
   border-top: 1rpx solid var(--border-color);
   box-sizing: border-box;
+}
+
+.reserve-box {
+  border: 0;
+  padding: 8rpx 18rpx;
+  border-radius: 60rpx;
+  display: flex;
+  align-items: center;
+  background-color: var(--primary-color);
+  transition: var(--transition);
+}
+
+.reserve-box:active {
+  background-color: var(--primary-dark);
+  transform: scale(0.98);
+}
+
+.reserve-text {
+  color: var(--white);
+  font-size: 28rpx;
+  line-height: 1;
+  font-weight: 500;
 }
 
 .edit-box {
@@ -413,4 +443,4 @@ page {
   font-size: 30rpx;
   color: var(--text-secondary);
 }
-    
+

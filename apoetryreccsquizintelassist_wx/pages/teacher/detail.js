@@ -236,6 +236,33 @@ wx.setStorageSync('paytable','teacher');
     })
 },
 
+reserveTap() {
+if (!wx.getStorageSync('token')) {
+    wx.showToast({
+        title: '请先登录后再预约',
+        icon: 'none'
+    })
+    return
+}
+if (wx.getStorageSync('nowTable') !== 'student') {
+    wx.showToast({
+        title: '请使用学生账号预约',
+        icon: 'none'
+    })
+    return
+}
+wx.setStorageSync('crossTable','teacher');
+wx.setStorageSync('crossObj', this.data.detailList);
+wx.setStorageSync('statusColumnName', '');
+wx.setStorageSync('tips', '');
+wx.setStorageSync('statusColumnValue', '');
+getApp().globalData.detailId = this.data.detailList.id
+getApp().globalData.detailList = this.data.detailList
+wx.navigateTo({
+url: `/pages/coursereserve/update-and-add?cross=true`,
+})
+},
+
 
 onSHTap() {
 this.selectComponent('#bottomFrame').showFrame();

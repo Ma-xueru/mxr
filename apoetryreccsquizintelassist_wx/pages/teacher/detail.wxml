@@ -54,12 +54,9 @@
 
 </view>
 
-
-
-
-
-
-
+<view class="operate-box">
+<button class="common-btn" bindtap="reserveTap">预约教师</button>
+</view>
 
 </view>
 </view>

@@ -4,7 +4,7 @@ App({
         const tabarList=[]
         tabarList.push("course")
         tabarList.push("exampaper")
-        tabarList.push("recitationtask")
+        tabarList.push("teacher")
         tabarList.push("center")
         this.globalData.tabarList=tabarList
     },
