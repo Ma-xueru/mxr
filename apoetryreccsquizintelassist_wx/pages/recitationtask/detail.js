@@ -4,6 +4,7 @@ Page({
   data: {
     id: '',
     detailList: {},
+    aiReport: null,
     baseURL: wx.getStorageSync('baseURL') + '/'
   },
 
@@ -18,9 +19,18 @@ Page({
     if (!id) return
     const res = await detail("recitationtask", id)
     if (res.code == 0) {
-      this.setData({
-        detailList: res.data
-      })
+      const data = res.data
+      // 解析 AI 测评报告 JSON
+      let report = null
+      if (data.aiscorecomment) {
+        try {
+          const parsed = JSON.parse(data.aiscorecomment)
+          if (parsed.totalScore && parsed.dimensions) {
+            report = parsed
+          }
+        } catch (e) {}
+      }
+      this.setData({ detailList: data, aiReport: report })
     }
   }
 })

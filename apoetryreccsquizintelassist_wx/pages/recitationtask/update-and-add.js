@@ -3,193 +3,199 @@ const utils = require("../../utils/index.js")
 
 Page({
   data: {
-    editStatus: false,
-    studentaccountList: [],
-    studentaccountIndex: null,
-    studentaccount: '',
-    studentname: '',
-    tasktitle: '',
-    taskcontent: '',
-    deadline: '请选择时间',
-    showdeadline: false,
-    completionstatus: '待完成',
-    completionremark: '',
-    recitationaudio: '',
-    completiontime: '请选择时间',
-    showcompletiontime: false,
-    kaoshichengji: '',
-    teachercomment: '',
-    teacheraccount: '',
-    teachername: '',
-    releasetime: '',
-    ro: {},
-    tableName: '',
-    id: '',
-    baseURL: wx.getStorageSync('baseURL'),
-    uploadAudioName: '',
-    audioLocked: false
+    id: '', tableName: '', editStatus: false,
+    studentaccount: '', studentname: '', tasktitle: '', taskcontent: '',
+    deadline: '请选择时间', showdeadline: false,
+    completionstatus: '待完成', completionremark: '',
+    recitationaudio: '', completiontime: '', kaoshichengji: '',
+    teachercomment: '', teacheraccount: '', teachername: '', releasetime: '',
+    studentaccountList: [], studentaccountIndex: null,
+    coursetitles: '', courseids: '',
+    baseURL: wx.getStorageSync('baseURL'), audioLocked: false,
+    // state machine: idle | recording | preview | uploading | done
+    state: 'idle', recordTime: 0, recordTimeDisplay: '00:00', recordTimer: null,
+    localAudioPath: '',
+    isPlaying: false, playProgress: 0, currentTimeDisplay: '00:00', durationDisplay: '00:00', playTimer: null
   },
 
+  recorder: null, audioCtx: null,
+
   async onLoad(options) {
-    if (options?.id) {
-      this.setData({ editStatus: true, id: options.id })
-    }
     const nowTable = wx.getStorageSync("nowTable")
-    const sessionRes = await session(nowTable)
-    const studentRes = await option('student/studentaccount')
-    const studentList = ['请选择学生账号'].concat(studentRes.data || [])
-    const baseData = {
+    const [sessRes, stuRes] = await Promise.all([session(nowTable), option('student/studentaccount')])
+    const stuList = ['请选择学生账号'].concat(stuRes.data || [])
+
+    const d = {
       tableName: nowTable,
-      studentaccountList: studentList,
-      teacheraccount: sessionRes.data.teacheraccount || '',
-      teachername: sessionRes.data.teachername || '',
+      studentaccountList: stuList,
+      teacheraccount: sessRes.data.teacheraccount || '',
+      teachername: sessRes.data.teachername || '',
       releasetime: utils.getCurrentDate("yMDhms")
     }
     if (nowTable === 'student') {
-      baseData.studentaccount = sessionRes.data.studentaccount || ''
-      baseData.studentname = sessionRes.data.studentname || ''
-      baseData.ro = { studentaccount: true, studentname: true, teacheraccount: true, teachername: true, tasktitle: true, taskcontent: true, deadline: true, completionstatus: true, kaoshichengji: true, teachercomment: true }
-    } else {
-      baseData.ro = { teacheraccount: true, teachername: true }
+      d.studentaccount = sessRes.data.studentaccount || ''
+      d.studentname = sessRes.data.studentname || ''
     }
-    this.setData(baseData)
-
     if (options?.id) {
-      const detailRes = await info('recitationtask', options.id)
-      const detailData = detailRes.data
-      const idx = studentList.findIndex(item => item === detailData.studentaccount)
-      this.setData({
-        studentaccountIndex: idx > -1 ? idx : null,
-        studentaccount: detailData.studentaccount || '',
-        studentname: detailData.studentname || '',
-        tasktitle: detailData.tasktitle || '',
-        taskcontent: detailData.taskcontent || '',
-        deadline: detailData.deadline || '请选择时间',
-        completionstatus: detailData.completionstatus || '待完成',
-        completionremark: detailData.completionremark || '',
-        recitationaudio: detailData.recitationaudio || '',
-        completiontime: detailData.completiontime || '请选择时间',
-        kaoshichengji: detailData.kaoshichengji || '',
-        teachercomment: detailData.teachercomment || '',
-        teacheraccount: detailData.teacheraccount || this.data.teacheraccount,
-        teachername: detailData.teachername || this.data.teachername,
-        releasetime: detailData.releasetime || this.data.releasetime,
-        uploadAudioName: detailData.recitationaudio ? detailData.recitationaudio.split('/').pop() : '',
-        audioLocked: nowTable === 'student' && !!detailData.kaoshichengji
+      d.editStatus = true; d.id = options.id
+      const res = await info('recitationtask', options.id)
+      const dt = res.data
+      Object.assign(d, {
+        studentaccount: dt.studentaccount || d.studentaccount,
+        studentname: dt.studentname || d.studentname,
+        tasktitle: dt.tasktitle || '',
+        taskcontent: dt.taskcontent || '',
+        deadline: dt.deadline || '请选择时间',
+        completionstatus: dt.completionstatus || '待完成',
+        completionremark: dt.completionremark || '',
+        recitationaudio: dt.recitationaudio || '',
+        completiontime: dt.completiontime || '',
+        kaoshichengji: dt.kaoshichengji || '',
+        teachercomment: dt.teachercomment || '',
+        teacheraccount: dt.teacheraccount || d.teacheraccount,
+        teachername: dt.teachername || d.teachername,
+        coursetitles: dt.coursetitles || '',
+        courseids: dt.courseids || '',
+        releasetime: dt.releasetime || d.releasetime,
+        audioLocked: nowTable === 'student' && !!dt.kaoshichengji,
+        state: dt.recitationaudio ? 'done' : 'idle'
       })
+      const idx = stuList.findIndex(item => item === dt.studentaccount)
+      if (idx > -1) d.studentaccountIndex = idx
     }
+    this.setData(d)
   },
 
-  async studentaccountChange(e) {
-    const selectedIndex = e.detail.value
-    const studentaccount = this.data.studentaccountList[selectedIndex]
-    this.setData({
-      studentaccountIndex: selectedIndex,
-      studentaccount
+  onUnload() { this.cleanup() },
+
+  cleanup() {
+    clearInterval(this.data.recordTimer); clearInterval(this.data.playTimer)
+    if (this.audioCtx) { try { this.audioCtx.destroy() } catch(e) {}; this.audioCtx = null }
+    if (this.recorder) { try { this.recorder.stop() } catch(e) {}; this.recorder = null }
+  },
+
+  // ====== 录音 ======
+  startRecord() {
+    if (this.data.audioLocked) return wx.showToast({ title: '已评分不可重录', icon: 'none' })
+    this.cleanup()
+    const rec = wx.getRecorderManager(); this.recorder = rec
+    rec.onStart(() => {
+      this.setData({ state: 'recording', recordTime: 0, recordTimeDisplay: '00:00' })
+      this.data.recordTimer = setInterval(() => {
+        const t = this.data.recordTime + 1
+        this.setData({ recordTime: t, recordTimeDisplay: fmtTime(t) })
+      }, 1000)
     })
-    const res = await follow('student/studentaccount', studentaccount)
-    if (res.data.studentname) {
-      this.setData({ studentname: res.data.studentname })
-    }
+    rec.onStop((res) => {
+      clearInterval(this.data.recordTimer)
+      if (res.tempFilePath) {
+        this.setData({ localAudioPath: res.tempFilePath, state: 'preview' })
+        this.upload(res.tempFilePath)
+      } else {
+        this.setData({ state: 'idle' })
+      }
+    })
+    rec.onError(() => { clearInterval(this.data.recordTimer); this.setData({ state: 'idle' }) })
+    rec.start({ duration: 180000, sampleRate: 16000, numberOfChannels: 1, encodeBitRate: 48000, format: 'aac' })
   },
 
+  stopRecord() { if (this.recorder) { try { this.recorder.stop() } catch(e) {} } },
+
+  upload(filePath) {
+    this.setData({ state: 'uploading' })
+    const prefix = this.data.studentname || this.data.studentaccount || 'unknown'
+    wx.uploadFile({
+      url: `${this.data.baseURL}/file/upload`,
+      filePath, name: 'file',
+      formData: { prefix },
+      header: { Token: wx.getStorageSync('token') },
+      success: (res) => {
+        try {
+          const r = JSON.parse(res.data || '{}')
+          if (r.code === 0 || r.code === 200) {
+            this.setData({ recitationaudio: r.file || r.data?.filePath || r.data, state: 'done' })
+            return
+          }
+        } catch(e) {}
+        this.setData({ state: 'preview' })
+      },
+      fail: () => { this.setData({ state: 'preview' }) }
+    })
+  },
+
+  // ====== 播放 ======
+  togglePlay() { this.data.isPlaying ? this.pauseAudio() : this.playAudio() },
+
+  playAudio() {
+    const src = this.data.localAudioPath || (this.data.recitationaudio ? `${this.data.baseURL}/${this.data.recitationaudio}` : '')
+    if (!src) return
+    this.stopAudio()
+    const ctx = wx.createInnerAudioContext(); this.audioCtx = ctx
+    ctx.src = src; ctx.autoplay = true
+    ctx.onPlay(() => {
+      this.setData({ isPlaying: true })
+      this.data.playTimer = setInterval(() => {
+        const cur = ctx.currentTime || 0, dur = ctx.duration || 0.01
+        this.setData({
+          playProgress: Math.min(100, (cur / dur) * 100),
+          currentTimeDisplay: fmtTime(cur),
+          durationDisplay: fmtTime(dur)
+        })
+      }, 200)
+    })
+    ctx.onEnded(() => { this.stopAudio(); this.setData({ playProgress: 0, currentTimeDisplay: '00:00' }) })
+    ctx.onStop(() => { this.stopAudio() })
+    ctx.onError(() => { this.stopAudio() })
+  },
+
+  pauseAudio() { if (this.audioCtx) { try { this.audioCtx.pause() } catch(e) {} } clearInterval(this.data.playTimer); this.setData({ isPlaying: false }) },
+
+  stopAudio() { clearInterval(this.data.playTimer); this.setData({ isPlaying: false }); if (this.audioCtx) { try { this.audioCtx.destroy() } catch(e) {}; this.audioCtx = null } },
+
+  // ====== 表单 ======
+  studentaccountChange(e) {
+    const idx = e.detail.value; const acc = this.data.studentaccountList[idx]
+    this.setData({ studentaccountIndex: idx, studentaccount: acc })
+    follow('student/studentaccount', acc).then(r => { if (r.data?.studentname) this.setData({ studentname: r.data.studentname }) })
+  },
   tasktitleInput(e) { this.setData({ tasktitle: e.detail.value }) },
   taskcontentInput(e) { this.setData({ taskcontent: e.detail.value }) },
   completionremarkInput(e) { this.setData({ completionremark: e.detail.value }) },
-  kaoshichengjiInput(e) { this.setData({ kaoshichengji: e.detail.value }) },
-  teachercommentInput(e) { this.setData({ teachercomment: e.detail.value }) },
-
-  completionstatusChange(e) {
-    this.setData({ completionstatus: e.detail.value })
-  },
-
+  completionstatusChange(e) { this.setData({ completionstatus: e.detail.value }) },
   ondeadlineTap() { this.setData({ showdeadline: true }) },
   deadlineTap(e) { this.setData({ deadline: e.detail.data }) },
-  oncompletiontimeTap() { this.setData({ showcompletiontime: true }) },
-  completiontimeTap(e) { this.setData({ completiontime: e.detail.data }) },
-  uploadAudio() {
-    if (this.data.audioLocked) {
-      wx.showToast({ title: '该任务已评分，不能重新上传音频', icon: 'none' })
-      return
-    }
-    wx.chooseMessageFile({
-      count: 1,
-      type: 'file',
-      extension: ['mp3', 'wav', 'm4a', 'aac'],
-      success: (res) => {
-        const file = res.tempFiles[0]
-        wx.showLoading({ title: '上传中...' })
-        wx.uploadFile({
-          url: `${this.data.baseURL}/file/upload`,
-          filePath: file.path,
-          name: 'file',
-          header: {
-            Token: wx.getStorageSync('token')
-          },
-          success: (uploadRes) => {
-            const result = JSON.parse(uploadRes.data || '{}')
-            if (result.code === 0 || result.code === 200) {
-              this.setData({
-                recitationaudio: result.file || result.data?.filePath || result.data,
-                uploadAudioName: file.name || (result.file || result.data?.filePath || '').split('/').pop()
-              })
-              wx.showToast({ title: '音频上传成功', icon: 'none' })
-            } else {
-              wx.showToast({ title: result.msg || '上传失败', icon: 'none' })
-            }
-          },
-          fail: () => {
-            wx.showToast({ title: '上传失败', icon: 'none' })
-          },
-          complete: () => {
-            wx.hideLoading()
-          }
-        })
-      }
-    })
-  },
 
   async submit() {
-    if (!this.data.studentaccount || this.data.studentaccount === '请选择学生账号') return wx.showToast({ icon: 'none', title: '学生账号不能为空' })
-    if (!this.data.studentname) return wx.showToast({ icon: 'none', title: '学生姓名不能为空' })
-
+    if (!this.data.studentaccount) return wx.showToast({ icon: 'none', title: '学生不能为空' })
+    const isTeacher = this.data.tableName === 'teacher'
     const obj = {
-      studentaccount: this.data.studentaccount,
-      studentname: this.data.studentname,
-      tasktitle: this.data.tasktitle,
-      taskcontent: this.data.taskcontent,
+      studentaccount: this.data.studentaccount, studentname: this.data.studentname,
+      tasktitle: this.data.tasktitle, taskcontent: this.data.taskcontent,
       deadline: this.data.deadline.includes('请选择') ? '' : this.data.deadline,
       completionstatus: this.data.completionstatus,
       completionremark: this.data.completionremark,
       recitationaudio: this.data.recitationaudio,
       completiontime: this.data.completiontime.includes('请选择') ? '' : this.data.completiontime,
-      kaoshichengji: this.data.kaoshichengji,
-      teachercomment: this.data.teachercomment,
-      teacheraccount: this.data.teacheraccount,
-      teachername: this.data.teachername,
+      teacheraccount: this.data.teacheraccount, teachername: this.data.teachername,
       releasetime: this.data.releasetime
     }
-
-    if (this.data.tableName === 'teacher') {
-      if (!obj.tasktitle) return wx.showToast({ icon: 'none', title: '任务标题不能为空' })
-      if (!obj.taskcontent) return wx.showToast({ icon: 'none', title: '任务要求不能为空' })
+    if (isTeacher) {
+      if (!obj.tasktitle) return wx.showToast({ icon: 'none', title: '标题不能为空' })
       if (!obj.deadline) return wx.showToast({ icon: 'none', title: '截止日期不能为空' })
     } else {
-      if (this.data.audioLocked) return wx.showToast({ icon: 'none', title: '该任务已评分，不能重新提交音频' })
+      if (!obj.recitationaudio) return wx.showToast({ icon: 'none', title: '请先录音' })
       obj.completionstatus = '已完成'
       obj.completiontime = utils.getCurrentDate("yMDhms")
-      if (!obj.completionremark) return wx.showToast({ icon: 'none', title: '完成说明不能为空' })
-      if (!obj.recitationaudio) return wx.showToast({ icon: 'none', title: '请先上传背诵音频' })
     }
-
-    if (this.data.editStatus) {
-      obj.id = this.data.id || getApp().globalData.detailId
-      await update('recitationtask', obj)
-    } else {
-      await add('recitationtask', obj)
-    }
-
-    wx.showToast({ title: '提交成功', icon: 'none' })
-    wx.navigateBack({ delta: 1 })
+    obj.id = this.data.id || undefined
+    if (this.data.editStatus && obj.id) { await update('recitationtask', obj) }
+    else { await add('recitationtask', obj) }
+    wx.showToast({ title: '提交成功', icon: 'success' })
+    setTimeout(() => wx.navigateBack({ delta: 1 }), 1000)
   }
 })
+
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60), s = Math.floor(sec % 60)
+  return `${m<10?'0'+m:m}:${s<10?'0'+s:s}`
+}

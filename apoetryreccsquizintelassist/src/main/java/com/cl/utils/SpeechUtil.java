@@ -22,23 +22,32 @@ public class SpeechUtil {
 
     public static String speechToText(File audioFile) {
         if (audioFile == null || !audioFile.exists()) {
+            System.out.println("[BaiduSpeech] File not found: " + (audioFile != null ? audioFile.getAbsolutePath() : "null"));
             return "";
         }
+        System.out.println("[BaiduSpeech] Processing: " + audioFile.getAbsolutePath() + " size=" + audioFile.length());
         try {
             String format = getFormat(audioFile.getName());
+            System.out.println("[BaiduSpeech] Format: " + format);
             HashMap<String, Object> options = new HashMap<String, Object>();
             options.put("dev_pid", 1537);
             JSONObject result = getSpeechClient().asr(audioFile.getAbsolutePath(), format, 16000, options);
-            if (result == null) {
+            System.out.println("[BaiduSpeech] Result: " + (result != null ? result.toString() : "null"));
+            if (result == null) return "";
+            if (result.has("err_no") && result.getInt("err_no") != 0) {
+                System.out.println("[BaiduSpeech] Error: " + result.optString("err_msg", ""));
                 return "";
             }
             if (result.has("result")) {
                 JSONArray array = result.getJSONArray("result");
                 if (array.length() > 0) {
-                    return array.getString(0).trim();
+                    String text = array.getString(0).trim();
+                    System.out.println("[BaiduSpeech] Recognized: " + text);
+                    return text;
                 }
             }
         } catch (Exception e) {
+            System.out.println("[BaiduSpeech] Exception: " + e.getMessage());
             e.printStackTrace();
         }
         return "";

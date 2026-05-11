@@ -24,7 +24,7 @@ spring:
         max-file-size: 300MB
         max-request-size: 300MB
     resources:
-      static-locations: classpath:static/,file:static/
+      static-locations: classpath:static/,file:static/,file:file/
 
 #mybatis
 mybatis-plus:

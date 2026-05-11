@@ -10,8 +10,16 @@ import java.util.List;
 
 public class AIUitl {
 
-    private static final String API_KEY = "34eb5f5a-bee1-488f-a9b2-e31d7420fd77";
-    private static final String MODEL = "ep-20250126163455-8xrmx";
+    private static String API_KEY = "";
+    private static String MODEL = "";
+    static {
+        try {
+            java.util.Properties props = new java.util.Properties();
+            props.load(AIUitl.class.getClassLoader().getResourceAsStream("asr.properties"));
+            API_KEY = props.getProperty("ark.api.key", "");
+            MODEL = props.getProperty("ark.model", "doubao-seed-1-8-251228");
+        } catch (Exception e) { e.printStackTrace(); }
+    }
 
     public static String getResponse(String question) {
         ArkService service = new ArkService(API_KEY);

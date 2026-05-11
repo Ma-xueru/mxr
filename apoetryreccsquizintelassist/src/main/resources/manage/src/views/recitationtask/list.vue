@@ -130,7 +130,7 @@
 				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="tasktitle" label="任务标题"><template #default="scope">{{scope.row.tasktitle}}</template></el-table-column>
 				<el-table-column :resizable='true' align="left" header-align="left" prop="recitationaudio" label="背诵音频"><template #default="scope">{{scope.row.recitationaudio ? '已上传' : '未上传'}}</template></el-table-column>
 				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="completionstatus" label="完成状态"><template #default="scope">{{scope.row.completionstatus}}</template></el-table-column>
-				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="kaoshichengji" label="背诵得分"><template #default="scope">{{scope.row.kaoshichengji || '待评分'}}</template></el-table-column>
+				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="kaoshichengji" label="背诵得分"><template #default="scope">{{scope.row.kaoshichengji || '待评分'}}<el-tag v-if="scope.row.aiscorecomment && scope.row.aiscorecomment.startsWith('{')" size="small" type="success" effect="plain" style="margin-left:6px">AI</el-tag></template></el-table-column>
 				<el-table-column :resizable='true' align="left" header-align="left" prop="recognizedtext" label="识别文本" min-width="220"><template #default="scope">{{scope.row.recognizedtext || '未识别'}}</template></el-table-column>
 				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="deadline" label="截止日期"><template #default="scope">{{scope.row.deadline}}</template></el-table-column>
 				<el-table-column label="操作" width="320" :resizable='true' :sortable='true' align="left" header-align="left">

@@ -60,7 +60,32 @@
 								<el-input class="list_inp" v-model="form.recognizedtext" type="textarea" readonly />
 							</el-form-item>
 						</el-col>
-						<el-col :span="24">
+						<el-col :span="24" v-if="parsedAiReview">
+							<el-form-item label="AI多维度评审">
+								<div class="ai_review_panel">
+									<div class="radar_section">
+										<div ref="radarChartRef" class="radar_chart"></div>
+									</div>
+									<div class="detail_section">
+										<div class="dimension_card" v-for="(dim, idx) in parsedAiReview.dimensions" :key="idx">
+											<div class="dim_header">
+												<span class="dim_name">{{ dim.name }}</span>
+												<span class="dim_weight">权重 {{ dim.weight }}%</span>
+												<span class="dim_score">{{ dim.score }}分</span>
+											</div>
+											<el-progress :percentage="dim.score" :color="progressColor(dim.score)" :stroke-width="8" />
+											<div class="dim_comment">{{ dim.comment }}</div>
+											<div class="dim_encourage">{{ dim.encourage }}</div>
+										</div>
+										<div class="overall_comment" v-if="parsedAiReview.overallComment">
+											<div class="overall_label">总体评价</div>
+											<div class="overall_text">{{ parsedAiReview.overallComment }}</div>
+										</div>
+									</div>
+								</div>
+							</el-form-item>
+						</el-col>
+						<el-col :span="24" v-else>
 							<el-form-item label="AI初评">
 								<el-input class="list_inp" v-model="form.aiscorecomment" type="textarea" readonly />
 							</el-form-item>
@@ -226,7 +251,32 @@
 							<el-input class="list_inp" v-model="form.recognizedtext" type="textarea" :readonly="true" />
 						</el-form-item>
 					</el-col>
-					<el-col :span="24">
+					<el-col :span="24" v-if="parsedAiReview">
+						<el-form-item label="AI多维度评审">
+							<div class="ai_review_panel">
+								<div class="radar_section">
+									<div ref="radarChartRef" class="radar_chart"></div>
+								</div>
+								<div class="detail_section">
+									<div class="dimension_card" v-for="(dim, idx) in parsedAiReview.dimensions" :key="idx">
+										<div class="dim_header">
+											<span class="dim_name">{{ dim.name }}</span>
+											<span class="dim_weight">权重 {{ dim.weight }}%</span>
+											<span class="dim_score">{{ dim.score }}分</span>
+										</div>
+										<el-progress :percentage="dim.score" :color="progressColor(dim.score)" :stroke-width="8" />
+										<div class="dim_comment">{{ dim.comment }}</div>
+										<div class="dim_encourage">{{ dim.encourage }}</div>
+									</div>
+									<div class="overall_comment" v-if="parsedAiReview.overallComment">
+										<div class="overall_label">总体评价</div>
+										<div class="overall_text">{{ parsedAiReview.overallComment }}</div>
+									</div>
+								</div>
+							</div>
+						</el-form-item>
+					</el-col>
+					<el-col :span="24" v-else>
 						<el-form-item label="AI初评">
 							<el-input class="list_inp" v-model="form.aiscorecomment" type="textarea" :readonly="true" />
 						</el-form-item>
@@ -249,9 +299,10 @@
 	</div>
 </template>
 <script setup>
-import { ref, computed, getCurrentInstance, defineEmits, defineExpose } from 'vue'
+import { ref, computed, watch, nextTick, onBeforeUnmount, inject, getCurrentInstance, defineEmits, defineExpose } from 'vue'
 import axios from 'axios'
 const context = getCurrentInstance()?.appContext.config.globalProperties;
+const echarts = inject('echarts');
 const emit = defineEmits(['formModelChange'])
 const tableName = 'recitationtask'
 const formName = '背诵任务'
@@ -290,6 +341,63 @@ const rules = ref({
 	taskcontent:[{required:true,message:'请输入',trigger:'blur'}],
 	kaoshichengji:[{validator:validateIntNumber,trigger:'blur'}]
 })
+const radarChartRef = ref(null)
+const radarChart = ref(null)
+
+const parsedAiReview = computed(() => {
+	try {
+		const raw = form.value.aiscorecomment
+		if (!raw || typeof raw !== 'string') return null
+		const parsed = JSON.parse(raw)
+		if (typeof parsed.totalScore === 'number' && Array.isArray(parsed.dimensions)) {
+			return parsed
+		}
+		return null
+	} catch (e) {
+		return null
+	}
+})
+
+const progressColor = (score) => {
+	if (score >= 85) return '#6fc47d'
+	if (score >= 70) return '#e7ba63'
+	return '#e88a6e'
+}
+
+const renderRadarChart = () => {
+	nextTick(() => {
+		if (!radarChartRef.value || !parsedAiReview.value || !echarts) return
+		if (!radarChart.value) {
+			radarChart.value = echarts.init(radarChartRef.value, 'macarons')
+		}
+		const dims = parsedAiReview.value.dimensions
+		radarChart.value.setOption({
+			radar: {
+				center: ['50%', '50%'],
+				radius: '65%',
+				indicator: dims.map(d => ({ name: `${d.name}\n${d.score}分`, max: 100 })),
+				axisName: { color: '#5b503f', fontSize: 12, borderRadius: 3, padding: [3, 5] }
+			},
+			series: [{
+				type: 'radar',
+				data: [{ value: dims.map(d => d.score), name: '背诵评分', areaStyle: { color: 'rgba(109, 190, 114, 0.2)' }, lineStyle: { color: '#6fc47d', width: 2 }, itemStyle: { color: '#6fc47d' } }]
+			}]
+		})
+		window.addEventListener('resize', resizeChart)
+	})
+}
+
+watch(parsedAiReview, (val) => { if (val) renderRadarChart() })
+
+const resizeChart = () => {
+	radarChart.value && radarChart.value.resize()
+}
+
+onBeforeUnmount(() => {
+	window.removeEventListener('resize', resizeChart)
+	radarChart.value && radarChart.value.dispose()
+})
+
 const resetForm = () => {
 	form.value = { studentaccount:'', studentname:'', courseids:'', coursetitles:'', tasktitle:'', taskcontent:'', deadline:'', completionstatus:'待完成', completionremark:'', recitationaudio:'', completiontime:'', kaoshichengji:'', recognizedtext:'', aiscorecomment:'', teachercomment:'', teacheraccount:'', teachername:'', releasetime:'' }
 	disabledForm.value = { studentaccount:false, studentname:false, tasktitle:false, taskcontent:false, deadline:false, completionstatus:false, completionremark:false, completiontime:false, kaoshichengji:false, recognizedtext:true, aiscorecomment:true, teachercomment:false, teacheraccount:false, teachername:false, releasetime:false }
@@ -732,10 +840,68 @@ const save = () => {
 	transform: translateY(-1px);
 }
 
+.ai_review_panel {
+	display: grid;
+	grid-template-columns: 280px 1fr;
+	gap: 20px;
+	width: 100%;
+}
+.radar_section {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(180deg, #fffdfa 0%, #fefefb 100%);
+	border-radius: 20px;
+	border: 1px solid #efe5cd;
+	padding: 12px;
+}
+.radar_chart {
+	width: 260px;
+	height: 260px;
+}
+.detail_section {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+.dimension_card {
+	padding: 14px 18px;
+	border-radius: 16px;
+	background: linear-gradient(180deg, #fffdfa 0%, #ffffff 100%);
+	border: 1px solid #ece3d3;
+}
+.dim_header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+.dim_name { font-weight: 700; color: #3f3424; }
+.dim_weight { font-size: 12px; color: #9a8d73; }
+.dim_score { margin-left: auto; font-weight: 700; color: #6fc47d; font-size: 18px; }
+.dim_comment { margin-top: 10px; color: #5b503f; font-size: 13px; line-height: 1.8; }
+.dim_encourage { margin-top: 6px; color: #e7a63c; font-size: 13px; font-weight: 600; }
+.overall_comment {
+	margin-top: 4px;
+	padding: 14px 18px;
+	border-radius: 16px;
+	background: linear-gradient(135deg, rgba(255,248,226,0.95) 0%, rgba(245,252,247,0.96) 100%);
+	border: 1px solid rgba(225,196,129,0.45);
+}
+.overall_label { color: #7b5b17; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.overall_text { color: #5b503f; font-size: 14px; line-height: 1.8; }
+
 @media (max-width: 1200px) {
 	.formModel_form :deep(.el-col) {
 		max-width: 100%;
 		flex: 0 0 100%;
+	}
+	.ai_review_panel {
+		grid-template-columns: 1fr;
+	}
+	.radar_section {
+		max-width: 320px;
+		margin: 0 auto;
 	}
 }
 </style>

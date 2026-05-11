@@ -47,7 +47,8 @@ public class FileController{
 	 */
 	@RequestMapping("/upload")
     @IgnoreAuth
-	public R upload(@RequestParam("file") MultipartFile file,String type) throws Exception {
+	public R upload(@RequestParam("file") MultipartFile file,String type,
+			@RequestParam(value = "prefix", required = false) String prefix) throws Exception {
 		if (file.isEmpty()) {
 			throw new EIException("上传文件不能为空");
 		}
@@ -60,19 +61,28 @@ public class FileController{
 		if(!upload.exists()) {
 		    upload.mkdirs();
 		}
-		String fileName = new Date().getTime()+"."+fileExt;
+		String prefixPart = (prefix != null && !prefix.trim().isEmpty()) ? prefix.trim() + "_" : "";
+		String fileName = prefixPart + new Date().getTime()+"."+fileExt;
         if(StringUtils.isNotBlank(type) && type.contains("_template")) {
             fileName = type + "."+fileExt;
             new File(upload.getAbsolutePath()+"/"+fileName).deleteOnExit();
         }
 		File dest = new File(upload.getAbsolutePath()+"/"+fileName);
 		file.transferTo(dest);
-		/**
-  		 * 如果使用idea或者eclipse重启项目，发现之前上传的图片或者文件丢失，将下面一行代码注释打开
-   		 * 请将以下的"D:\\cl123456\\src\\main\\resources\\static\\file"替换成你本地项目的upload路径，
- 		 * 并且项目路径不能存在中文、空格等特殊字符
- 		 */
-//		FileUtils.copyFile(dest, new File("D:\\cl123456\\src\\main\\resources\\static\\file"+"/"+fileName)); /**修改了路径以后请将该行最前面的//注释去掉**/
+		// 持久化到源码目录，防止重启丢失
+		try {
+			File srcUpload = new File(ResourceUtils.getURL("classpath:static").getPath());
+			if(!srcUpload.exists()) {
+				srcUpload = new File("src/main/resources/static");
+			}
+			File srcFileDir = new File(srcUpload.getAbsolutePath(),"/file/");
+			if(!srcFileDir.exists()) {
+				srcFileDir.mkdirs();
+			}
+			FileUtils.copyFile(dest, new File(srcFileDir.getAbsolutePath()+"/"+fileName));
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		if(StringUtils.isNotBlank(type) && type.equals("1")) {
 			ConfigEntity configEntity = configService.selectOne(new EntityWrapper<ConfigEntity>().eq("name", "faceFile"));
 			if(configEntity==null) {

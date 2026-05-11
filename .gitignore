@@ -25,3 +25,13 @@ Thumbs.db
 # Runtime uploads and local config
 **/static/upload/
 **/project.private.config.json
+
+# 上传的音频文件
+apoetryreccsquizintelassist/file/
+apoetryreccsquizintelassist/src/main/resources/static/file/*.mp3
+apoetryreccsquizintelassist/src/main/resources/static/file/*.wav
+apoetryreccsquizintelassist/src/main/resources/static/file/*.aac
+apoetryreccsquizintelassist/src/main/resources/manage/node_modules/
+apoetryreccsquizintelassist/src/main/resources/manage/dist/
+apoetryreccsquizintelassist/target/
+apoetryreccsquizintelassist/src/main/resources/asr.properties

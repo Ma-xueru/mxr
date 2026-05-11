@@ -1,86 +1,73 @@
-<view class="update-container">
+<view class="page">
   <view class="content">
-    <view class="header-card">
-      <view class="header-title">{{tableName=='teacher' ? (editStatus ? '编辑背诵任务' : '发布背诵任务') : '完成背诵任务'}}</view>
-      <view class="header-desc">{{tableName=='teacher' ? '给学生布置清晰的背诵目标和截止时间' : '上传背诵音频并填写说明后提交给老师评分'}}</view>
+    <!-- 标题区 -->
+    <view class="card hero">
+      <view class="hero-badge">{{tableName=='teacher' ? '发布任务' : '我的背诵'}}</view>
+      <view class="hero-title">{{tableName=='teacher' ? '给学生布置背诵任务' : tasktitle || '背诵任务'}}</view>
+      <view class="hero-desc" wx:if="{{tableName=='student'}}">{{taskcontent || '请按老师要求完成背诵'}}</view>
     </view>
 
-    <view class="form-box">
-      <view class="item-box">
-        <view class="item-label">学生账号</view>
-        <picker class="down-item-picker" bindchange="studentaccountChange" value="{{studentaccountIndex}}" range="{{studentaccountList}}" disabled="{{tableName=='student'}}">
-          <view class="down-item-picker-text">{{studentaccountIndex||studentaccountIndex==0?studentaccountList[studentaccountIndex]:"请选择学生账号"}}</view>
+    <!-- 教师端表单 -->
+    <view class="card form-card" wx:if="{{tableName=='teacher'}}">
+      <view class="section-title">任务信息</view>
+      <view class="f-item"><view class="f-label">学生账号</view>
+        <picker bindchange="studentaccountChange" value="{{studentaccountIndex}}" range="{{studentaccountList}}">
+          <view class="picker-val">{{studentaccountList[studentaccountIndex]||'请选择'}}</view>
         </picker>
       </view>
-
-      <view class="item-box">
-        <view class="item-label">学生姓名</view>
-        <input class="item-input" disabled value="{{studentname}}" placeholder="学生姓名" />
-      </view>
-
-      <view class="item-box">
-        <view class="item-label">任务标题</view>
-        <input class="item-input" disabled="{{tableName=='student'}}" value="{{tasktitle}}" bindinput="tasktitleInput" placeholder="例如：背诵《静夜思》" />
-      </view>
-
-      <view class="item-box textarea-box">
-        <view class="item-label">任务要求</view>
-        <textarea class="item-textarea" disabled="{{tableName=='student'}}" value="{{taskcontent}}" bindinput="taskcontentInput" placeholder="请输入任务要求"></textarea>
-      </view>
-
-      <view class="item-box">
-        <view class="item-label">截止日期</view>
-        <view class="down-item-picker" bindtap="ondeadlineTap">
-          <view class="down-item-picker-text">{{deadline}}</view>
-        </view>
-      </view>
+      <view class="f-item"><view class="f-label">学生姓名</view><input class="f-input" value="{{studentname}}" disabled placeholder="自动填入" /></view>
+      <view class="f-item"><view class="f-label">任务标题</view><input class="f-input" value="{{tasktitle}}" bindinput="tasktitleInput" placeholder="如：背诵《静夜思》" /></view>
+      <view class="f-item"><view class="f-label">任务要求</view><textarea class="f-textarea" value="{{taskcontent}}" bindinput="taskcontentInput" placeholder="描述背诵内容、要求等" /></view>
+      <view class="f-item"><view class="f-label">截止日期</view><view class="picker-val" bindtap="ondeadlineTap">{{deadline}}</view></view>
       <com-date isShowPicker="{{showdeadline}}" bind:dateHandler="deadlineTap"></com-date>
+    </view>
 
-      <view class="item-box">
-        <view class="item-label">完成状态</view>
-        <picker class="down-item-picker" bindchange="completionstatusChange" value="{{completionstatus}}" range="{{['待完成','已完成']}}" disabled="{{tableName=='student'}}">
-          <view class="down-item-picker-text">{{completionstatus}}</view>
-        </picker>
+    <!-- 学生端：录音区 -->
+    <view class="card record-card" wx:if="{{tableName=='student' && !audioLocked}}">
+      <view class="section-title">我的录音</view>
+      <!-- 无录音 -->
+      <view class="state-idle" wx:if="{{state=='idle'}}">
+        <button class="btn-record" bindtap="startRecord">🎤 开始录音</button>
+        <text class="hint">点一下，开始背诵吧</text>
       </view>
-
-      <view class="item-box textarea-box">
-        <view class="item-label">完成说明</view>
-        <textarea class="item-textarea" value="{{completionremark}}" bindinput="completionremarkInput" placeholder="请输入完成说明"></textarea>
+      <!-- 录音中 -->
+      <view class="state-recording" wx:if="{{state=='recording'}}">
+        <view class="rec-indicator"><view class="rec-dot"></view><text class="rec-time">{{recordTimeDisplay}}</text></view>
+        <button class="btn-stop" bindtap="stopRecord">停止录音</button>
       </view>
-
-      <view class="item-box audio-box">
-        <view class="item-label">背诵音频</view>
-        <view class="audio-content">
-          <button class="audio-upload-btn" bindtap="uploadAudio" wx:if="{{tableName=='student' && !audioLocked}}">{{recitationaudio ? '重新上传音频' : '上传音频'}}</button>
-          <view class="audio-lock-tip" wx:if="{{tableName=='student' && audioLocked}}">该任务已评分，不能重新上传音频</view>
-          <view class="audio-file-name">{{uploadAudioName || '暂未上传音频'}}</view>
-          <audio wx:if="{{recitationaudio}}" class="audio-player" src="{{baseURL}}/{{recitationaudio}}" controls></audio>
+      <!-- 有音频：预览/上传中/已上传 -->
+      <view class="state-has-audio" wx:if="{{state=='preview'||state=='uploading'||state=='done'}}">
+        <view class="player">
+          <view class="player-btn {{isPlaying?'playing':''}}" bindtap="togglePlay">{{isPlaying ? '⏸' : '▶'}}</view>
+          <view class="player-bar"><view class="player-fill" style="width:{{playProgress}}%"></view></view>
+          <text class="player-time">{{currentTimeDisplay}}</text>
         </view>
+        <view class="audio-status">
+          <text wx:if="{{state=='uploading'}}">上传中...</text>
+          <text wx:elif="{{state=='preview'}}">本地预览 - 满意后点提交</text>
+          <text wx:else>已上传 ✓</text>
+        </view>
+        <button class="btn-retry" bindtap="startRecord">重新录音</button>
       </view>
+    </view>
 
-      <view class="item-box">
-        <view class="item-label">背诵得分</view>
-        <input class="item-input" disabled="{{tableName=='student'}}" value="{{kaoshichengji}}" bindinput="kaoshichengjiInput" placeholder="老师可填写分数" />
-      </view>
+    <!-- 已锁定 -->
+    <view class="card record-card" wx:if="{{tableName=='student' && audioLocked}}">
+      <view class="section-title">录音状态</view>
+      <text class="lock-text">该任务已评分，不能修改录音</text>
+    </view>
 
-      <view class="item-box textarea-box">
-        <view class="item-label">教师评语</view>
-        <textarea class="item-textarea" disabled="{{tableName=='student'}}" value="{{teachercomment}}" bindinput="teachercommentInput" placeholder="老师可填写评语"></textarea>
-      </view>
+    <!-- 学生端：任务信息 -->
+    <view class="card form-card" wx:if="{{tableName=='student'}}">
+      <view class="section-title">任务信息</view>
+      <view class="f-item"><view class="f-label">指定古诗</view><text class="f-value">{{coursetitles || '老师暂未指定'}}</text></view>
+      <view class="f-item"><view class="f-label">老师</view><text class="f-value">{{teachername}}</text></view>
+      <view class="f-item"><view class="f-label">截止日期</view><text class="f-value">{{deadline}}</text></view>
+    </view>
 
-      <view class="item-box">
-        <view class="item-label">教师账号</view>
-        <input class="item-input" disabled value="{{teacheraccount}}" />
-      </view>
-
-      <view class="item-box">
-        <view class="item-label">教师姓名</view>
-        <input class="item-input" disabled value="{{teachername}}" />
-      </view>
-
-      <view class="btn-box">
-        <button class="submit-btn" bindtap="submit">提交</button>
-      </view>
+    <!-- 提交按钮 -->
+    <view class="submit-area" wx:if="{{tableName=='student' && !audioLocked || tableName=='teacher'}}">
+      <button class="btn-submit" bindtap="submit">{{tableName=='teacher' ? '发布任务' : '提交背诵'}}</button>
     </view>
   </view>
 </view>

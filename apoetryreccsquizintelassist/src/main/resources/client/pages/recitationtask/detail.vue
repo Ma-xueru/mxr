@@ -16,7 +16,7 @@
 		<view class="item"><text class="label">完成时间：</text><text class="value">{{ formatValue(detail.completiontime, '未完成') }}</text></view>
 		<view class="item"><text class="label">背诵得分：</text><text class="value">{{ detail.kaoshichengji || '待老师评分' }}</text></view>
 		<view class="item"><text class="label">识别文本：</text><text class="value multiline">{{ detail.recognizedtext || '系统暂未识别出文本' }}</text></view>
-		<view class="item"><text class="label">AI初评：</text><text class="value multiline">{{ detail.aiscorecomment || '系统暂未生成初评' }}</text></view>
+		<view class="item"><text class="label">AI初评：</text><text class="value multiline">{{ aiCommentDisplay || '系统暂未生成初评' }}</text></view>
 		<view class="item"><text class="label">教师评语：</text><text class="value multiline">{{ detail.teachercomment || '老师暂未填写评语' }}</text></view>
 		<button v-if="canComplete" @tap="goComplete" :style='{"margin":"40rpx 0 0 0","border":"0","color":"#fff","borderRadius":"60rpx","background":"#d84fa9","lineHeight":"84rpx","fontSize":"30rpx","height":"84rpx"}'>完成这项任务</button>
 	</view>
@@ -27,7 +27,8 @@
 export default {
 	data() { return { id: '', detail: {}, user: null } },
 	computed: {
-		canComplete() { return this.user && this.user.studentaccount && this.user.studentaccount === this.detail.studentaccount && this.detail.completionstatus !== '已完成'; }
+		canComplete() { return this.user && this.user.studentaccount && this.user.studentaccount === this.detail.studentaccount && this.detail.completionstatus !== '已完成'; },
+			aiCommentDisplay() { try { const p = JSON.parse(this.detail.aiscorecomment); return p.overallComment || this.detail.aiscorecomment; } catch(e) { return this.detail.aiscorecomment; } }
 	},
 	async onLoad(options) { this.id = options.id; await this.init(); },
 	async onShow() { const table = uni.getStorageSync('nowTable'); if (table) { const res = await this.$api.session(table); this.user = res.data; } },

@@ -66,3 +66,100 @@
   width: 100%;
   margin-top: 6rpx;
 }
+
+.score-text { color: #5fb959; font-weight: 700; font-size: 32rpx !important; }
+.small-text { font-size: 24rpx !important; color: #999 !important; }
+.teacher-text { color: #d84fa9 !important; font-weight: 600; }
+
+/* AI报告卡片 */
+.report-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 28rpx 24rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid #d4e8c5;
+}
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+.report-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2f5e1a;
+}
+.report-badge {
+  font-size: 20rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #6dbd72, #4a9e4f);
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+.score-circle-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28rpx;
+}
+.score-circle {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5fb959, #3d8b3d);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(95,185,89,0.3);
+}
+.score-num {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.score-label {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.85);
+  margin-top: 6rpx;
+}
+
+.dim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+.dim-item { }
+.dim-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+.dim-name { font-size: 26rpx; font-weight: 600; color: #3f3424; }
+.dim-score { font-size: 26rpx; font-weight: 700; color: #5fb959; }
+.dim-bar-bg {
+  height: 10rpx;
+  background: #f0f0f0;
+  border-radius: 5rpx;
+  overflow: hidden;
+  margin-bottom: 8rpx;
+}
+.dim-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #5fb959, #82d186);
+  border-radius: 5rpx;
+}
+.dim-comment { font-size: 24rpx; color: #666; line-height: 1.6; }
+.dim-encourage { font-size: 24rpx; color: #e7a63c; font-weight: 600; margin-top: 4rpx; }
+
+.report-summary {
+  background: linear-gradient(135deg, #fff8e2 0%, #f5fcf6 100%);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  border: 1rpx solid #e8dca0;
+}
+.summary-label { font-size: 24rpx; font-weight: 700; color: #7b5b17; margin-bottom: 8rpx; }
+.summary-text { font-size: 26rpx; color: #5b503f; line-height: 1.8; }

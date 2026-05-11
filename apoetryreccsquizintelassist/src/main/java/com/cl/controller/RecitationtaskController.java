@@ -20,8 +20,9 @@ import com.cl.utils.MPUtil;
 import com.cl.utils.PageUtils;
 import com.cl.utils.R;
 import com.cl.utils.AIUitl;
+import com.cl.utils.AIRecitationReviewUtil;
 import com.cl.utils.RecitationReviewUtil;
-import com.cl.utils.SpeechUtil;
+import com.cl.utils.VolcengineSpeechUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -319,19 +320,36 @@ public class RecitationtaskController {
             return;
         }
         File audioFile = resolveAudioFile(recitationtask.getRecitationaudio());
-        String recognizedText = SpeechUtil.speechToText(audioFile);
+        String recognizedText = VolcengineSpeechUtil.speechToText(audioFile);
+
         MatchedCourse matchedCourse = matchSpecifiedCourse(recitationtask, recognizedText);
         String expectedText = matchedCourse == null ? "" : matchedCourse.getContent();
+        String poemTitle = matchedCourse != null ? matchedCourse.getCoursetitle()
+                : (StringUtils.hasText(recitationtask.getCoursetitles()) ? recitationtask.getCoursetitles() : recitationtask.getTasktitle());
+
+        // 3. 豆包 AI 多维度评测
+        if (StringUtils.hasText(recognizedText)) {
+            AIRecitationReviewUtil.ReviewResult aiResult =
+                    AIRecitationReviewUtil.review(expectedText, recognizedText, poemTitle);
+            if (aiResult != null && aiResult.getTotalScore() > 0) {
+                recitationtask.setKaoshichengji(aiResult.getTotalScore());
+                recitationtask.setRecognizedtext(recognizedText);
+                recitationtask.setAiscorecomment(aiResult.getRawJson());
+                return;
+            }
+        }
+
+        // 4. Fallback to Levenshtein-based review
         RecitationReviewUtil.ReviewResult reviewResult = RecitationReviewUtil.review(expectedText, recognizedText);
         if (matchedCourse != null) {
             String aiComment = reviewResult.getComment();
             if (StringUtils.hasText(aiComment)) {
-                reviewResult.setComment("识别古诗：《" + matchedCourse.getCoursetitle() + "》。" + aiComment);
+                reviewResult.setComment("识别古诗：《" + matchedCourse.getCoursetitle() + "》。AI初评(规则引擎)：" + aiComment);
             } else {
                 reviewResult.setComment("识别古诗：《" + matchedCourse.getCoursetitle() + "》。");
             }
         } else if (StringUtils.hasText(recitationtask.getCoursetitles())) {
-            reviewResult.setComment("未能从指定古诗中识别出对应篇目。请老师人工确认。" + reviewResult.getComment());
+            reviewResult.setComment("未能从指定古诗中识别出对应篇目。请老师人工确认。AI初评(规则引擎)：" + reviewResult.getComment());
         }
         recitationtask.setKaoshichengji(reviewResult.getScore());
         recitationtask.setRecognizedtext(recognizedText);
@@ -345,7 +363,12 @@ public class RecitationtaskController {
             if (!basePath.exists()) {
                 basePath = new File("");
             }
-            return new File(basePath.getAbsolutePath() + "/file/" + fileName);
+            File f = new File(basePath.getAbsolutePath() + "/file/" + fileName);
+            if (f.exists()) return f;
+            // 回退：检查当前工作目录下的 file/ 目录
+            File fallback = new File("file/" + fileName);
+            if (fallback.exists()) return fallback;
+            return f;
         } catch (Exception e) {
             return null;
         }
