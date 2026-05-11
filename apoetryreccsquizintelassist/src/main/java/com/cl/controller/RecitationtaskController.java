@@ -116,6 +116,7 @@ public class RecitationtaskController {
     @RequestMapping("/save")
     public R save(@RequestBody RecitationtaskEntity recitationtask, HttpServletRequest request) {
         recitationtask.setId(new Date().getTime() + new Double(Math.floor(Math.random() * 1000)).longValue());
+        fillAutoReviewResult(recitationtask, request);
         recitationtaskService.insert(recitationtask);
         return R.ok();
     }
@@ -123,6 +124,7 @@ public class RecitationtaskController {
     @RequestMapping("/add")
     public R add(@RequestBody RecitationtaskEntity recitationtask, HttpServletRequest request) {
         recitationtask.setId(new Date().getTime() + new Double(Math.floor(Math.random() * 1000)).longValue());
+        fillAutoReviewResult(recitationtask, request);
         recitationtaskService.insert(recitationtask);
         return R.ok();
     }
@@ -309,37 +311,73 @@ public class RecitationtaskController {
     }
 
     private void fillAutoReviewResult(RecitationtaskEntity recitationtask, HttpServletRequest request) {
-        Object tableNameObj = request.getSession().getAttribute("tableName");
-        if (tableNameObj == null || !"student".equals(String.valueOf(tableNameObj))) {
-            return;
-        }
-        if (!"已完成".equals(recitationtask.getCompletionstatus())) {
-            return;
-        }
-        if (!StringUtils.hasText(recitationtask.getRecitationaudio())) {
-            return;
-        }
-        File audioFile = resolveAudioFile(recitationtask.getRecitationaudio());
-        String recognizedText = VolcengineSpeechUtil.speechToText(audioFile);
+        System.out.println("[AI评测] ========== 开始AI评测流程 ==========");
+        System.out.println("[AI评测] 任务ID: " + recitationtask.getId());
+        System.out.println("[AI评测] 完成状态: " + recitationtask.getCompletionstatus());
+        System.out.println("[AI评测] 录音文件: " + recitationtask.getRecitationaudio());
 
+        if (!"已完成".equals(recitationtask.getCompletionstatus())) {
+            System.out.println("[AI评测] 跳过：完成状态不是'已完成'，当前为 '" + recitationtask.getCompletionstatus() + "'");
+            return;
+        }
+        System.out.println("[AI评测] 状态检查通过 ✓");
+
+        if (!StringUtils.hasText(recitationtask.getRecitationaudio())) {
+            System.out.println("[AI评测] 跳过：没有上传录音文件");
+            return;
+        }
+        System.out.println("[AI评测] 录音文件检查通过 ✓");
+
+        // 1. 语音转文字
+        File audioFile = resolveAudioFile(recitationtask.getRecitationaudio());
+        if (audioFile == null) {
+            System.out.println("[AI评测] 失败：解析音频文件返回null");
+        } else if (!audioFile.exists()) {
+            System.out.println("[AI评测] 失败：音频文件不存在 - " + audioFile.getAbsolutePath());
+        } else {
+            System.out.println("[AI评测] 音频文件找到 - " + audioFile.getAbsolutePath() + " (" + audioFile.length() + " bytes)");
+        }
+
+        String recognizedText = VolcengineSpeechUtil.speechToText(audioFile);
+        if (!StringUtils.hasText(recognizedText)) {
+            System.out.println("[AI评测] 语音识别结果为空，将跳过AI评分直接进入规则引擎");
+        } else {
+            System.out.println("[AI评测] 语音识别成功，文本长度: " + recognizedText.length() + " 字");
+        }
+
+        // 2. 匹配古诗
         MatchedCourse matchedCourse = matchSpecifiedCourse(recitationtask, recognizedText);
         String expectedText = matchedCourse == null ? "" : matchedCourse.getContent();
         String poemTitle = matchedCourse != null ? matchedCourse.getCoursetitle()
                 : (StringUtils.hasText(recitationtask.getCoursetitles()) ? recitationtask.getCoursetitles() : recitationtask.getTasktitle());
 
+        if (matchedCourse != null) {
+            System.out.println("[AI评测] 匹配到古诗: 《" + matchedCourse.getCoursetitle() + "》 相似度: " + String.format("%.2f", matchedCourse.getSimilarity()));
+        } else {
+            System.out.println("[AI评测] 未匹配到古诗，使用任务标题: " + poemTitle);
+        }
+
         // 3. 豆包 AI 多维度评测
         if (StringUtils.hasText(recognizedText)) {
+            System.out.println("[AI评测] >>> 调用豆包AI多维度评测...");
             AIRecitationReviewUtil.ReviewResult aiResult =
                     AIRecitationReviewUtil.review(expectedText, recognizedText, poemTitle);
-            if (aiResult != null && aiResult.getTotalScore() > 0) {
+            if (aiResult == null) {
+                System.out.println("[AI评测] 豆包AI返回null，API调用可能失败");
+            } else if (aiResult.getTotalScore() <= 0) {
+                System.out.println("[AI评测] 豆包AI总分<=0，解析可能异常，totalScore=" + aiResult.getTotalScore());
+            } else {
+                System.out.println("[AI评测] 豆包AI评分成功！总分: " + aiResult.getTotalScore());
                 recitationtask.setKaoshichengji(aiResult.getTotalScore());
                 recitationtask.setRecognizedtext(recognizedText);
                 recitationtask.setAiscorecomment(aiResult.getRawJson());
+                System.out.println("[AI评测] ========== AI评测完成(豆包) ==========");
                 return;
             }
         }
 
         // 4. Fallback to Levenshtein-based review
+        System.out.println("[AI评测] >>> 使用规则引擎兜底评分...");
         RecitationReviewUtil.ReviewResult reviewResult = RecitationReviewUtil.review(expectedText, recognizedText);
         if (matchedCourse != null) {
             String aiComment = reviewResult.getComment();
@@ -354,22 +392,36 @@ public class RecitationtaskController {
         recitationtask.setKaoshichengji(reviewResult.getScore());
         recitationtask.setRecognizedtext(recognizedText);
         recitationtask.setAiscorecomment(reviewResult.getComment());
+        System.out.println("[AI评测] 规则引擎评分: " + reviewResult.getScore() + " 分");
+        System.out.println("[AI评测] ========== AI评测完成(规则引擎兜底) ==========");
     }
 
     private File resolveAudioFile(String audioName) {
+        System.out.println("[AI评测] 解析音频文件 - 输入: " + audioName);
         try {
             String fileName = audioName.contains("/") ? audioName.substring(audioName.lastIndexOf("/") + 1) : audioName;
+            System.out.println("[AI评测] 提取文件名: " + fileName);
+
             File basePath = org.springframework.util.ResourceUtils.getFile("classpath:static");
+            System.out.println("[AI评测] classpath:static 路径: " + basePath.getAbsolutePath() + " (存在:" + basePath.exists() + ")");
             if (!basePath.exists()) {
                 basePath = new File("");
+                System.out.println("[AI评测] classpath:static 不存在，回退到当前目录: " + basePath.getAbsolutePath());
             }
+
             File f = new File(basePath.getAbsolutePath() + "/file/" + fileName);
+            System.out.println("[AI评测] 尝试路径1: " + f.getAbsolutePath() + " (存在:" + f.exists() + ")");
             if (f.exists()) return f;
-            // 回退：检查当前工作目录下的 file/ 目录
+
             File fallback = new File("file/" + fileName);
+            System.out.println("[AI评测] 尝试路径2(回退): " + fallback.getAbsolutePath() + " (存在:" + fallback.exists() + ")");
             if (fallback.exists()) return fallback;
+
+            System.out.println("[AI评测] 所有路径均未找到文件！路径1=" + f.getAbsolutePath() + " 路径2=" + fallback.getAbsolutePath());
             return f;
         } catch (Exception e) {
+            System.out.println("[AI评测] 解析音频文件异常: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }

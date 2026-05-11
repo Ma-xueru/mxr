@@ -44,7 +44,13 @@ public class AIRecitationReviewUtil {
     }
 
     public static ReviewResult review(String expectedText, String recognizedText, String poemTitle) {
-        if (recognizedText == null || recognizedText.trim().isEmpty()) return null;
+        if (recognizedText == null || recognizedText.trim().isEmpty()) {
+            System.out.println("[AI评测] 豆包AI：识别文本为空，跳过");
+            return null;
+        }
+
+        System.out.println("[AI评测] 豆包AI：开始调用 - 古诗《" + poemTitle + "》识别文本" + recognizedText.length() + "字");
+        System.out.println("[AI评测] 豆包AI：API_KEY=" + (API_KEY.isEmpty() ? "(空!!!)" : API_KEY.substring(0, Math.min(8, API_KEY.length())) + "...") + " MODEL=" + MODEL);
 
         ArkService service = new ArkService(API_KEY);
         try {
@@ -57,12 +63,21 @@ public class AIRecitationReviewUtil {
             ChatCompletionRequest req = ChatCompletionRequest.builder()
                     .model(MODEL).messages(messages).temperature(0.3).build();
 
+            System.out.println("[AI评测] 豆包AI：发送请求...");
             StringBuilder sb = new StringBuilder();
             service.createChatCompletion(req).getChoices().forEach(c -> sb.append(c.getMessage().getContent()));
             String response = sb.toString();
+            System.out.println("[AI评测] 豆包AI：响应长度=" + response.length() + " 内容=" + (response.length() > 200 ? response.substring(0, 200) + "..." : response));
 
-            return parseResponse(response, poemTitle);
+            ReviewResult result = parseResponse(response, poemTitle);
+            if (result == null) {
+                System.out.println("[AI评测] 豆包AI：解析响应失败，返回null");
+            } else {
+                System.out.println("[AI评测] 豆包AI：解析成功，总分=" + result.getTotalScore());
+            }
+            return result;
         } catch (Exception e) {
+            System.out.println("[AI评测] 豆包AI：异常 - " + e.getClass().getName() + ": " + e.getMessage());
             e.printStackTrace();
             return null;
         } finally {

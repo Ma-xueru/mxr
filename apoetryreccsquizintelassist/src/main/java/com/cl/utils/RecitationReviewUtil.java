@@ -45,6 +45,7 @@ public class RecitationReviewUtil {
     }
 
     public static ReviewResult review(String expectedText, String recognizedText) {
+        System.out.println("[AI评测] 规则引擎：开始评分 - 原文" + (expectedText != null ? expectedText.length() : 0) + "字 识别" + (recognizedText != null ? recognizedText.length() : 0) + "字");
         ReviewResult result = new ReviewResult();
         String cleanExpected = normalize(expectedText);
         String cleanRecognized = normalize(recognizedText);
