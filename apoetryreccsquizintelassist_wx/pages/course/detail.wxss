@@ -1,15 +1,15 @@
 /* 全局样式变量定义 */
 page {
-  --primary-color: #4169e1; /* 皇家蓝主色调 */
-  --primary-light: #e6eeff;
-  --primary-dark: #3056b3;
+  --primary-color: #58B86F; /* 儿童乡村清新主题 */
+  --primary-light: #EAF8DF;
+  --primary-dark: #2F8F5B;
   --primary-gradient: linear-gradient(180deg, var(--primary-color), var(--primary-dark));
   --text-primary: #333333;
   --text-secondary: #666666;
-  --border-color: #dce4f2;
+  --border-color: #D7ECCD;
   --white: #ffffff;
-  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.15);
-  --card-shadow: 0 4rpx 16rpx rgba(65, 105, 225, 0.1);
+  --shadow: 0 10rpx 26rpx rgba(88, 184, 111, 0.14);
+  --card-shadow: 0 6rpx 18rpx rgba(88, 184, 111, 0.12);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -224,7 +224,7 @@ page {
 }
 
 .detail-zan-box {
-  background-color: rgba(65, 105, 225, 0.1);
+  background-color: rgba(88, 184, 111, 0.1);
 }
 
 .detail-cai-box {
@@ -428,7 +428,7 @@ page {
   font-size: 28rpx;
   height: 80rpx;
   line-height: 80rpx;
-  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2);
+  box-shadow: 0 6rpx 14rpx rgba(88, 184, 111, 0.2);
   transition: var(--transition);
   font-weight: 500;
   display: inline-flex;
@@ -439,7 +439,7 @@ page {
 .action-item:active {
   background-color: var(--primary-dark);
   transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.2);
+  box-shadow: 0 3rpx 10rpx rgba(88, 184, 111, 0.2);
 }
 
 .action-item .iconfont {
@@ -525,7 +525,7 @@ page {
 }
 
 .commment-item-box:active {
-  background-color: rgba(65, 105, 225, 0.03);
+  background-color: rgba(88, 184, 111, 0.05);
 }
 
 .commmentuser {
@@ -605,7 +605,7 @@ page {
   font-size: 28rpx;
   height: 70rpx;
   line-height: 70rpx;
-  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2);
+  box-shadow: 0 6rpx 14rpx rgba(88, 184, 111, 0.2);
   transition: var(--transition);
   font-weight: 500;
   display: inline-flex;
@@ -620,7 +620,7 @@ page {
 .submit-btn:active {
   background-color: var(--primary-dark);
   transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.2);
+  box-shadow: 0 3rpx 10rpx rgba(88, 184, 111, 0.2);
 }
 
 /* 登录提示 */
@@ -648,7 +648,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.3);
+  box-shadow: 0 6rpx 16rpx rgba(88, 184, 111, 0.26);
   z-index: 998;
   transition: var(--transition);
   opacity: 0.8;

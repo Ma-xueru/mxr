@@ -94,6 +94,10 @@
 				unicode: '&#xef96;'
 			})
 		}
+		roleMenu.backMenu = roleMenu.backMenu.map(group => ({
+			...group,
+			child: (group.child || []).filter(child => child.tableName !== 'coursereserve')
+		})).filter(group => (group.child || []).length)
 		return roleMenu
 	}
 	const init = () => {
@@ -419,16 +423,26 @@
 
 	.admin_theme {
 		background:
-			linear-gradient(180deg, #040b16 0%, #081426 42%, #0c2142 100%);
-		color: rgba(234, 242, 255, 0.88);
+			radial-gradient(circle at 18% 0%, rgba(171, 77, 55, 0.08), transparent 34%),
+			linear-gradient(180deg, #fff8e7 0%, #f5ecd4 48%, #edf4e7 100%);
+		border: 1px solid rgba(181, 149, 95, 0.28);
+		box-shadow: 0 24px 46px rgba(103, 87, 56, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.76);
+		color: #5b442d;
 
 		.brand_mark {
-			background: linear-gradient(135deg, #3f86ff, #62d8ff);
-			box-shadow: 0 12px 24px rgba(72, 133, 255, 0.28);
+			background: linear-gradient(135deg, #a94e3d 0%, #c99552 52%, #e8d39a 100%);
+			box-shadow: 0 14px 28px rgba(78, 43, 32, 0.2);
+			border-radius: 50%;
 		}
 
 		.brand_title {
-			color: #fff;
+			color: #4f3925;
+			font-family: "STKaiti", "KaiTi", "Microsoft YaHei", sans-serif;
+			letter-spacing: 0;
+		}
+
+		.brand_subtitle {
+			color: rgba(91, 68, 45, 0.7);
 		}
 
 		:deep(.menu_view .el-sub-menu__title:hover),
@@ -443,9 +457,10 @@
 		:deep(.el-menu--collapse .is-active .el-sub-menu__title),
 		:deep(.el-menu--collapse .el-menu--inline .menu_item_view:hover),
 		:deep(.el-menu--collapse .el-menu--inline .is-active.menu_item_view) {
-			background: linear-gradient(135deg, rgba(56, 124, 238, 0.92), rgba(47, 189, 230, 0.76));
-			border-color: rgba(125, 204, 255, 0.24);
-			box-shadow: 0 12px 22px rgba(12, 48, 106, 0.32);
+			background: linear-gradient(135deg, rgba(169, 78, 61, 0.95), rgba(202, 151, 78, 0.86));
+			border-color: rgba(255, 238, 190, 0.26);
+			box-shadow: 0 12px 22px rgba(75, 52, 30, 0.2);
+			color: #fffdf2;
 		}
 
 		:deep(.menu_view .el-sub-menu__title),
@@ -454,27 +469,57 @@
 		:deep(.el-menu--collapse .el-sub-menu__title),
 		:deep(.el-menu--collapse .el-menu-item),
 		:deep(.el-menu--collapse .el-menu--inline .menu_item_view) {
-			background: rgba(255, 255, 255, 0.06);
-			border-color: rgba(129, 173, 255, 0.14);
+			background: rgba(255, 255, 250, 0.55);
+			border-color: rgba(177, 145, 91, 0.18);
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+			color: #5b442d;
+		}
+
+		:deep(.menu_view .el-sub-menu__title span),
+		:deep(.menu_view .el-sub-menu__title .iconfont),
+		:deep(.menu_view .el-sub-menu__title .el-sub-menu__icon-arrow),
+		:deep(.menu_view .el-menu-item),
+		:deep(.menu_view .menu_item_view),
+		:deep(.el-menu--collapse .el-sub-menu__title span),
+		:deep(.el-menu--collapse .el-sub-menu__title .iconfont),
+		:deep(.el-menu--collapse .el-sub-menu__title .el-sub-menu__icon-arrow) {
+			color: #5b442d !important;
+		}
+
+		:deep(.menu_view .el-sub-menu__title:hover span),
+		:deep(.menu_view .el-sub-menu__title:hover .iconfont),
+		:deep(.menu_view .el-sub-menu__title:hover .el-sub-menu__icon-arrow),
+		:deep(.menu_view .el-menu-item:hover),
+		:deep(.menu_view .el-menu-item.is-active),
+		:deep(.menu_view .is-active .el-sub-menu__title span),
+		:deep(.menu_view .is-active .el-sub-menu__title .iconfont),
+		:deep(.menu_view .is-active .el-sub-menu__title .el-sub-menu__icon-arrow) {
+			color: #fffdf2 !important;
 		}
 	}
 
 	.teacher_theme {
 		background:
-			linear-gradient(180deg, #102c26 0%, #173d34 44%, #215248 100%);
-		color: rgba(241, 250, 244, 0.92);
+			radial-gradient(circle at 20% 0%, rgba(191, 92, 66, 0.08), transparent 34%),
+			linear-gradient(180deg, #fff9e8 0%, #f5ecd5 48%, #ecf3e5 100%);
+		border: 1px solid rgba(181, 149, 95, 0.28);
+		box-shadow: 0 24px 46px rgba(103, 87, 56, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.76);
+		color: #5b442d;
 
 		.brand_mark {
-			background: linear-gradient(135deg, #d0a65f, #f0d38c);
-			box-shadow: 0 12px 24px rgba(49, 86, 69, 0.24);
+			background: linear-gradient(135deg, #b45b45 0%, #d7a65f 48%, #e9d49b 100%);
+			box-shadow: 0 14px 28px rgba(78, 43, 32, 0.22);
+			border-radius: 50%;
 		}
 
 		.brand_title {
-			color: #f5fffa;
+			color: #4f3925;
+			font-family: "STKaiti", "KaiTi", "Microsoft YaHei", sans-serif;
+			letter-spacing: 0;
 		}
 
 		.brand_subtitle {
-			color: rgba(231, 246, 236, 0.74);
+			color: rgba(91, 68, 45, 0.7);
 		}
 
 		:deep(.menu_view .el-sub-menu__title:hover),
@@ -489,9 +534,10 @@
 		:deep(.el-menu--collapse .is-active .el-sub-menu__title),
 		:deep(.el-menu--collapse .el-menu--inline .menu_item_view:hover),
 		:deep(.el-menu--collapse .el-menu--inline .is-active.menu_item_view) {
-			background: linear-gradient(135deg, rgba(214, 171, 96, 0.96), rgba(119, 194, 155, 0.92));
-			border-color: rgba(228, 248, 235, 0.18);
-			box-shadow: 0 12px 20px rgba(37, 81, 63, 0.22);
+			background: linear-gradient(135deg, rgba(183, 91, 67, 0.95), rgba(219, 166, 92, 0.86));
+			border-color: rgba(255, 238, 190, 0.26);
+			box-shadow: 0 12px 22px rgba(75, 52, 30, 0.2);
+			color: #fffdf2;
 		}
 
 		:deep(.menu_view .el-sub-menu__title),
@@ -500,8 +546,32 @@
 		:deep(.el-menu--collapse .el-sub-menu__title),
 		:deep(.el-menu--collapse .el-menu-item),
 		:deep(.el-menu--collapse .el-menu--inline .menu_item_view) {
-			background: rgba(255, 255, 255, 0.06);
-			border-color: rgba(216, 243, 226, 0.14);
+			background: rgba(255, 255, 250, 0.55);
+			border-color: rgba(177, 145, 91, 0.18);
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+			color: #5b442d;
+		}
+
+		:deep(.menu_view .el-sub-menu__title span),
+		:deep(.menu_view .el-sub-menu__title .iconfont),
+		:deep(.menu_view .el-sub-menu__title .el-sub-menu__icon-arrow),
+		:deep(.menu_view .el-menu-item),
+		:deep(.menu_view .menu_item_view),
+		:deep(.el-menu--collapse .el-sub-menu__title span),
+		:deep(.el-menu--collapse .el-sub-menu__title .iconfont),
+		:deep(.el-menu--collapse .el-sub-menu__title .el-sub-menu__icon-arrow) {
+			color: #5b442d !important;
+		}
+
+		:deep(.menu_view .el-sub-menu__title:hover span),
+		:deep(.menu_view .el-sub-menu__title:hover .iconfont),
+		:deep(.menu_view .el-sub-menu__title:hover .el-sub-menu__icon-arrow),
+		:deep(.menu_view .el-menu-item:hover),
+		:deep(.menu_view .el-menu-item.is-active),
+		:deep(.menu_view .is-active .el-sub-menu__title span),
+		:deep(.menu_view .is-active .el-sub-menu__title .iconfont),
+		:deep(.menu_view .is-active .el-sub-menu__title .el-sub-menu__icon-arrow) {
+			color: #fffdf2 !important;
 		}
 	}
 </style>

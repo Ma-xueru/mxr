@@ -3,7 +3,7 @@
 
   },
   "navigationBarTitleText": "教师",
-  "navigationBarBackgroundColor":"#4169e1",
+  "navigationBarBackgroundColor":"#58B86F",
   "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50

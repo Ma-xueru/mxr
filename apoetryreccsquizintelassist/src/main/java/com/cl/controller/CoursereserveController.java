@@ -240,6 +240,7 @@ public class CoursereserveController {
                         .eq("teacheraccount", coursereserve.getTeacheraccount())
                         .eq("reservetime", coursereserve.getReservetime())
                         .ne("reservestatus", "已取消")
+                        .ne("reservestatus", "已拒绝")
         );
         if(duplicateCount > 0) {
             return R.error("同一时间已预约该教师，请勿重复预约");
@@ -251,6 +252,7 @@ public class CoursereserveController {
                         .eq("teacheraccount", coursereserve.getTeacheraccount())
                         .eq("reservetime", coursereserve.getReservetime())
                         .ne("reservestatus", "已取消")
+                        .ne("reservestatus", "已拒绝")
         );
         for(CoursereserveEntity item : sameSlotList) {
             try {
@@ -267,7 +269,7 @@ public class CoursereserveController {
         coursereserve.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
         coursereserve.setSfsh("待审核");
         if(StringUtils.isBlank(coursereserve.getReservestatus())) {
-            coursereserve.setReservestatus("已预约");
+            coursereserve.setReservestatus("待确认");
         }
         coursereserve.setReservecount(String.valueOf(reserveCount));
         coursereserveService.insert(coursereserve);

@@ -9,7 +9,7 @@
             class="swiper"
             circular="{{true}}"
             indicator-color="rgba(255,255,255,0.5)"
-            indicator-active-color="#4169e1">
+            indicator-active-color="#58B86F">
             <swiper-item class="swiper-item" wx:for="{{swiperList}}" wx:if="{{index<=2}}" wx:key="index">
                 <image
                     src="{{item.img}}"
@@ -103,4 +103,3 @@
         <text class="ai-text">智能助手</text>
     </view>
 </view>
-

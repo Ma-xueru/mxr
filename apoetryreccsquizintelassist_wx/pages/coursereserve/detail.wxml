@@ -42,9 +42,9 @@
                 <view class="detail-item-label">预约状态：</view>
                 <view class="detail-item-text">
                     <view wx:if="{{detailList.reservestatus === '已预约'}}" class="status-passed">{{detailList.reservestatus}}</view>
-                    <view wx:if="{{detailList.reservestatus === '已取消'}}" class="status-rejected">{{detailList.reservestatus}}</view>
+                    <view wx:if="{{detailList.reservestatus === '已取消' || detailList.reservestatus === '已拒绝'}}" class="status-rejected">{{detailList.reservestatus}}</view>
                     <view wx:if="{{detailList.reservestatus === '待确认'}}" class="status-pending">{{detailList.reservestatus}}</view>
-                    <view wx:if="{{detailList.reservestatus !== '已预约' && detailList.reservestatus !== '已取消' && detailList.reservestatus !== '待确认'}}">{{detailList.reservestatus}}</view>
+                    <view wx:if="{{detailList.reservestatus !== '已预约' && detailList.reservestatus !== '已取消' && detailList.reservestatus !== '已拒绝' && detailList.reservestatus !== '待确认'}}">{{detailList.reservestatus}}</view>
                 </view>
             </view>
             

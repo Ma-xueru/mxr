@@ -271,14 +271,21 @@
 	}
 
 	.admin_theme {
-		background: rgba(16, 35, 63, 0.88);
-		border-color: rgba(107, 166, 255, 0.16);
-		color: rgba(225, 236, 255, 0.82);
+		background: rgba(255, 249, 232, 0.94);
+		border-color: rgba(181, 149, 95, 0.24);
+		color: #5b442d;
+		box-shadow: 0 14px 28px rgba(103, 87, 56, 0.12);
 
 		.tags-view-item.active {
-			color: #10233f;
-			background: linear-gradient(135deg, #7cc2ff, #d3f2ff);
-			box-shadow: 0 8px 18px rgba(98, 163, 255, 0.24);
+			color: #fffdf2;
+			background: linear-gradient(135deg, #a94e3d, #d1a15b);
+			box-shadow: 0 8px 18px rgba(146, 83, 50, 0.2);
+		}
+
+		.tags-view-item:hover {
+			color: #4f3925;
+			background: rgba(255, 255, 250, 0.68);
+			border-color: rgba(181, 149, 95, 0.22);
 		}
 	}
 

@@ -1,13 +1,13 @@
-
+﻿
 <template>
 	<div>
 		<div class="app-contain">
-			<div class="overview_panel" v-if="btnAuth('coursereserve','查看')">
+			<div class="overview_panel" v-if="btnAuth('coursereserve','鏌ョ湅')">
 				<div class="overview_header">
 					<div>
-						<div class="overview_badge">预约课程</div>
-						<div class="overview_title">预约进度总览</div>
-						<div class="overview_desc">汇总预约总量、通过审核数量和取消预约情况，帮助老师掌握课程预约状态。</div>
+						<div class="overview_badge">预约请求</div>
+						<div class="overview_title">预约请求总览</div>
+						<div class="overview_desc">汇总预约请求数量、已接受数量和已取消数量，帮助教师处理学生预约。</div>
 					</div>
 					<div class="overview_stat">
 						<div class="overview_stat_label">当前预约数</div>
@@ -17,15 +17,15 @@
 				<div class="overview_cards">
 					<div class="overview_card">
 						<div class="overview_value">{{ total }}</div>
-						<div class="overview_label">预约总数</div>
+						<div class="overview_label">棰勭害鎬绘暟</div>
 					</div>
 					<div class="overview_card green">
 						<div class="overview_value">{{ reserveStats.approved }}</div>
-						<div class="overview_label">审核通过</div>
+						<div class="overview_label">瀹℃牳閫氳繃</div>
 					</div>
 					<div class="overview_card warm">
 						<div class="overview_value">{{ reserveStats.pending }}</div>
-						<div class="overview_label">待审核</div>
+						<div class="overview_label">待确认</div>
 					</div>
 					<div class="overview_card blue">
 						<div class="overview_value">{{ reserveStats.cancelled }}</div>
@@ -37,39 +37,38 @@
 				<el-form :model="searchQuery" class="search_form" >
 					<div class="search_view">
 						<div class="search_label">
-							用户姓名：
+							鐢ㄦ埛濮撳悕锛?
 						</div>
 						<div class="search_box">
-							<el-input class="search_inp" v-model="searchQuery.studentname" placeholder="用户姓名"
+							<el-input class="search_inp" v-model="searchQuery.studentname" placeholder="鐢ㄦ埛濮撳悕"
 								clearable>
 							</el-input>
 						</div>
 					</div>
 					<div class="search_view">
 						<div class="search_label">
-							审核状态：
+							瀹℃牳鐘舵€侊細
 						</div>
 						<div class="search_box">
 							<el-select
 								class="search_sel"
 								clearable
 								v-model="searchQuery.sfsh" 
-								placeholder="审核状态"
-								>
+								placeholder="审核状态">
 								<el-option v-for="item in approvalLists" :label="item" :value="item"></el-option>
 							</el-select>
 						</div>
 					</div>
 					<div class="search_btn_view">
-						<el-button class="search_btn" type="primary" @click="searchClick()" size="small">搜索</el-button>
+						<el-button class="search_btn" type="primary" @click="searchClick()" size="small">鎼滅储</el-button>
 					</div>
 				</el-form>
 				<br>
 				<div class="btn_view">
-					<el-button class="action_btn create_btn" type="success" @click="addClick" v-if="btnAuth('coursereserve','新增')">新增</el-button>
-					<el-button class="action_btn" v-if=" btnAuth('coursereserve','查看')" type="info"  :disabled="selRows.length==1?false:true" @click="infoClick(null)">详情</el-button>
-					<el-button class="action_btn" type="primary" :disabled="selRows.length==1?false:true" @click="editClick" v-if=" btnAuth('coursereserve','修改')">修改</el-button>
-					<el-button class="action_btn" type="danger" :disabled="selRows.length?false:true" @click="delClick(null)"  v-if="btnAuth('coursereserve','删除')">删除</el-button>
+					<el-button class="action_btn create_btn" type="success" @click="addClick" v-if="btnAuth('coursereserve','鏂板')">鏂板</el-button>
+					<el-button class="action_btn" v-if=" btnAuth('coursereserve','鏌ョ湅')" type="info"  :disabled="selRows.length==1?false:true" @click="infoClick(null)">璇︽儏</el-button>
+					<el-button class="action_btn" type="primary" :disabled="selRows.length==1?false:true" @click="editClick" v-if=" btnAuth('coursereserve','淇敼')">淇敼</el-button>
+					<el-button class="action_btn" type="danger" :disabled="selRows.length?false:true" @click="delClick(null)"  v-if="btnAuth('coursereserve','鍒犻櫎')">鍒犻櫎</el-button>
 				</div>
 			</div>
 			<br>
@@ -80,11 +79,11 @@
 				:stripe='false'
 				@selection-change="handleSelectionChange" 
 				ref="table"
-				v-if="btnAuth('coursereserve','查看')"
+				v-if="btnAuth('coursereserve','鏌ョ湅')"
 				:data="list"
 				@row-click="listChange">
 				<el-table-column :resizable='true' align="left" header-align="left" type="selection" width="55" />
-				<el-table-column label="序号" width="70" :resizable='true' :sortable='true' align="left" header-align="left">
+				<el-table-column label="搴忓彿" width="70" :resizable='true' :sortable='true' align="left" header-align="left">
 					<template #default="scope">{{ scope.$index + 1}}</template>
 				</el-table-column>
 				<el-table-column
@@ -93,7 +92,7 @@
 					 align="left" 
 					 header-align="left"
 					 prop="studentaccount"
-					label="用户账号">
+					label="鐢ㄦ埛璐﹀彿">
 					<template #default="scope">
 						{{scope.row.studentaccount}}
 					</template>
@@ -104,7 +103,7 @@
 					 align="left" 
 					 header-align="left"
 					 prop="studentname"
-					label="用户姓名">
+					label="鐢ㄦ埛濮撳悕">
 					<template #default="scope">
 						{{scope.row.studentname}}
 					</template>
@@ -115,7 +114,7 @@
 					 align="left" 
 					 header-align="left"
 					 prop="reservetime"
-					label="预约时间">
+					label="棰勭害鏃堕棿">
 					<template #default="scope">
 						{{scope.row.reservetime}}
 					</template>
@@ -126,7 +125,7 @@
 					 align="left" 
 					 header-align="left"
 					 prop="teacheraccount"
-					label="教师账号">
+					label="鏁欏笀璐﹀彿">
 					<template #default="scope">
 						{{scope.row.teacheraccount}}
 					</template>
@@ -137,7 +136,7 @@
 					 align="left" 
 					 header-align="left"
 					 prop="teachername"
-					label="教师姓名">
+					label="鏁欏笀濮撳悕">
 					<template #default="scope">
 						{{scope.row.teachername}}
 					</template>
@@ -159,12 +158,12 @@
 					 align="left" 
 					 header-align="left"
 					 prop="reservecount"
-					label="人数">
+					label="浜烘暟">
 					<template #default="scope">
 						{{scope.row.reservecount}}
 					</template>
 				</el-table-column>
-				<el-table-column label="审核回复" :resizable='true' :sortable='true' align="left" header-align="left">
+				<el-table-column label="瀹℃牳鍥炲" :resizable='true' :sortable='true' align="left" header-align="left">
 					<template #default="scope">
 						{{scope.row.shhf}}
 					</template>
@@ -176,14 +175,16 @@
 						<el-tag type="warning" v-else>待审核</el-tag>
 					</template>
 				</el-table-column>
-				<el-table-column label="审核" v-if="btnAuth('coursereserve','审核')" :resizable='true' :sortable='true' align="left" header-align="left">
+				<el-table-column label="瀹℃牳" v-if="btnAuth('coursereserve','瀹℃牳')" :resizable='true' :sortable='true' align="left" header-align="left">
 					<template #default="scope">
-						<el-button type="text" @click="approvalClick(scope.row)">审核</el-button>
+						<el-button type="text" @click="approvalClick(scope.row)">瀹℃牳</el-button>
 					</template>
 				</el-table-column>
-				<el-table-column label="操作" width="300" :resizable='true' :sortable='true' align="left" header-align="left">
+				<el-table-column label="鎿嶄綔" width="300" :resizable='true' :sortable='true' align="left" header-align="left">
 					<template #default="scope">
-						<el-button type="info" v-if=" btnAuth('coursereserve','查看')" @click="infoClick(scope.row.id)">详情</el-button>
+						<el-button type="info" v-if=" btnAuth('coursereserve','鏌ョ湅')" @click="infoClick(scope.row.id)">璇︽儏</el-button>
+                        <el-button type="primary" v-if="scope.row.reservestatus === '待确认'" @click="handleReserve(scope.row, 'accept')">接受预约</el-button>
+                        <el-button type="danger" v-if="scope.row.reservestatus === '待确认'" @click="handleReserve(scope.row, 'reject')">拒绝预约</el-button>
 						<el-button v-if="btnAuth('coursereserve','取消预约')" type="success" @click="reservecancelCrossAddOrUpdateHandler(scope.row,'cross','否','reservestatus','已取消','已取消,已预约'.split(',')[0])">取消预约</el-button>
 					</template>
 				</el-table-column>
@@ -227,14 +228,14 @@
 	const context = getCurrentInstance()?.appContext.config.globalProperties;
 	import formModel from './formModel.vue'
 	
-	//基础信息
+	//鍩虹淇℃伅
 	const tableName = 'coursereserve'
-	const formName = '预约课程'
+	const formName = '棰勭害璇剧▼'
 	const route = useRoute()
-	//基础信息
+	//鍩虹淇℃伅
 	onMounted(()=>{
 	})
-	//列表数据
+	//鍒楄〃鏁版嵁
 	const list = ref(null)
 	const table = ref(null)
 	const listQuery = ref({
@@ -253,7 +254,7 @@
 			table.value.toggleRowSelection(row)
 		})
 	}
-	//列表
+	//鍒楄〃
 	const getList = () => {
 		listLoading.value = true
 		let params = JSON.parse(JSON.stringify(listQuery.value))
@@ -282,12 +283,12 @@
 		let cancelled = 0
 		rows.forEach(item => {
 			if (item.sfsh === '是') approved += 1
-			else if (!item.sfsh || item.sfsh === '待审核') pending += 1
+			else if (!item.sfsh || item.sfsh === '待审核' || item.reservestatus === '待确认') pending += 1
 			if ((item.reservestatus || '').indexOf('取消') !== -1) cancelled += 1
 		})
 		reserveStats.value = { approved, pending, cancelled }
 	}
-	//删
+	//鍒?
 	const delClick = (id) => {
 		let ids = ref([])
 		if (id) {
@@ -301,7 +302,7 @@
 				return false
 			}
 		}
-		ElMessageBox.confirm(`是否删除选中${formName}`, '提示', {
+		ElMessageBox.confirm(`鏄惁鍒犻櫎閫変腑${formName}`, '鎻愮ず', {
 			confirmButtonText: '是',
 			cancelButtonText: '否',
 			type: 'warning',
@@ -311,18 +312,18 @@
 				method: 'post',
 				data: ids.value
 			}).then(res => {
-				context?.$toolUtil.message('删除成功', 'success',()=>{
+				context?.$toolUtil.message('鍒犻櫎鎴愬姛', 'success',()=>{
 					getList()
 				})
 			})
 		})
 	}
-	//多选
+	//澶氶€?
 	const handleSelectionChange = (e) => {
 		selRows.value = e
 	}
-	//列表数据
-	//分页
+	//鍒楄〃鏁版嵁
+	//鍒嗛〉
 	const total = ref(0)
 	const layouts = ref(["total","prev","pager","next","sizes"])
 	const sizeChange = (size) => {
@@ -341,17 +342,17 @@
 		listQuery.value.page = listQuery.value.page + 1
 		getList()
 	}
-	//分页
-	//权限验证
+	//鍒嗛〉
+	//鏉冮檺楠岃瘉
 	const btnAuth = (e,a)=>{
 		return context?.$toolUtil.isAuth(e,a)
 	}
-	//搜索
+	//鎼滅储
 	const searchClick = () => {
 		listQuery.value.page = 1
 		getList()
 	}
-	//表单
+	//琛ㄥ崟
 	const formRef = ref(null)
 	const formModelChange=()=>{
 		searchClick()
@@ -373,8 +374,8 @@
 			formRef.value.init(selRows.value[0].id,'info')
 		}
 	}
-	// 表单
-	// 预览文件
+	// 琛ㄥ崟
+	// 棰勮鏂囦欢
 	const preClick = (file) =>{
 		if(!file){
 			context?.$toolUtil.message('文件不存在','error')
@@ -389,7 +390,7 @@
 		// a.click();
 		// document.body.removeChild(a);
 	}
-	// 下载文件
+	// 涓嬭浇鏂囦欢
 	const download = (file) => {
 		if(!file){
 			context?.$toolUtil.message('文件不存在','error')
@@ -412,7 +413,7 @@
 			a.href = objectUrl
 			a.download = arr
 			// a.click()
-			// 下面这个写法兼容火狐
+			// 涓嬮潰杩欎釜鍐欐硶鍏煎鐏嫄
 			a.dispatchEvent(new MouseEvent('click', {
 				bubbles: true,
 				cancelable: true,
@@ -422,7 +423,7 @@
 		})
 	}
 
-	//审核
+	//瀹℃牳
 	import Approval from '@/components/common/approval.vue'
 	const approvalRef = ref(null)
 	const approvalClick = (row) => {
@@ -443,11 +444,30 @@
 		})
 	}
 
+	const handleReserve = (row, action) => {
+		const accepted = action === 'accept'
+		const payload = {
+			...row,
+			reservestatus: accepted ? '已预约' : '已拒绝',
+			sfsh: accepted ? '是' : '否',
+			shhf: accepted ? '教师已接受预约' : '教师已拒绝预约'
+		}
+		context?.$http({
+			url: `${tableName}/update`,
+			method: 'post',
+			data: payload
+		}).then(() => {
+			context?.$toolUtil.message(accepted ? '已接受预约' : '已拒绝预约', 'success', () => {
+				getList()
+			})
+		})
+	}
+
 	import reservecancelFormModel from '@/views/reservecancel/formModel'
 	const reservecancelFormModelRef = ref(null)
     const reservecancelCrossAddOrUpdateHandler = (row,type,crossOptAudit,statusColumnName,tips,statusColumnValue) => {
 		if(crossOptAudit=='是'&&row.sfsh!='是') {
-			context?.$toolUtil.message('请审核通过后再操作！','error')
+			context?.$toolUtil.message('请审核通过后再操作','error')
 			return
 		}
 		if(statusColumnName!=''&&!statusColumnName.startsWith("[")) {
@@ -460,12 +480,12 @@
 			}
 		}
 		nextTick(()=>{
-			reservecancelFormModelRef.value.init(row.id,'cross','取消预约',row,'coursereserve',statusColumnName,tips,statusColumnValue)
+			reservecancelFormModelRef.value.init(row.id,'cross','鍙栨秷棰勭害',row,'coursereserve',statusColumnName,tips,statusColumnValue)
 		})
     }
-	//查询审核状态列表
+	//鏌ヨ瀹℃牳鐘舵€佸垪琛?
 	const approvalLists = ref([])
-	//初始化
+	//鍒濆鍖?
 	const init = () => {
         approvalLists.value = "是,否,待审核".split(',');
 		getList()
@@ -474,23 +494,23 @@
 </script>
 <style lang="scss" scoped>
 	
-	// 操作盒子
+	// 鎿嶄綔鐩掑瓙
 	.list_search_view {
 		margin: 20px auto;
 		display: flex;
 		width: 100%;
 		flex-wrap: wrap;
-		// 搜索盒子
+		// 鎼滅储鐩掑瓙
 		.search_form {
 			display: flex;
 			align-items: center;
 			order: 2;
-			// 子盒子
+			// 瀛愮洅瀛?
 			.search_view {
 				margin: 0 10px 0 0;
 				display: flex;
 				align-items: center;
-				// 搜索label
+				// 鎼滅储label
 				.search_label {
 					margin: 0 10px 0 0;
 					color: #666;
@@ -504,11 +524,11 @@
 					min-width: 100px;
 					height: 40px;
 				}
-				// 搜索item
+				// 鎼滅储item
 				.search_box {
 					display: inline-block;
 					width: auto;
-					// 输入框
+					// 杈撳叆妗?
 					:deep(.search_inp) {
 						border: 1px solid #999;
 						border-radius: 0px;
@@ -517,7 +537,7 @@
 						width: auto;
 						line-height: 34px;
 						box-sizing: border-box;
-						//去掉默认样式
+						//鍘绘帀榛樿鏍峰紡
 						.el-input__wrapper{
 							border: none;
 							box-shadow: none;
@@ -530,7 +550,7 @@
 							box-shadow: none !important;
 						}
 					}
-					// 下拉框
+					// 涓嬫媺妗?
 					:deep(.search_sel) {
 						border: 1px solid #999;
 						border-radius: 0px;
@@ -539,7 +559,7 @@
 						width: auto;
 						line-height: 34px;
 						box-sizing: border-box;
-						//去掉默认样式
+						//鍘绘帀榛樿鏍峰紡
 						.select-trigger{
 							height: 100%;
 							.el-input{
@@ -560,12 +580,12 @@
 					}
 				}
 			}
-			// 搜索按钮盒子
+			// 鎼滅储鎸夐挳鐩掑瓙
 			.search_btn_view {
 				width: 20%;
 				display: flex;
 				padding: 0 20px;
-				// 搜索按钮
+				// 鎼滅储鎸夐挳
 				.search_btn {
 					border: 0px solid #f69a28;
 					cursor: pointer;
@@ -577,17 +597,17 @@
 					font-size: 14px;
 					height: 36px;
 				}
-				// 搜索按钮-悬浮
+				// 鎼滅储鎸夐挳-鎮诞
 				.search_btn:hover {
 					background: linear-gradient(30deg, rgba(130,196,209,1) 0%, rgba(115,186,200,1) 24%, rgba(174,210,217,1) 100%);
 				}
 			}
 		}
-		//头部按钮盒子
+		//澶撮儴鎸夐挳鐩掑瓙
 		.btn_view {
 			margin: 0;
 			display: flex;
-			// 其他
+			// 鍏朵粬
 			:deep(.el-button--default){
 				border: 1px solid #666;
 				cursor: pointer;
@@ -600,11 +620,11 @@
 				font-size: 14px;
 				height: 36px;
 			}
-			// 其他-悬浮
+			// 鍏朵粬-鎮诞
 			:deep(.el-button--default:hover){
 				background: linear-gradient(30deg, rgba(51,51,51,1) 0%, rgba(102,102,102,1) 50%, rgba(51,51,51,1) 100%);
 			}
-			// 新增
+			// 鏂板
 			:deep(.el-button--success){
 				border: 1px solid #f69a28;
 				cursor: pointer;
@@ -617,11 +637,11 @@
 				font-size: 14px;
 				height: 36px;
 			}
-			// 新增-悬浮
+			// 鏂板-鎮诞
 			:deep(.el-button--success:hover){
 				background: linear-gradient(30deg, rgba(246,154,40,1) 0%, rgba(255,186,101,1) 50%, rgba(246,154,40,1) 100%);
 			}
-			// 修改
+			// 淇敼
 			:deep(.el-button--primary){
 				border: 1px solid #139666;
 				cursor: pointer;
@@ -634,11 +654,11 @@
 				font-size: 14px;
 				height: 36px;
 			}
-			// 修改-悬浮
+			// 淇敼-鎮诞
 			:deep(.el-button--primary:hover){
 				background: linear-gradient(30deg, rgba(25,169,123,1) 0%, rgba(58,214,164,1) 50%, rgba(25,169,123,1) 100%),#19a97b;
 			}
-			// 详情
+			// 璇︽儏
 			:deep(.el-button--info){
 				border: 1px solid #28acf6;
 				cursor: pointer;
@@ -651,11 +671,11 @@
 				font-size: 14px;
 				height: 36px;
 			}
-			// 详情-悬浮
+			// 璇︽儏-鎮诞
 			:deep(.el-button--info:hover){
 				background: linear-gradient(30deg, rgba(40,172,246,1) 0%, rgba(111,203,255,1) 50%, rgba(40,172,246,1) 100%);
 			}
-			// 删除
+			// 鍒犻櫎
 			:deep(.el-button--danger){
 				border: 1px solid #f62828;
 				cursor: pointer;
@@ -668,11 +688,11 @@
 				font-size: 14px;
 				height: 36px;
 			}
-			// 删除-悬浮
+			// 鍒犻櫎-鎮诞
 			:deep(.el-button--danger:hover){
 				background: linear-gradient(30deg, rgba(246,40,40,1) 0%, rgba(255,107,107,1) 50%, rgba(246,40,40,1) 100%);
 			}
-			// 统计
+			// 缁熻
 			:deep(.el-button--warning){
 				border: 1px solid #00cdec;
 				cursor: pointer;
@@ -685,13 +705,13 @@
 				font-size: 14px;
 				height: 36px;
 			}
-			// 统计-悬浮
+			// 缁熻-鎮诞
 			:deep(.el-button--warning:hover){
 				background: linear-gradient(30deg, rgba(0,205,236,1) 0%, rgba(66,230,255,1) 50%, rgba(0,205,236,1) 100%);
 			}
 		}
 	}
-	// 表格样式
+	// 琛ㄦ牸鏍峰紡
 	.el-table {
 		border-radius: 0px;
 		padding: 0;
@@ -754,7 +774,7 @@
 							white-space: normal;
 							line-height: 24px;
 							text-overflow: ellipsis;
-							// 编辑
+							// 缂栬緫
 							.el-button--primary {
 								border: 0;
 								cursor: pointer;
@@ -767,10 +787,10 @@
 								font-size: 14px;
 								height: 24px;
 							}
-							// 编辑-悬浮
+							// 缂栬緫-鎮诞
 							.el-button--primary:hover {
 							}
-							// 详情
+							// 璇︽儏
 							.el-button--info {
 								border: 0;
 								cursor: pointer;
@@ -784,10 +804,10 @@
 								line-height: 24px;
 								height: 24px;
 							}
-							// 详情-悬浮
+							// 璇︽儏-鎮诞
 							.el-button--info:hover {
 							}
-							// 删除
+							// 鍒犻櫎
 							.el-button--danger {
 								border: 0;
 								cursor: pointer;
@@ -800,10 +820,10 @@
 								font-size: 14px;
 								height: 24px;
 							}
-							// 删除-悬浮
+							// 鍒犻櫎-鎮诞
 							.el-button--danger:hover {
 							}
-							// 跨表
+							// 璺ㄨ〃
 							.el-button--success {
 								border: 0;
 								cursor: pointer;
@@ -816,10 +836,10 @@
 								font-size: 14px;
 								height: 24px;
 							}
-							// 跨表-悬浮
+							// 璺ㄨ〃-鎮诞
 							.el-button--success:hover {
 							}
-							// 操作
+							// 鎿嶄綔
 							.el-button--warning {
 								border: 0;
 								cursor: pointer;
@@ -832,7 +852,7 @@
 								font-size: 14px;
 								height: 24px;
 							}
-							// 操作-悬浮
+							// 鎿嶄綔-鎮诞
 							.el-button--warning:hover {
 							}
 						}
@@ -852,9 +872,9 @@
 			}
 		}
 	}
-	// 分页器
+	// 鍒嗛〉鍣?
 	.el-pagination {
-		// 总页码
+		// 鎬婚〉鐮?
 		:deep(.el-pagination__total) {
 			margin: 0 10px 0 0;
 			color: #666;
@@ -865,7 +885,7 @@
 			line-height: 28px;
 			height: 28px;
 		}
-		// 上一页
+		// 涓婁竴椤?
 		:deep(.btn-prev) {
 			border: none;
 			border-radius: 0px;
@@ -880,7 +900,7 @@
 			min-width: 35px;
 			height: 26px;
 		}
-		// 下一页
+		// 涓嬩竴椤?
 		:deep(.btn-next) {
 			border: none;
 			border-radius: 0px;
@@ -895,7 +915,7 @@
 			min-width: 35px;
 			height: 26px;
 		}
-		// 上一页禁用
+		// 涓婁竴椤电鐢?
 		:deep(.btn-prev:disabled) {
 			border: none;
 			cursor: not-allowed;
@@ -910,7 +930,7 @@
 			line-height: 26px;
 			height: 26px;
 		}
-		// 下一页禁用
+		// 涓嬩竴椤电鐢?
 		:deep(.btn-next:disabled) {
 			border: none;
 			cursor: not-allowed;
@@ -925,14 +945,14 @@
 			line-height: 26px;
 			height: 26px;
 		}
-		// 页码
+		// 椤电爜
 		:deep(.el-pager) {
 			padding: 0;
 			margin: 0;
 			display: flex;
 			vertical-align: top;
 			align-items: center;
-			// 数字
+			// 鏁板瓧
 			.number {
 				cursor: pointer;
 				padding: 0 4px;
@@ -948,7 +968,7 @@
 				min-width: 30px;
 				height: 26px;
 			}
-			// 数字悬浮
+			// 鏁板瓧鎮诞
 			.number:hover {
 				cursor: pointer;
 				padding: 0 4px;
@@ -964,7 +984,7 @@
 				min-width: 30px;
 				height: 26px;
 			}
-			// 选中
+			// 閫変腑
 			.number.is-active {
 				cursor: default;
 				padding: 0 4px;
@@ -1004,7 +1024,7 @@
 				height: 26px;
 			}
 		}
-		// 跳页
+		// 璺抽〉
 		:deep(.el-pagination__jump) {
 			margin: 0 0 0 24px;
 			color: #606266;
@@ -1013,7 +1033,7 @@
 			font-size: 13px;
 			line-height: 28px;
 			height: 28px;
-			// 输入框
+			// 杈撳叆妗?
 			.el-input {
 				border: 1px solid #DCDFE6;
 				cursor: pointer;
@@ -1028,7 +1048,7 @@
 				width: 100%;
 				text-align: center;
 				height: 28px;
-				//去掉默认样式
+				//鍘绘帀榛樿鏍峰紡
 				.el-input__wrapper{
 					border: none;
 					box-shadow: none;

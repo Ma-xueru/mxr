@@ -235,6 +235,10 @@
 					unicode: '&#xef96;'
 				})
 			}
+			nextItem.backMenu = nextItem.backMenu.map(group => ({
+				...group,
+				child: (group.child || []).filter(child => child.tableName !== 'coursereserve')
+			})).filter(group => (group.child || []).length)
 			return nextItem
 		})
 	}

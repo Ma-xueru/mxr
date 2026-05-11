@@ -1,15 +1,15 @@
 /* 全局样式变量定义 */
 page {
-  --primary-color: #4169e1; /* 皇家蓝主色调 */
-  --primary-light: #e6eeff;
-  --primary-dark: #3056b3;
-  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  --primary-color: #58B86F; /* 儿童乡村清新主题 */
+  --primary-light: #EAF8DF;
+  --primary-dark: #2F8F5B;
+  --primary-gradient: linear-gradient(135deg, #58B86F, #56BDE8);
   --text-primary: #333333;
   --text-secondary: #666666;
-  --border-color: #dce4f2;
+  --border-color: #D7ECCD;
   --white: #ffffff;
-  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.15);
-  --card-shadow: 0 4rpx 16rpx rgba(65, 105, 225, 0.1);
+  --shadow: 0 10rpx 26rpx rgba(88, 184, 111, 0.14);
+  --card-shadow: 0 6rpx 18rpx rgba(88, 184, 111, 0.12);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -45,7 +45,7 @@ page {
 
 .update-container {
   width: 100vw;
-  background-color: #f5f7fa;
+  background: linear-gradient(180deg, #E9F8FF 0%, #F2FBF1 100%);
   min-height: 100vh;
 }
 
@@ -161,7 +161,7 @@ page {
 .item-input:focus {
   border-color: var(--primary-color);
   background-color: var(--white);
-  box-shadow: 0 0 0 4rpx rgba(65, 105, 225, 0.1);
+  box-shadow: 0 0 0 4rpx rgba(88, 184, 111, 0.14);
 }
 
 .item-input:disabled {
@@ -271,7 +271,7 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   font-size: 30rpx;
   height: 90rpx;
   font-weight: 500;
-  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2);
+  box-shadow: 0 6rpx 14rpx rgba(88, 184, 111, 0.2);
   transition: var(--transition);
   text-align: center;
 }
@@ -279,7 +279,7 @@ radio .wx-radio-input.wx-radio-input-checked::before {
 .submit-btn:active {
   background: var(--primary-dark);
   transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.2);
+  box-shadow: 0 3rpx 10rpx rgba(88, 184, 111, 0.2);
 }
 
 .face-btn {

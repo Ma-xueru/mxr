@@ -1,19 +1,19 @@
 /* 全局样式变量定义 */
 page {
-  --primary-color: #4169e1; /* 皇家蓝主色调 */
-  --primary-light: #e6eeff;
-  --primary-dark: #3056b3;
-  --success-color: #52c41a;
+  --primary-color: #58B86F; /* 儿童乡村清新主题 */
+  --primary-light: #EAF8DF;
+  --primary-dark: #2F8F5B;
+  --success-color: #58B86F;
   --error-color: #f5222d;
-  --warning-color: #fa8c16;
+  --warning-color: #F6A63A;
   --purple-color: #722ed1;
   --text-primary: #333333;
   --text-secondary: #666666;
   --text-placeholder: #999999;
-  --border-color: #dce4f2;
-  --bg-color: #f5f7fa;
+  --border-color: #D7ECCD;
+  --bg-color: #F2FBF1;
   --card-bg: #ffffff;
-  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.1);
+  --shadow: 0 10rpx 26rpx rgba(88, 184, 111, 0.12);
   --transition: all 0.3s ease;
 }
 
@@ -21,7 +21,7 @@ page {
 .top-decoration {
   height: 10rpx;
   width: 100%;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  background: linear-gradient(90deg, #56BDE8 0%, #FFD36A 48%, #58B86F 100%);
 }
 
 /* 底部装饰 */
@@ -42,7 +42,7 @@ page {
 .user-info-box {
   padding: 60rpx 40rpx;
   margin: 0 0 30rpx 0;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  background: linear-gradient(135deg, #56BDE8 0%, #58B86F 58%, #F6A63A 100%);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -161,7 +161,7 @@ page {
 .no-login {
   padding: 80rpx 40rpx;
   margin: 0 0 30rpx 0;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  background: linear-gradient(135deg, #56BDE8 0%, #58B86F 58%, #F6A63A 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -242,8 +242,8 @@ page {
 }
 
 .class-card {
-  background: linear-gradient(135deg, #eef6ff 0%, #ffffff 100%);
-  box-shadow: 0 12rpx 28rpx rgba(65, 105, 225, 0.08);
+  background: linear-gradient(135deg, #E9F8FF 0%, #ffffff 100%);
+  box-shadow: 0 12rpx 28rpx rgba(86, 189, 232, 0.12);
 }
 
 .medal-icon {
@@ -273,15 +273,15 @@ page {
   padding: 28rpx 24rpx;
   border-radius: 24rpx;
   color: #fff;
-  box-shadow: 0 14rpx 30rpx rgba(65, 105, 225, 0.14);
+  box-shadow: 0 14rpx 30rpx rgba(88, 184, 111, 0.16);
 }
 
 .action-recitation {
-  background: linear-gradient(135deg, #4f7cff 0%, #6aa7ff 100%);
+  background: linear-gradient(135deg, #58B86F 0%, #56BDE8 100%);
 }
 
 .action-pk {
-  background: linear-gradient(135deg, #ff9a44 0%, #ff6f61 100%);
+  background: linear-gradient(135deg, #FFD36A 0%, #FF8A72 100%);
 }
 
 .action-title {
@@ -362,8 +362,8 @@ page {
   width: 44rpx;
   min-height: 18rpx;
   border-radius: 999rpx 999rpx 12rpx 12rpx;
-  background: linear-gradient(180deg, #74a4ff 0%, #4169e1 100%);
-  box-shadow: 0 8rpx 20rpx rgba(65, 105, 225, 0.18);
+  background: linear-gradient(180deg, #FFD36A 0%, #58B86F 100%);
+  box-shadow: 0 8rpx 20rpx rgba(88, 184, 111, 0.18);
 }
 
 .chart-label {
@@ -533,7 +533,7 @@ page {
 
 /* 子菜单列表样式 */
 .treeList .list {
-  background-color: rgba(229, 235, 246, 0.3);
+  background-color: rgba(234, 248, 223, 0.55);
   overflow: hidden;
 }
 
@@ -565,7 +565,7 @@ page {
 
 /* 子菜单容器样式 */
 .submenu-container {
-  background-color: rgba(229, 235, 246, 0.3);
+  background-color: rgba(234, 248, 223, 0.55);
 }
 
 /* 子菜单包裹器 */
@@ -656,9 +656,9 @@ page {
   line-height: 90rpx !important;
   font-size: 30rpx !important;
   border-radius: 15rpx !important;
-  background-color: var(--primary-color) !important;
+  background: linear-gradient(135deg, #58B86F 0%, #56BDE8 100%) !important;
   color: white !important;
-  box-shadow: 0 4rpx 15rpx rgba(65, 105, 225, 0.2) !important;
+  box-shadow: 0 6rpx 16rpx rgba(88, 184, 111, 0.22) !important;
 }
 
 /* 其他样式 */

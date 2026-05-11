@@ -44,7 +44,7 @@
                       bindtap="{{!isdisabled ? ((examList[num].type==0 || examList[num].type==2) ? 'selectOption' : (examList[num].type==1 ? 'toggleMultipleOption' : '')) : ''}}"
                       data-code="{{item.code}}"
                       data-index="{{index}}" 
-                      style="{{!isdisabled && ((examList[num].type==0 || examList[num].type==2) && myanswer == item.code || (examList[num].type==1 && checkedOptions.indexOf(item.code) > -1)) ? 'border-color: #4169e1; background-color: rgba(65, 105, 225, 0.05);' : ''}}">
+                      style="{{!isdisabled && ((examList[num].type==0 || examList[num].type==2) && myanswer == item.code || (examList[num].type==1 && checkedOptions.indexOf(item.code) > -1)) ? 'border-color: #58B86F; background-color: rgba(88, 184, 111, 0.08);' : ''}}">
                     <view class="option-letter">{{item.code}}</view>
                     <view class="option-text">{{item.text}}</view>
                     

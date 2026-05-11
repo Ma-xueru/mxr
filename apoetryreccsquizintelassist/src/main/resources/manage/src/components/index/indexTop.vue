@@ -255,20 +255,32 @@
 	}
 
 	.admin_theme {
-		background: linear-gradient(135deg, rgba(13, 30, 57, 0.92), rgba(31, 76, 135, 0.88));
-		border: 1px solid rgba(116, 173, 255, 0.16);
-		color: #fff;
+		background:
+			radial-gradient(circle at 8% 10%, rgba(169, 78, 61, 0.09), transparent 22%),
+			radial-gradient(circle at 90% 18%, rgba(79, 126, 93, 0.12), transparent 26%),
+			linear-gradient(135deg, rgba(255, 251, 237, 0.98), rgba(239, 248, 232, 0.96));
+		border: 1px solid rgba(178, 149, 97, 0.22);
+		color: #453625;
+		box-shadow: 0 18px 38px rgba(99, 86, 58, 0.12);
 
 		.fold_view,
 		.top_meta_card,
 		.avatar-wrapper {
-			background: rgba(255, 255, 255, 0.1);
-			border: 1px solid rgba(255, 255, 255, 0.1);
+			background: rgba(255, 255, 250, 0.72);
+			border: 1px solid rgba(185, 154, 103, 0.2);
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 		}
 
 		.projectBadge {
-			background: rgba(124, 194, 255, 0.16);
-			color: #bfe4ff;
+			background: rgba(169, 78, 61, 0.1);
+			color: #9d533f;
+			border: 1px solid rgba(169, 78, 61, 0.14);
+		}
+
+		.projectTitle {
+			color: #3f3020;
+			font-family: "STKaiti", "KaiTi", "Microsoft YaHei", sans-serif;
+			font-size: 28px;
 		}
 
 		.projectDesc,
@@ -276,30 +288,42 @@
 		.nickname,
 		.el-icon--right,
 		.icons {
-			color: rgba(255, 255, 255, 0.82);
+			color: rgba(73, 55, 34, 0.78);
 		}
 
 		.avatar_text {
-			background: linear-gradient(135deg, #4c90ff, #61deff);
+			background: linear-gradient(135deg, #a94e3d, #d1a15b);
 			color: #fff;
 		}
 	}
 
 	.teacher_theme {
-		background: linear-gradient(135deg, rgba(248, 240, 220, 0.98), rgba(233, 245, 231, 0.96));
-		border: 1px solid rgba(167, 140, 88, 0.16);
-		color: #4c3925;
+		background:
+			radial-gradient(circle at 8% 10%, rgba(190, 91, 62, 0.09), transparent 22%),
+			radial-gradient(circle at 90% 18%, rgba(77, 128, 92, 0.12), transparent 26%),
+			linear-gradient(135deg, rgba(255, 251, 237, 0.98), rgba(239, 248, 232, 0.96));
+		border: 1px solid rgba(178, 149, 97, 0.22);
+		color: #453625;
+		box-shadow: 0 18px 38px rgba(99, 86, 58, 0.12);
 
 		.fold_view,
 		.top_meta_card,
 		.avatar-wrapper {
-			background: rgba(255, 255, 255, 0.56);
-			border: 1px solid rgba(174, 149, 109, 0.14);
+			background: rgba(255, 255, 250, 0.72);
+			border: 1px solid rgba(185, 154, 103, 0.2);
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 		}
 
 		.projectBadge {
-			background: rgba(201, 156, 84, 0.12);
-			color: #9b6a34;
+			background: rgba(180, 91, 69, 0.1);
+			color: #9d533f;
+			border: 1px solid rgba(180, 91, 69, 0.14);
+		}
+
+		.projectTitle {
+			color: #3f3020;
+			font-family: "STKaiti", "KaiTi", "Microsoft YaHei", sans-serif;
+			font-size: 28px;
 		}
 
 		.projectDesc,
@@ -307,11 +331,11 @@
 		.nickname,
 		.el-icon--right,
 		.icons {
-			color: rgba(76, 57, 37, 0.78);
+			color: rgba(73, 55, 34, 0.78);
 		}
 
 		.avatar_text {
-			background: linear-gradient(135deg, #c88b49, #88b68d);
+			background: linear-gradient(135deg, #a94e3d, #d1a15b);
 			color: #fff;
 		}
 	}

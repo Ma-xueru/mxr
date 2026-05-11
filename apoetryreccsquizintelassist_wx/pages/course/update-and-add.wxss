@@ -94,7 +94,7 @@
 .save-btn {
   width: 100%;
   height: 90rpx;
-  background-color: #4169e1;
+  background: linear-gradient(135deg, #58B86F 0%, #56BDE8 100%);
   color: #fff;
   font-size: 32rpx;
   font-weight: bold;

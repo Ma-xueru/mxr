@@ -1,20 +1,20 @@
 /* 全局样式变量定义 */
 page {
-  --primary-color: #4169e1; /* 皇家蓝主色调 */
-  --primary-light: #e6eeff;
-  --primary-dark: #3056b3;
+  --primary-color: #58B86F; /* 儿童乡村清新主题 */
+  --primary-light: #EAF8DF;
+  --primary-dark: #2F8F5B;
   --text-primary: #333333;
   --text-secondary: #666666;
-  --border-color: #dce4f2;
+  --border-color: #D7ECCD;
   --white: #ffffff;
-  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.15);
+  --shadow: 0 10rpx 26rpx rgba(88, 184, 111, 0.14);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .index-container {
   min-height: calc(100vh - 44px);
   box-sizing: border-box;
-  background-color: #f5f7fa;
+  background: linear-gradient(180deg, #E9F8FF 0%, #F2FBF1 42%, #FFF8DC 100%);
 }
 
 .content {
@@ -30,7 +30,7 @@ page {
   width: calc(100% - 40rpx);
   height: 360rpx;
   margin: 20rpx auto;
-  border-radius: 24rpx;
+  border-radius: 30rpx;
   overflow: hidden;
   box-shadow: var(--shadow);
 }
@@ -73,8 +73,8 @@ page {
   margin: 20rpx auto;
   display: flex;
   flex-wrap: wrap;
-  background-color: var(--white);
-  border-radius: 24rpx;
+  background-color: rgba(255, 255, 255, 0.92);
+  border-radius: 30rpx;
   padding: 30rpx 10rpx;
   box-shadow: var(--shadow);
 }
@@ -99,7 +99,7 @@ page {
 }
 
 .menu-item:active {
-  background-color: var(--primary-light);
+  background-color: #FFF5CC;
   transform: translateY(2rpx);
 }
 
@@ -110,17 +110,17 @@ page {
   align-items: center;
   justify-content: center;
   font-size: 50rpx;
-  color: var(--primary-color);
-  background-color: var(--primary-light);
+  color: #2F8F5B;
+  background: linear-gradient(135deg, #FFF0A8 0%, #DFF6CF 100%);
   border-radius: 50%;
   margin: 0 auto 15rpx;
-  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.15);
+  box-shadow: 0 6rpx 14rpx rgba(88, 184, 111, 0.18);
   transition: var(--transition);
 }
 
 .menu-item:active .grid-icon {
   transform: scale(0.95);
-  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.2);
+  box-shadow: 0 3rpx 10rpx rgba(88, 184, 111, 0.2);
 }
 
 .item-munu {
@@ -196,7 +196,7 @@ page {
   content: '';
   width: 8rpx;
   height: 28rpx;
-  background-color: var(--primary-color);
+  background: linear-gradient(180deg, #FFD36A, #58B86F);
   border-radius: 4rpx;
   margin-right: 12rpx;
 }
@@ -235,7 +235,7 @@ page {
 }
 
 .news-list-item:active {
-  background-color: rgba(65, 105, 225, 0.03);
+  background-color: rgba(88, 184, 111, 0.06);
 }
 
 .list-item-image {
@@ -352,7 +352,7 @@ page {
 
 .course-card {
   background-color: var(--white);
-  border-radius: 16rpx;
+  border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   transition: var(--transition);
@@ -451,8 +451,8 @@ page {
   height: 132rpx;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 10rpx 28rpx rgba(65, 105, 225, 0.28);
-  border: 2rpx solid rgba(65, 105, 225, 0.18);
+  box-shadow: 0 12rpx 30rpx rgba(88, 184, 111, 0.28);
+  border: 2rpx solid rgba(255, 211, 106, 0.7);
   z-index: 999;
   display: flex;
   flex-direction: column;
@@ -468,7 +468,7 @@ page {
   width: 58rpx;
   height: 42rpx;
   border-radius: 22rpx;
-  background: var(--primary-color);
+  background: linear-gradient(135deg, #56BDE8 0%, #58B86F 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -489,4 +489,3 @@ page {
   line-height: 1;
   font-weight: 600;
 }
-

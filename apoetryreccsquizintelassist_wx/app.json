@@ -75,7 +75,7 @@
     ],
     "window": {
         "backgroundTextStyle": "light",
-        "navigationBarBackgroundColor": "#4169e1",
+        "navigationBarBackgroundColor": "#58B86F",
         "navigationBarTitleText": "乡村儿童的古诗文背诵与国学问答智能助手",
         "navigationBarTextStyle": "white",
         "navigationBarShadow": {
@@ -83,15 +83,15 @@
             "radius": 6,
             "offset": "0 2px"
         },
-        "backgroundColor": "#f5f7fa",
+        "backgroundColor": "#F2FBF1",
         "enablePullDownRefresh": true,
-        "pullRefreshBackgroundColor": "#f5f7fa",
-        "pullRefreshTextColor": "#4169e1"
+        "pullRefreshBackgroundColor": "#F2FBF1",
+        "pullRefreshTextColor": "#58B86F"
     },
     "tabBar": {
-        "color": "#000000",
-        "selectedColor": "#4169e1",
-        "backgroundColor": "#ffffff",
+        "color": "#52635A",
+        "selectedColor": "#2F8F5B",
+        "backgroundColor": "#FFFDF4",
         "shadow": {
             "color": "rgba(0, 0, 0, 0.05)",
             "radius": 8,

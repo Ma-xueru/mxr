@@ -142,15 +142,70 @@
 
 	.theme-admin {
 		background:
-			radial-gradient(circle at top left, rgba(61, 118, 255, 0.14), transparent 24%),
-			radial-gradient(circle at right top, rgba(55, 197, 255, 0.1), transparent 20%),
-			linear-gradient(180deg, #c5d8f1 0%, #b4cbe7 100%);
+			radial-gradient(ellipse at 18% 12%, rgba(164, 74, 54, 0.055), transparent 28%),
+			radial-gradient(ellipse at 88% 14%, rgba(78, 126, 88, 0.075), transparent 30%),
+			linear-gradient(180deg, #fbf6e8 0%, #f5f0df 46%, #edf3e6 100%);
+		&::before {
+			content: "";
+			position: fixed;
+			right: 36px;
+			bottom: 28px;
+			width: 420px;
+			height: 190px;
+			pointer-events: none;
+			opacity: 0.09;
+			background:
+				radial-gradient(ellipse at 18% 100%, rgba(55, 88, 68, 0.8) 0 30%, transparent 31%),
+				radial-gradient(ellipse at 48% 100%, rgba(55, 88, 68, 0.62) 0 38%, transparent 39%),
+				radial-gradient(ellipse at 78% 100%, rgba(55, 88, 68, 0.5) 0 28%, transparent 29%);
+		}
+		&::after {
+			content: "";
+			position: fixed;
+			left: 250px;
+			top: 110px;
+			width: calc(100% - 300px);
+			height: calc(100% - 150px);
+			pointer-events: none;
+			opacity: 0.16;
+			background:
+				linear-gradient(90deg, transparent 0 96%, rgba(142, 114, 65, 0.16) 96% 97%, transparent 97%) 0 0 / 44px 44px,
+				linear-gradient(0deg, transparent 0 96%, rgba(142, 114, 65, 0.12) 96% 97%, transparent 97%) 0 0 / 44px 44px;
+		}
 	}
 
 	.theme-teacher {
 		background:
-			radial-gradient(circle at top left, rgba(92, 145, 108, 0.18), transparent 24%),
-			radial-gradient(circle at right top, rgba(190, 146, 88, 0.14), transparent 20%),
-			linear-gradient(180deg, #c6d8c9 0%, #b8cdbd 100%);
+			radial-gradient(ellipse at 18% 12%, rgba(164, 74, 54, 0.055), transparent 28%),
+			radial-gradient(ellipse at 88% 14%, rgba(78, 126, 88, 0.075), transparent 30%),
+			linear-gradient(180deg, #fbf6e8 0%, #f5f0df 46%, #edf3e6 100%);
+		&::before {
+			content: "";
+			position: fixed;
+			right: 36px;
+			bottom: 28px;
+			width: 420px;
+			height: 190px;
+			pointer-events: none;
+			opacity: 0.09;
+			background:
+				radial-gradient(ellipse at 18% 100%, rgba(55, 88, 68, 0.8) 0 30%, transparent 31%),
+				radial-gradient(ellipse at 48% 100%, rgba(55, 88, 68, 0.62) 0 38%, transparent 39%),
+				radial-gradient(ellipse at 78% 100%, rgba(55, 88, 68, 0.5) 0 28%, transparent 29%);
+			filter: blur(0.2px);
+		}
+		&::after {
+			content: "";
+			position: fixed;
+			left: 250px;
+			top: 110px;
+			width: calc(100% - 300px);
+			height: calc(100% - 150px);
+			pointer-events: none;
+			opacity: 0.16;
+			background:
+				linear-gradient(90deg, transparent 0 96%, rgba(142, 114, 65, 0.16) 96% 97%, transparent 97%) 0 0 / 44px 44px,
+				linear-gradient(0deg, transparent 0 96%, rgba(142, 114, 65, 0.12) 96% 97%, transparent 97%) 0 0 / 44px 44px;
+		}
 	}
 </style>

@@ -1,19 +1,19 @@
 /* 全局样式变量定义 */
 page {
-  --primary-color: #4169e1; /* 皇家蓝主色调 */
-  --primary-light: #e6eeff;
-  --primary-dark: #3056b3;
-  --success-color: #52c41a;
+  --primary-color: #58B86F; /* 儿童乡村清新主题 */
+  --primary-light: #EAF8DF;
+  --primary-dark: #2F8F5B;
+  --success-color: #58B86F;
   --error-color: #f5222d;
-  --warning-color: #fa8c16;
+  --warning-color: #F6A63A;
   --purple-color: #722ed1;
   --text-primary: #333333;
   --text-secondary: #666666;
   --text-placeholder: #999999;
-  --border-color: #dce4f2;
-  --bg-color: #f5f7fa;
+  --border-color: #D7ECCD;
+  --bg-color: #F2FBF1;
   --card-bg: #ffffff;
-  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.1);
+  --shadow: 0 10rpx 26rpx rgba(88, 184, 111, 0.12);
   --transition: all 0.3s ease;
 }
 
@@ -194,7 +194,7 @@ page {
 /* 选中状态样式 */
 .option-item.selected {
   border-color: var(--primary-color);
-  background-color: rgba(65, 105, 225, 0.05);
+  background-color: rgba(88, 184, 111, 0.08);
 }
 
 .option-letter {
@@ -314,7 +314,7 @@ page {
 
 .answer-input:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 4rpx rgba(65, 105, 225, 0.1);
+  box-shadow: 0 0 0 4rpx rgba(88, 184, 111, 0.14);
 }
 
 .answer-input::placeholder {
@@ -389,7 +389,7 @@ page {
 .submit-btn {
   background-color: var(--primary-color) !important;
   color: white !important;
-  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2) !important;
+  box-shadow: 0 6rpx 14rpx rgba(88, 184, 111, 0.2) !important;
 }
 
 .submit-btn:active {
@@ -425,7 +425,7 @@ page {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.2);
+  box-shadow: 0 10rpx 26rpx rgba(88, 184, 111, 0.2);
 }
 
 .score-number {
@@ -457,7 +457,7 @@ page {
   padding: 0 40rpx !important;
   background-color: var(--primary-color) !important;
   color: white !important;
-  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2) !important;
+  box-shadow: 0 6rpx 14rpx rgba(88, 184, 111, 0.2) !important;
 }
 
 /* 复选框样式优化 */
