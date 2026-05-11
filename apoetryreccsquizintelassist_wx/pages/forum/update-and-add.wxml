@@ -1,0 +1,55 @@
+<view class="update-container">
+  <!-- 装饰元素 -->
+  <view class="decorative-element top-left"></view>
+  <view class="decorative-element bottom-right"></view>
+
+  <!-- 顶部装饰条 -->
+  <view class="top-decoration"></view>
+
+  <view class="content">
+    <!-- 页面标题 -->
+    <view class="page-title">
+      <text>{{editStatus ? '编辑帖子' : '发布新帖子'}}</text>
+    </view>
+
+    <view class="form-box">
+      <view class="item-box" bindtap="uploadpicture">
+        <view class="item-label">图片</view>
+        <image src="{{picturePath?picturePath:imgIcon}}" mode="aspectFill" class="item-img"></image>
+      </view>
+
+      <view class="item-box">
+        <view class="item-label">帖子标题</view>
+        <input class="item-input" type="text" disabled="{{ro.forumtitle==true}}" placeholder="帖子标题" model:value="{{forumtitle}}" />
+      </view>
+
+      <!-- <view class="item-box">
+        <view class="item-label">帖子内容</view>
+        <input class="item-input" type="text" disabled="{{ro.forumcontent==true}}" placeholder="帖子内容" model:value="{{forumcontent}}" />
+      </view> -->
+
+      <view class="item-box">
+        <view class="item-label">发布时间</view>
+        <picker class="down-item-picker" mode="date" value="{{releasetime}}" bindchange="releasetimeChange">
+          <view class="down-item-picker-text">{{releasetime}}</view>
+        </picker>
+      </view>
+
+      <view class="item-box">
+        <view class="item-label">赞</view>
+        <input class="item-input" type="text" disabled="{{true}}" placeholder="赞" model:value="{{thumbsupnum}}" />
+      </view>
+
+      <view class="item-box">
+        <view class="item-label">踩</view>
+        <input class="item-input" type="text" disabled="{{true}}" placeholder="踩" model:value="{{crazilynum}}" />
+      </view>
+
+      <com-edit></com-edit>
+    </view>
+
+    <view class="btn-box">
+      <button class="submit-btn" bindtap="submit">提交</button>
+    </view>
+  </view>
+</view>

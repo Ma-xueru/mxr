@@ -1,0 +1,233 @@
+/* 基础容器 - 古典书香风格 */
+.chat-container {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: #F5F5DC; /* 米色纸张背景 */
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23d2b48c' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部标题栏 */
+.chat-header {
+  height: 90rpx;
+  background-color: #E8D8C3;
+  border-bottom: 1px solid #D2B48C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 10rpx rgba(139, 69, 19, 0.1);
+  position: relative;
+  z-index: 10;
+}
+
+.header-title {
+  font-size: 32rpx;
+  color: #3E2723;
+  font-weight: bold;
+  position: relative;
+  padding-left: 30rpx;
+}
+
+.header-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8rpx;
+  height: 30rpx;
+  background-color: #8B4513;
+  border-radius: 4rpx;
+}
+
+/* 聊天内容区 */
+.chat-list {
+  flex: 1;
+  padding: 20rpx;
+  overflow-y: scroll;
+}
+
+/* 加载提示 */
+.loading-tip {
+  text-align: center;
+  padding: 20rpx;
+  color: #8B4513;
+  font-size: 24rpx;
+}
+
+/* 空消息提示 */
+.empty-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+  color: #8D6E63;
+}
+
+.empty-img {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 26rpx;
+}
+
+/* 消息项容器 */
+.message-wrapper {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message-item {
+  display: flex;
+  margin-bottom: 30rpx;
+  align-items: flex-end;
+}
+
+/* 右侧用户消息 */
+.message-item.right {
+  flex-direction: row-reverse;
+}
+
+/* 头像样式 */
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin: 0 20rpx;
+  border: 2rpx solid #D2B48C;
+  box-shadow: 0 2rpx 5rpx rgba(139, 69, 19, 0.1);
+}
+
+/* 消息内容容器 */
+.content-container {
+  max-width: 70%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.message-item.left .content-container {
+  align-items: flex-start;
+}
+
+/* 消息气泡 */
+.bubble {
+  padding: 20rpx 25rpx;
+  border-radius: 16rpx;
+  line-height: 1.6;
+  font-size: 28rpx;
+  box-shadow: 0 2rpx 8rpx rgba(139, 69, 19, 0.1);
+  position: relative;
+}
+
+/* 用户消息气泡（绿色系） */
+.right .bubble {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #C8E6C9;
+  border-bottom-right-radius: 4rpx;
+}
+
+.right .bubble::after {
+  content: '';
+  position: absolute;
+  right: -15rpx;
+  bottom: 20rpx;
+  width: 20rpx;
+  height: 20rpx;
+  background-color: #E8F5E9;
+  border-right: 1px solid #C8E6C9;
+  border-bottom: 1px solid #C8E6C9;
+  transform: rotate(45deg);
+}
+
+/* 客服消息气泡（古籍色） */
+.left .bubble {
+  background-color: #fff8e7;
+  color: #3E2723;
+  border: 1px solid #D2B48C;
+  border-bottom-left-radius: 4rpx;
+}
+
+.left .bubble::after {
+  content: '';
+  position: absolute;
+  left: -15rpx;
+  bottom: 20rpx;
+  width: 20rpx;
+  height: 20rpx;
+  background-color: #fff8e7;
+  border-left: 1px solid #D2B48C;
+  border-bottom: 1px solid #D2B48C;
+  transform: rotate(45deg);
+}
+
+/* 时间样式 */
+.time {
+  font-size: 22rpx;
+  color: #8D6E63;
+  margin-top: 10rpx;
+}
+
+/* 输入区 */
+.input-container {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #F5F5DC;
+  border-top: 1px solid #D2B48C;
+  box-shadow: 0 -2rpx 10rpx rgba(139, 69, 19, 0.05);
+}
+
+.input {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 25rpx;
+  margin-right: 20rpx;
+  border: 1px solid #D2B48C;
+  border-radius: 40rpx;
+  background-color: #fff8e7;
+  font-size: 26rpx;
+  color: #3E2723;
+  box-shadow: inset 0 2rpx 5rpx rgba(139, 69, 19, 0.05);
+}
+
+.input::placeholder {
+  color: #A1887F;
+  font-size: 24rpx;
+}
+
+/* 发送按钮 */
+.send-btn {
+  width: 140rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 40rpx;
+  padding: 0;
+  margin: 0;
+  background-color: #8B4513;
+  color: #F5F5DC;
+  font-size: 26rpx;
+  border: 1px solid #6d3710;
+  transition: all 0.3s ease;
+}
+
+.send-btn:disabled {
+  background-color: #D7CCC8;
+  border-color: #BCAAA4;
+  color: #8D6E63;
+}
+
+.send-btn:not(:disabled):hover {
+  background-color: #6d3710;
+}

@@ -1,0 +1,261 @@
+<view class="user-container">
+  <!-- 顶部装饰条 -->
+  <view class="top-decoration"></view>
+
+  <view class="content">
+    <!-- 用户信息区域 -->
+    <view wx:if="{{userInfo.id}}" class="user-info-box">
+      <!-- 背景装饰 -->
+      <view class="user-bg-decoration"></view>
+
+      <view class="left" bind:tap="toDetail">
+        <image class="left-img" src="{{baseURL+userInfo.avatar || '/static/default-avatar.png'}}" mode="cover" lazy-load="true"></image>
+
+        <view class="left-desc-box">
+          <view class="username">
+            {{nickname==userInfo.studentaccount ? userInfo.studentaccount : userInfo.teacheraccount}}
+          </view>
+          <view class="user-meta" wx:if="{{isStudent}}">
+            {{userInfo.grade || '未设置年级'}} · {{userInfo.classname || '未设置班级'}}
+          </view>
+
+          <!-- 用户额外信息 -->
+          <view class="user-stats">
+            <view class="stat-item">
+              <text class="stat-value">{{studyCount || 0}}</text>
+              <text class="stat-label">学习次数</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value">{{correctRate || 0}}%</text>
+              <text class="stat-label">正确率</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value">{{wordCount || 0}}</text>
+              <text class="stat-label">正确次数</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="right">
+        <text class="iconfont icon-shezhi1 icons" bind:tap="toDetail"></text>
+      </view>
+    </view>
+
+    <view class="growth-board" wx:if="{{userInfo.id && isStudent}}">
+      <view class="section-title">成长概览</view>
+      <view class="medal-grid">
+        <view class="medal-card">
+          <view class="medal-icon">🏅</view>
+          <view class="medal-value">{{ownMedalCount || 0}}</view>
+          <view class="medal-label">我的勋章</view>
+        </view>
+        <view class="medal-card class-card">
+          <view class="medal-icon">🏆</view>
+          <view class="medal-value">{{classMedalCount || 0}}</view>
+          <view class="medal-label">班级勋章总数</view>
+        </view>
+      </view>
+
+      <view class="action-grid">
+        <view class="action-card action-recitation" bindtap="toRecitationTask">
+          <view class="action-title">背诵任务</view>
+          <view class="action-desc">查看老师布置的古诗背诵并上传音频</view>
+          <view class="action-tag">去完成</view>
+        </view>
+        <view class="action-card action-pk" bindtap="toClassPk">
+          <view class="action-title">班级PK</view>
+          <view class="action-desc">和同班同学比拼学习成果，获胜拿勋章</view>
+          <view class="action-tag">去挑战</view>
+        </view>
+      </view>
+
+      <view class="study-chart-card">
+        <view class="section-subtitle">近7天学习记录</view>
+        <view class="weak-note">根据你近7天的练习记录、测验记录和背诵任务完成情况统计生成。</view>
+        <view class="weak-summary">{{weakPointSummary}}</view>
+        <view class="chart-box">
+          <view class="chart-item" wx:for="{{weeklyStudyData}}" wx:key="label">
+            <view class="chart-column-wrap">
+              <view class="chart-count">{{item.count}}</view>
+              <view class="chart-column" style="height: {{item.height}}rpx;"></view>
+            </view>
+            <view class="chart-label">{{item.label}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="review-card">
+        <view class="section-subtitle">薄弱项复习推荐</view>
+        <view class="weak-note">系统会结合你最近的错题情况和未完成的背诵任务，优先推荐需要重点复习的内容。</view>
+        <view wx:if="{{reviewRecommendations.length}}">
+          <view class="review-item" wx:for="{{reviewRecommendations}}" wx:key="title">
+            <view class="review-dot"></view>
+            <view class="review-body">
+              <view class="review-title">{{item.title}}</view>
+              <view class="review-reason">{{item.reason}}</view>
+            </view>
+          </view>
+        </view>
+        <view class="empty-review" wx:else>暂时没有明显薄弱项，继续保持当前学习节奏。</view>
+      </view>
+    </view>
+
+    <!-- 未登录状态 -->
+    <view wx:else class="no-login" bind:tap="tologin">
+      <view class="noLogin-icon">
+        <text class="iconfont icon-user"></text>
+      </view>
+      <view class="noLogin-text">登录/注册</view>
+      <view class="login-desc">登录后可同步学习进度和记录</view>
+    </view>
+
+    <!-- 功能列表 -->
+    <view class="list-container" wx:if="{{userInfo.id}}">
+      <!-- 个人功能 -->
+      <view class="menu-card">
+        <view class="list-item" bind:tap="uppdatePassword">
+          <text class="iconfont icon-lock list-img"></text>
+          <view class="list-text">密码修改</view>
+          <view class="list-icon">></view>
+
+          <!-- 密码修改弹窗 -->
+          <com-popup id="bottomFrame" className="buttom-popup">
+            <view class="popup-content">
+              <view class="popup-header">
+                <view class="popup-title">修改密码</view>
+                <view class="popup-close" bind:tap="cancelShow">
+                  <view class="iconfont icon-close">x</view>
+                </view>
+              </view>
+
+              <view class="popup-body">
+                <input class="passwordInput" model:value="{{passWorded}}" type="password" placeholder="请输入原密码" />
+                <input class="passwordInput" type="password" model:value="{{newPassword}}" placeholder="请输入新密码" />
+                <input model:value="{{confirmPassword}}" class="passwordInput" type="password" placeholder="请确认新密码" />
+              </view>
+
+              <view class="popup-footer">
+                <button bindtap="resetpasswordBtn" class="update-btn">确认修改</button>
+              </view>
+            </view>
+          </com-popup>
+        </view>
+      </view>
+
+      <!-- 功能菜单 - 直接硬编码 -->
+      <view class="menu-section">
+        <view class="menu-section-title">功能菜单</view>
+        <view class="menu-list">
+          <!-- 测验管理 -->
+          <view class="treeList">
+            <view class="title c1" bindtap="toggleMenu" data-index="0">
+              <text class="iconfont icon-common18 list-img"></text>
+              <text class="txt">测验管理</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[0] ? '180deg' : '0deg'}});">v</text>
+            </view>
+            <view class="list" wx:if="menuOpen[0]">
+              <view class="list-item" bindtap="toExamRecord">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">测验记录</text>
+                <view class="list-icon">></view>
+              </view>
+              <view class="list-item" bindtap="toErrorBook">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">错题本</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 意见反馈管理 -->
+          <view class="treeList">
+            <view class="title c1" bindtap="toggleMenu" data-index="1">
+              <text class="iconfont icon-mail-line list-img"></text>
+              <text class="txt">意见反馈管理</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[1] ? '180deg' : '0deg'}});">v</text>
+            </view>
+            <view class="list" wx:if="menuOpen[1]">
+              <view class="list-item" bindtap="toFeedback">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">意见反馈</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 学习社区管理 -->
+          <view class="treeList">
+            <view class="title c1" bindtap="toggleMenu" data-index="2">
+              <text class="iconfont icon-chat--line list-img"></text>
+              <text class="txt">学习社区管理</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[2] ? '180deg' : '0deg'}});">v</text>
+            </view>
+            <view class="list" wx:if="menuOpen[2]">
+              <view class="list-item" bindtap="toForum">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">学习社区</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+            <view class="list" wx:if="menuOpen[2]">
+              <view class="list-item" bindtap="toMyforum">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">我的发布</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 收藏管理 -->
+          <view class="treeList">
+            <view class="title c1" bindtap="toggleMenu" data-index="4">
+              <text class="iconfont icon-heart--line list-img"></text>
+              <text class="txt">收藏管理</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[4] ? '180deg' : '0deg'}});">v</text>
+            </view>
+            <view class="list" wx:if="menuOpen[4]">
+              <view class="list-item" bindtap="toStoreup">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">我的收藏</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+          </view>
+          <view class="treeList" wx:if="{{isStudent}}">
+            <view class="title c1" bindtap="toggleMenu" data-index="5">
+              <text class="iconfont icon-football-line list-img"></text>
+              <text class="txt">班级PK</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[5] ? '180deg' : '0deg'}});">v</text>
+            </view>
+            <view class="list" wx:if="menuOpen[5]">
+              <view class="list-item" bindtap="toClassPk">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">同班同学PK</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+          </view>
+          <view class="treeList">
+            <view class="title c1" bindtap="toggleMenu" data-index="6">
+              <text class="iconfont icon-customer-service--line list-img"></text>
+              <text class="txt">智能助手</text>
+              <text class="iconfont icon-xiajiantou" style="transform: rotate({{menuOpen[6] ? '180deg' : '0deg'}});">v</text>
+            </view>
+            <view class="list" wx:if="menuOpen[6]">
+              <view class="list-item" bindtap="toAichat">
+                <text class="iconfont icon-caret-right list-arrow"></text>
+                <text class="list-text">智能助手</text>
+                <view class="list-icon">></view>
+              </view>
+            </view>
+          </view>
+
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部装饰 -->
+  <view class="bottom-decoration"></view>
+</view>

@@ -1,0 +1,105 @@
+<view class="pk-page">
+  <view class="pk-hero">
+    <view class="pk-title">同班古诗 PK</view>
+    <view class="pk-desc">随机抽取 5 道题库题目，支持单选、多选、判断、填空，和同班同学比谁答对更多。</view>
+    <view class="pk-class">{{userInfo.classname || '未设置班级'}}</view>
+  </view>
+
+  <view class="pk-summary">
+    <view class="summary-card">
+      <view class="summary-value">{{userInfo.medalcount || 0}}</view>
+      <view class="summary-label">我的勋章</view>
+    </view>
+    <view class="summary-card warm">
+      <view class="summary-value">{{classMedalCount || 0}}</view>
+      <view class="summary-label">班级勋章</view>
+    </view>
+  </view>
+
+  <view class="section-card">
+    <view class="section-title">选择同学开始 5 题混合 PK</view>
+    <view wx:if="{{classmates.length}}">
+      <view class="classmate-item" wx:for="{{classmates}}" wx:key="id">
+        <view class="classmate-info">
+          <view class="classmate-name">{{item.studentname}}</view>
+          <view class="classmate-meta">{{item.grade}} · {{item.classname}}</view>
+          <view class="classmate-medal">当前勋章：{{item.medalcount || 0}}</view>
+        </view>
+        <button class="pk-btn" bindtap="startPk" data-item="{{item}}" loading="{{loading}}">开始PK</button>
+      </view>
+    </view>
+    <view class="empty-tip" wx:else>当前班级还没有可 PK 的同学。</view>
+  </view>
+
+  <view class="section-card quiz-card" wx:if="{{quizReady && activeOpponent}}">
+    <view class="section-title">题库 PK</view>
+    <view class="quiz-topbar">
+      <view class="quiz-opponent">
+        <text class="quiz-opponent-label">对手</text>
+        <text class="quiz-opponent-name">{{activeOpponent.studentname}}</text>
+      </view>
+      <view class="quiz-rule">随机 5 题，答对更多者获胜</view>
+    </view>
+    <view class="quiz-progress">
+      <view class="quiz-progress-text">已作答 {{answeredCount}} / 5</view>
+      <view class="quiz-progress-bar">
+        <view class="quiz-progress-inner" style="width: {{progressWidth}}%;"></view>
+      </view>
+    </view>
+    <view class="quiz-question" wx:for="{{quizQuestions}}" wx:key="id" wx:for-item="question" wx:for-index="questionIndex">
+      <view class="quiz-question-head">
+        <view class="quiz-order">{{question.order}}</view>
+        <view class="quiz-title-wrap">
+          <view class="quiz-type-tag type-{{question.type}}">{{question.type == 0 ? '单选题' : (question.type == 1 ? '多选题' : (question.type == 2 ? '判断题' : '填空题'))}}</view>
+          <view class="quiz-title">{{question.questionname}}</view>
+        </view>
+      </view>
+      <view class="quiz-options" wx:if="{{question.type != 3}}">
+        <view
+          class="quiz-option {{question.type == 1 ? (question.selectedAnswer.indexOf(answerOption.code) > -1 ? 'active' : '') : (question.selectedAnswer == answerOption.code ? 'active' : '')}}"
+          wx:for="{{question.options}}"
+          wx:key="code"
+          wx:for-item="answerOption"
+          data-index="{{questionIndex}}"
+          data-code="{{answerOption.code}}"
+          bindtap="chooseAnswer">
+          <text class="quiz-option-code">{{answerOption.code}}</text>
+          <text class="quiz-option-text">{{answerOption.text}}</text>
+        </view>
+      </view>
+      <view class="quiz-input-wrap" wx:if="{{question.type == 3}}">
+        <input
+          class="quiz-input"
+          placeholder="请输入答案"
+          value="{{question.inputAnswer}}"
+          data-index="{{questionIndex}}"
+          bindinput="inputAnswer" />
+      </view>
+      <view class="quiz-analysis" wx:if="{{question.answered}}">
+        解析：{{question.analysis || '完成后可查看结果'}}
+      </view>
+    </view>
+    <view class="quiz-btns">
+      <button class="ghost-btn" bindtap="cancelQuiz">取消本次PK</button>
+      <button class="pk-btn submit-btn" bindtap="submitQuiz" loading="{{submitting}}">提交并结算</button>
+    </view>
+  </view>
+
+  <view class="section-card">
+    <view class="section-title">我的 PK 记录</view>
+    <view wx:if="{{pkRecords.length}}">
+      <view class="record-item" wx:for="{{pkRecords}}" wx:key="id">
+        <view class="record-head">
+          <view class="record-status {{item.pkstatus == '平局' ? 'draw' : (item.winneraccount == userInfo.studentaccount ? 'win' : 'lose')}}">
+            {{item.pkstatus == '平局' ? '本场平局' : (item.winneraccount == userInfo.studentaccount ? '本场获胜' : '继续加油')}}
+          </view>
+          <view class="record-time">{{item.pktime}}</view>
+        </view>
+        <view class="record-text">对手：{{item.studentaccount == userInfo.studentaccount ? item.opponentname : item.studentname}}</view>
+        <view class="record-text">比分：{{item.studentaccount == userInfo.studentaccount ? item.myscore : item.opponentscore}} : {{item.studentaccount == userInfo.studentaccount ? item.opponentscore : item.myscore}}</view>
+        <view class="record-text">奖励勋章：{{item.winneraccount == userInfo.studentaccount ? item.medalreward : 0}}</view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:else>还没有 PK 记录，快去和同学比一场吧。</view>
+  </view>
+</view>

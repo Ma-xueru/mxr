@@ -1,0 +1,27 @@
+<view class="comment-container">
+  <view class="comment-list">
+    <view class="comment-item" wx:for="{{goodsListData}}" wx:key="index">
+      <view class="comment-header">
+        <image class="avatar" src="{{baseURL}}{{item.avatarurl}}" mode="aspectFill"></image>
+        <view class="user-info">
+          <view class="nickname">{{item.nickname}}</view>
+          <view class="time">{{item.addtime}}</view>
+        </view>
+      </view>
+      <view class="comment-content">{{item.content}}</view>
+      <view class="comment-reply" wx:if="{{item.reply}}">
+        <view class="reply-title">回复：</view>
+        <view class="reply-content">{{item.reply}}</view>
+      </view>
+      <view class="comment-footer" wx:if="{{isLogin}}">
+        <view class="delete-btn" bindtap="deleteBtn" data-id="{{item.id}}">
+          <text class="iconfont icon-shanchu4"></text>
+          <text>删除</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:if="{{goodsListData.length === 0}}">
+      暂无评论
+    </view>
+  </view>
+</view>

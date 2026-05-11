@@ -1,0 +1,73 @@
+<view class="goodsClassify-container ">
+    <!-- 装饰元素 -->
+    <view class="decorative-element top-left"></view>
+    <view class="decorative-element bottom-right"></view>
+    
+    <!-- 顶部装饰条 -->
+    <view class="top-decoration"></view>
+    
+    <!-- 页面标题 -->
+    <view class="page-title">
+        <text>预约取消记录</text>
+    </view>
+    
+    <view class="content">
+        <view class="list-box">
+            <view class="search">
+                <view class="search-inp-box">
+                    <text class="iconfont icon-sousuo1"></text>
+                    <input class="search-input" model:value="{{studentname}}" type="text" placeholder="用户姓名" />
+                </view>
+                <view class="searchBtn" bind:tap="search">搜索</view>
+            </view>
+            
+            <!-- 列表 -->
+            <view class="categoryFlag-box">
+                <view class="goodsList-box">
+                    <!-- 列表项 -->
+                    <view class="goods-item" bind:tap="detailBtn" data-item="{{item}}" wx:for="{{goodsListData}}" wx:key="index">
+                        <view class="left-icon">
+                            <text class="iconfont icon-quxiao"></text>
+                        </view>
+                        <view class="goods-info">
+                            <view class="goods-title" bind:tap="detailBtn" data-tableName="reservecancel" data-id="{{item.id}}">
+                                用户姓名: {{item.studentname}}
+                            </view>
+                            
+                            <!-- 操作按钮区 -->
+                            <view class="operate-box">
+                                <view bind:tap="editBtn" class="edit-box" wx:if="{{editAuth}}">
+                                    <text class="iconfont icon-xiugai3 edit-icons"></text>
+                                    <text data-id="{{item.id}}" class="edit-text">修改</text>
+                                </view>
+                                <view wx:if="{{delAuth}}" class="delete-box" catchtap="deletetap">
+                                    <text class="iconfont icon-shanchu4 del-icons"></text>
+                                    <text data-id="{{item.id}}" bind:tap="deleteBtn" class="del-text">删除</text>
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+                
+                <!-- 无数据状态 -->
+                <view class="nodata" wx:if="{{goodsListData.length === 0}}">
+                    <text class="iconfont icon-wushuju"></text>
+                    <text>暂无取消记录</text>
+                </view>
+                
+                <!-- 加载更多 -->
+                <view class="loading" wx:if="{{flag && goodsListData.length > 0}}">
+                    <view class="dot"></view>
+                    <view class="dot"></view>
+                    <view class="dot"></view>
+                </view>
+                
+                <!-- 新增按钮 -->
+                <button class="add-btn" wx:if="{{addAuth}}" bind:tap="addTap">
+                    <text class="iconfont icon-tianjia"></text>
+                </button>
+            </view>
+        </view>
+    </view>
+</view>
+    

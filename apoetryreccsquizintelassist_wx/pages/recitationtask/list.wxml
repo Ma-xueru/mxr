@@ -1,0 +1,64 @@
+<view class="goodsClassify-container">
+  <view class="content">
+    <view class="list-box">
+      <view class="search">
+        <view class="search-inp-box">
+          <text class="iconfont icon-sousuo1"></text>
+          <input class="search-input" model:value="{{tasktitle}}" placeholder="搜索背诵任务标题" />
+        </view>
+        <view class="searchBtn" bind:tap="search">搜索</view>
+      </view>
+
+      <button class="category-screen" bind:tap="screenBoxShow">筛选</button>
+
+      <view class="info-right" wx:if="{{popopShow}}">
+        <view class="screen-input-box">
+          <view class="screen-input-label">学生账号</view>
+          <input class="screen-intervalInput-item" placeholder="请输入学生账号" model:value="{{studentaccount}}" />
+        </view>
+        <view class="screen-input-box">
+          <view class="screen-input-label">完成状态</view>
+          <input class="screen-intervalInput-item" placeholder="请输入完成状态" model:value="{{completionstatus}}" />
+        </view>
+        <view class="screen-btn-box">
+          <button class="screen-btn-reset" bindtap="screenReset">重置</button>
+          <button class="screen-btn-confirm" bindtap="search">确定</button>
+        </view>
+      </view>
+
+      <view class="categoryFlag-box">
+        <view class="goodsList-box">
+          <view class="goods-item" bind:tap="detailBtn" data-item="{{item}}" wx:for="{{goodsListData}}" wx:key="index">
+            <view class="goods-title">任务标题:{{item.tasktitle}}</view>
+            <view class="goods-desc">学生:{{item.studentname}}（{{item.studentaccount}}）</view>
+            <view class="goods-desc">指定古诗:{{item.coursetitles || '未指定'}}</view>
+            <view class="goods-desc">状态:{{item.completionstatus}}</view>
+            <view class="goods-desc">音频:{{item.recitationaudio ? '已上传' : '未上传'}}</view>
+            <view class="goods-desc">得分:{{item.kaoshichengji || '待评分'}}</view>
+            <view class="goods-desc">截止:{{item.deadline}}</view>
+            <view class="operate-box">
+              <view
+                class="upload-box"
+                bind:tap="uploadAudioBtn"
+                data-id="{{item.id}}"
+                wx:if="{{showUploadButton && !item.kaoshichengji}}"
+              >
+                <text class="iconfont icon-shangchuan upload-icons"></text>
+                <text class="upload-text">{{item.recitationaudio ? '重新上传' : '上传音频'}}</text>
+              </view>
+              <view bind:tap="editBtn" class="edit-box" data-id="{{item.id}}" wx:if="{{editAuth}}">
+                <text class="iconfont icon-xiugai3 edit-icons"></text>
+                <text class="edit-text">修改</text>
+              </view>
+              <view wx:if="{{delAuth}}" class="delete-box">
+                <text class="iconfont icon-shanchu4 del-icons"></text>
+                <text data-id="{{item.id}}" bind:tap="deleteBtn" class="del-text">删除</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        <button class="add-btn" wx:if="{{addAuth}}" bind:tap="addTap">新增</button>
+      </view>
+    </view>
+  </view>
+</view>

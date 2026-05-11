@@ -1,0 +1,5 @@
+http://localhost:8080/apoetryreccsquizintelassist/manage/dist/index.html
+
+用户 1 1
+管理员 admin admin
+教师 1 1

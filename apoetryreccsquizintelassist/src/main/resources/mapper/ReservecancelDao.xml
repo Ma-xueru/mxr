@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cl.dao.ReservecancelDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.cl.entity.ReservecancelEntity" id="reservecancelMap">
+        <result property="studentaccount" column="studentaccount"/>
+        <result property="studentname" column="studentname"/>
+        <result property="canceltime" column="canceltime"/>
+        <result property="teacheraccount" column="teacheraccount"/>
+        <result property="teachername" column="teachername"/>
+    </resultMap>
+
+    <select id="selectListView"
+		resultType="com.cl.entity.view.ReservecancelView" >
+
+		SELECT  reservecancel.* FROM reservecancel  reservecancel
+        <where> 1=1 ${ew.sqlSegment}</where>
+	</select>
+	
+	<select id="selectView"
+		resultType="com.cl.entity.view.ReservecancelView" >
+		SELECT * FROM reservecancel  reservecancel <where> 1=1 ${ew.sqlSegment}</where>
+	</select>
+	
+	<select id="selectGroupBy"
+		resultType="com.cl.entity.view.ReservecancelView" >
+		select userid,username,paperid,papername,sum(myscore) myscore,ROUND(sum(case when myscore>0 then 1 else 0 end)/(sum(1)),2) accuracy from examrecord     
+        <where> 1=1 ${ew.sqlSegment}</where>
+        group by userid,username,paperid,papername  
+	</select>
+
+</mapper>

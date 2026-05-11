@@ -1,0 +1,88 @@
+/* pages/student/chapter.wxss */
+.newsDetail-container {
+  position: relative;
+  padding-bottom: 160rpx;
+  background-color: #E8F4FD;
+  min-height: 100vh;
+}
+
+.title {
+  text-align: center;
+  font-size: 38rpx;
+  font-weight: 700;
+  margin: 40rpx 30rpx;
+  color: #4A90E2;
+  padding-bottom: 24rpx;
+  border-bottom: 2rpx solid #B8D8F6;
+  text-shadow: 0 2rpx 4rpx rgba(74, 144, 226, 0.1);
+}
+
+.article-content {
+  margin: 0 30rpx;
+  padding: 36rpx;
+  background-color: #FFFFFF;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  line-height: 56rpx;
+  color: #333333;
+  position: relative;
+  overflow: hidden;
+}
+
+.article-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6rpx;
+  background: linear-gradient(90deg, #4A90E2 0%, #6AA9F4 100%);
+}
+
+.btn {
+  position: fixed;
+  width: 100%;
+  display: flex;
+  bottom: 0rpx;
+  background: #FFFFFF;
+  border-top: 2rpx solid #E0E0E0;
+  padding: 20rpx 30rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.btn button {
+  flex: 1;
+  background: linear-gradient(135deg, #4A90E2 0%, #6AA9F4 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12rpx;
+  font-size: 34rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  margin: 0 10rpx;
+  font-weight: 500;
+  box-shadow: 0 4rpx 16rpx rgba(74, 144, 226, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn button:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(74, 144, 226, 0.4);
+}
+
+/* 添加内容段落样式 */
+.article-content p {
+  margin-bottom: 24rpx;
+  color: #333333;
+}
+
+.article-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* 添加图片样式 */
+.article-content image {
+  width: 100%;
+  border-radius: 12rpx;
+  margin: 20rpx 0;
+}

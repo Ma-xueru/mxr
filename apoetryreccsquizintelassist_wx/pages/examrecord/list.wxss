@@ -1,0 +1,284 @@
+/* 全局样式变量定义 - 皇家蓝为主色调 */
+page {
+  --primary-color: #4169e1; /* 皇家蓝主色调 */
+  --primary-light: #e6eeff; /* 浅蓝 - 用于背景和次要元素 */
+  --primary-dark: #3056b3; /* 深蓝 - 用于强调和交互元素 */
+  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  --text-primary: #2c3e50; /* 主要文本色 */
+  --text-secondary: #667580; /* 次要文本色 */
+  --text-placeholder: #95a5a6; /* 占位符文本色 */
+  --border-color: #c9d5e0; /* 边框颜色 */
+  --bg-color: #f5f8ff; /* 页面背景色 */
+  --card-bg: #ffffff; /* 卡片背景色 */
+  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.1); /* 阴影效果 */
+  --shadow-hover: 0 12rpx 32rpx rgba(65, 105, 225, 0.15); /* 悬停阴影效果 */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 过渡动画 */
+}
+
+/* 顶部装饰条 */
+.top-decoration {
+  height: 10rpx;
+  width: 100%;
+  background: var(--primary-gradient);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+}
+
+/* 装饰元素 */
+.decorative-element {
+  position: absolute;
+  width: 300rpx;
+  height: 300rpx;
+  background: var(--primary-gradient);
+  opacity: 0.03;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.top-left {
+  top: -150rpx;
+  left: -150rpx;
+}
+
+.bottom-right {
+  bottom: -150rpx;
+  right: -150rpx;
+}
+
+.forumCenter-container {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  position: relative;
+  padding-top: 20rpx;
+}
+
+/* 页面标题 */
+.page-title {
+  text-align: center;
+  padding: 30rpx 0;
+  margin: 0 0 30rpx 0;
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.page-title text {
+  font-size: 36rpx;
+  color: var(--primary-color);
+  font-weight: 600;
+  position: relative;
+  padding: 0 30rpx;
+}
+
+.page-title text::after {
+  content: '';
+  position: absolute;
+  bottom: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 6rpx;
+  background: var(--primary-gradient);
+  border-radius: 3rpx;
+}
+
+.content {
+  letter-spacing: 2rpx;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 120rpx);
+  margin: 0 20rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.list {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.nodata {
+  text-align: center;
+  padding: 100rpx 0;
+  color: var(--text-placeholder);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nodata .iconfont {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  color: var(--primary-light);
+}
+
+.list-item {
+  width: 100%;
+  display: flex;
+  background: var(--card-bg);
+  border-radius: 20rpx;
+  box-shadow: var(--shadow);
+  padding: 30rpx;
+  margin: 0 0 20rpx 0;
+  transition: var(--transition);
+  align-items: center;
+}
+
+.list-item:hover {
+  transform: translateY(-4rpx);
+  box-shadow: var(--shadow-hover);
+}
+
+.left-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.left-icon .iconfont {
+  font-size: 36rpx;
+  color: var(--primary-color);
+}
+
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.exercise-name {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  margin-bottom: 10rpx;
+  line-height: 1.4;
+}
+
+.username {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-bottom: 20rpx;
+}
+
+.score-container {
+  display: flex;
+  align-items: center;
+}
+
+.score-label {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-right: 10rpx;
+}
+
+.score-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--primary-color);
+  background-color: var(--primary-light);
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+/* 加载动画 */
+.loading {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* 搜索框样式 */
+.search {
+  height: 10vh;
+  background-color: var(--card-bg);
+  display: flex;
+  align-items: center;
+  padding: 0 20rpx;
+  font-size: 24rpx;
+  position: relative;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  box-shadow: var(--shadow);
+}
+
+.search-input {
+  background-color: var(--primary-light);
+  height: 6vh;
+  color: var(--text-primary);
+  width: 70vw;
+  border-radius: 50rpx;
+  padding-left: 70rpx;
+  position: relative;
+  font-size: 28rpx;
+}
+
+.icons {
+  width: 6vw;
+  position: absolute;
+  left: 40rpx;
+  line-height: 6vh;
+  font-size: 30rpx;
+  color: var(--primary-color);
+}
+
+.searchBtn {
+  background: var(--primary-gradient);
+  color: white;
+  margin: 20rpx;
+  height: 6vh;
+  width: 16vw;
+  line-height: 6vh;
+  text-align: center;
+  letter-spacing: 2rpx;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  transition: var(--transition);
+}
+
+.searchBtn:active {
+  transform: scale(0.95);
+}
+
+/* 按钮样式 */
+button {
+  color: #fff;
+  background: var(--primary-gradient);
+  border-color: var(--primary-color);
+  font-size: 28rpx;
+  border-radius: 60rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  transition: var(--transition);
+  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2);
+}
+
+button::after {
+  border: none;
+}
+
+button:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.3);
+}
+
+

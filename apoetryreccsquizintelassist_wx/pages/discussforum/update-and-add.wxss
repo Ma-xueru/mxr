@@ -1,0 +1,221 @@
+/* 全局样式变量定义 */
+page {
+  --primary-color: #4169e1; /* 皇家蓝主色调 */
+  --primary-light: #e6eeff;
+  --primary-dark: #3056b3;
+  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --border-color: #dce4f2;
+  --white: #ffffff;
+  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.15);
+  --card-shadow: 0 4rpx 16rpx rgba(65, 105, 225, 0.1);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 顶部装饰条 */
+.top-decoration {
+  height: 12rpx;
+  width: 100%;
+  background: var(--primary-gradient);
+}
+
+.update-container {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.content {
+  width: calc(100vw - 40rpx);
+  margin: 20rpx;
+  padding-bottom: 100rpx;
+  background-color: var(--white);
+  border-radius: 20rpx;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+/* 页面标题 */
+.page-title {
+  padding: 30rpx 30rpx 15rpx;
+  text-align: center;
+  border-bottom: 2rpx solid var(--border-color);
+}
+
+.title-text {
+  font-size: 36rpx;
+  color: var(--primary-color);
+  font-weight: 600;
+  position: relative;
+}
+
+.title-underline {
+  width: 80rpx;
+  height: 6rpx;
+  background-color: var(--primary-color);
+  border-radius: 3rpx;
+  margin: 15rpx auto 0;
+  opacity: 0.7;
+}
+
+.form-box {
+  box-sizing: border-box;
+  padding: 30rpx 20rpx;
+}
+
+.item-box {
+  padding: 15rpx 0;
+  margin: 0 0 20rpx 0;
+  border-color: var(--border-color);
+  align-items: flex-start;
+  border-width: 0 0 2rpx 0;
+  background: none;
+  display: flex;
+  width: 100%;
+  border-style: solid;
+  height: auto;
+}
+
+.item-label {
+  width: 140rpx;
+  padding: 15rpx 20rpx 0 0;
+  line-height: 1.4;
+  font-size: 28rpx;
+  color: var(--primary-color);
+  font-weight: 500;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+textarea {
+  padding: 15rpx 20rpx;
+  margin: 0;
+  line-height: 1.6;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  flex: 1;
+  min-height: 200rpx;
+  border: 2rpx solid var(--border-color);
+  border-radius: 15rpx;
+  background-color: var(--white);
+  transition: var(--transition);
+  resize: none;
+  box-sizing: border-box;
+}
+
+textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4rpx rgba(65, 105, 225, 0.1);
+  outline: none;
+}
+
+textarea::placeholder {
+  color: #999;
+  font-size: 26rpx;
+}
+
+.btn-box {
+  width: 100%;
+  justify-content: center;
+  display: flex;
+  height: auto;
+  padding: 30rpx 20rpx;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.submit-btn {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: var(--white);
+  border-radius: 60rpx;
+  background-color: var(--primary-color);
+  width: calc(100% - 40rpx);
+  line-height: 88rpx;
+  font-size: 32rpx;
+  height: 88rpx;
+  font-weight: 500;
+  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submit-btn:active {
+  background-color: var(--primary-dark);
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.2);
+}
+
+/* 图片上传区域样式 */
+.upload-box {
+  padding: 15rpx 0;
+  margin: 0 0 20rpx 0;
+  border-color: var(--border-color);
+  align-items: flex-start;
+  border-width: 0 0 2rpx 0;
+  background: none;
+  display: flex;
+  width: 100%;
+  border-style: solid;
+  height: auto;
+}
+
+.upload-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-btn {
+  width: 120rpx;
+  height: 120rpx;
+  border: 2rpx dashed var(--border-color);
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(65, 105, 225, 0.03);
+  transition: var(--transition);
+  margin-bottom: 15rpx;
+}
+
+.upload-btn:active {
+  background-color: rgba(65, 105, 225, 0.08);
+}
+
+.upload-icon {
+  font-size: 40rpx;
+  color: var(--primary-color);
+}
+
+.upload-text {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-top: 10rpx;
+}
+
+.upload-preview {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 10rpx;
+  object-fit: cover;
+  margin-right: 15rpx;
+  border: 2rpx solid var(--border-color);
+}
+
+/* 字符计数样式 */
+.char-count {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  text-align: right;
+  margin-top: 10rpx;
+  padding-right: 20rpx;
+}

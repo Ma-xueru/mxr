@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "com-date": "/component/com-date/com-date"
+  },
+  "navigationBarTitleText": "背诵任务",
+  "navigationBarBackgroundColor": "#4169e1",
+  "navigationBarTextStyle": "white"
+}

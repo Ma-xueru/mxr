@@ -1,0 +1,28 @@
+<view class="detail-container">
+  <view class="content">
+    <view class="hero-box">
+      <view class="hero-title">{{detailList.tasktitle || '背诵任务'}}</view>
+      <view class="hero-status">{{detailList.completionstatus || '待完成'}}</view>
+    </view>
+
+    <view class="detail-box">
+      <view class="detail-item-box"><view class="detail-item-label">学生账号：</view><view class="detail-item-text">{{detailList.studentaccount}}</view></view>
+      <view class="detail-item-box"><view class="detail-item-label">学生姓名：</view><view class="detail-item-text">{{detailList.studentname}}</view></view>
+      <view class="detail-item-box"><view class="detail-item-label">任务要求：</view><view class="detail-item-text">{{detailList.taskcontent}}</view></view>
+      <view class="detail-item-box"><view class="detail-item-label">指定古诗：</view><view class="detail-item-text">{{detailList.coursetitles || '老师暂未指定'}}</view></view>
+      <view class="detail-item-box"><view class="detail-item-label">截止日期：</view><view class="detail-item-text">{{detailList.deadline}}</view></view>
+      <view class="detail-item-box"><view class="detail-item-label">背诵得分：</view><view class="detail-item-text">{{detailList.kaoshichengji || '待评分'}}</view></view>
+      <view class="detail-item-box"><view class="detail-item-label">教师姓名：</view><view class="detail-item-text">{{detailList.teachername}}</view></view>
+      <view class="detail-item-box"><view class="detail-item-label">完成说明：</view><view class="detail-item-text">{{detailList.completionremark || '暂无'}}</view></view>
+      <view class="detail-item-box detail-item-audio">
+        <view class="detail-item-label">背诵音频：</view>
+        <view class="detail-item-text">
+          <audio wx:if="{{detailList.recitationaudio}}" src="{{baseURL}}{{detailList.recitationaudio}}" controls></audio>
+          <view wx:else>暂未上传</view>
+        </view>
+      </view>
+      <view class="detail-item-box"><view class="detail-item-label">教师评语：</view><view class="detail-item-text">{{detailList.teachercomment || '老师暂未点评'}}</view></view>
+      <view class="detail-item-box"><view class="detail-item-label">完成时间：</view><view class="detail-item-text">{{detailList.completiontime || '未完成'}}</view></view>
+    </view>
+  </view>
+</view>

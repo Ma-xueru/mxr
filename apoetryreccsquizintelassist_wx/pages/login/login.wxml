@@ -1,0 +1,51 @@
+<view class="login-container">
+    <view class="login-card">
+        <!-- 顶部装饰元素 -->
+        <view class="card-decoration top-left"></view>
+        <view class="card-decoration top-right"></view>
+        
+        <view wx:if="{{!faceShow}}" class="content">
+            <!-- 应用图标 -->
+            <view class="app-icon">
+                <view class="icon-inner"></view>
+            </view>
+            <view class="app-title">乡村儿童的古诗文背诵与国学问答智能助手</view>
+            
+            <view class="input-group">
+                <view class="input-item">
+                    <icon class="input-icon" type="user" size="20"></icon>
+                    <input type="text" placeholder="请输入账号" model:value="{{username}}" />
+                </view>
+                
+                <view class="input-item">
+                    <icon class="input-icon" type="lock" size="20"></icon>
+                    <input type="password" placeholder="请输入密码" model:value="{{password}}" />
+                </view>
+            </view>
+            
+            <view class="section">
+                <picker bindchange="bindPickerChange" value="{{loginType}}" range="{{selectType}}">
+                    <view class="picker-text">
+                        <icon class="picker-icon" type="tag" size="18"></icon>
+                        {{selectType[loginType]}}
+                    </view>
+                </picker>
+            </view>
+
+            <button bindtap="login" data-tablename="${table.tableName}" class="login-btn">
+                <span class="btn-text">登录</span>
+                <icon class="btn-icon" type="right" size="16"></icon>
+            </button>
+            
+            <view class="action-row">
+                <view bindtap="registerUser" data-tablename="student" class="register-btn">
+                    注册用户
+                </view>
+            </view>
+        </view>
+        
+        <!-- 底部装饰元素 -->
+        <view class="card-decoration bottom-left"></view>
+        <view class="card-decoration bottom-right"></view>
+    </view>
+</view>

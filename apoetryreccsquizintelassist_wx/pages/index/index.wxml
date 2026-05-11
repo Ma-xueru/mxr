@@ -1,0 +1,99 @@
+<view class="index-container">
+    <view class="content">
+        <!-- 轮播图区域 -->
+        <swiper 
+            indicator-dots="{{true}}" 
+            autoplay="{{true}}" 
+            interval="{{5000}}" 
+            duration="{{500}}" 
+            class="swiper" 
+            circular="{{true}}"
+            indicator-color="rgba(255,255,255,0.5)" 
+            indicator-active-color="#4169e1">
+            <swiper-item class="swiper-item" wx:for="{{swiperList}}" wx:if="{{index<=2}}" wx:key="index">
+                <image 
+                    src="{{item.img}}" 
+                    mode="aspectFill" 
+                    class="swiper-img"
+                    lazy-load="true"
+                    binderror="imageErrorHandler">
+                </image>
+                <!-- <view class="swiper-title">{{item.title}}</view> -->
+            </swiper-item>
+        </swiper>
+
+        <!-- 古诗词学习推荐 -->
+        <view class="course-section">
+            <view class="section-header">
+                <view class="section-title">
+                    <icon class="title-icon" type="success" size="16"></icon>
+                    <text class="title-text">古诗词学习推荐</text>
+                </view>
+                <text class="section-more" bind:tap="toCourseList">更多</text>
+            </view>
+            <view class="course-list">
+                <view 
+                    class="course-item" 
+                    wx:for="{{courseList}}" 
+                    wx:key="index" 
+                    bind:tap="toCourseDetail" 
+                    data-id="{{item.id}}">
+                    <view class="course-card">
+                        <view class="course-cover">
+                            <image 
+                                src="{{baseURL}}{{item.picture || 'static/images/default-course.png'}}" 
+                                mode="aspectFill" 
+                                class="course-image"
+                                lazy-load="true"
+                                binderror="imageErrorHandler">
+                            </image>
+                            <view class="course-overlay">
+                                <text class="course-type">{{item.coursetitle || '未知古诗词学习'}}</text>
+                            </view>
+                        </view>
+                        <view class="course-info">
+                            <view class="course-title">{{item.coursetitle || '未命名'}}</view>
+                            <!-- <view class="course-author">{{item.author || '未知作者'}}</view> -->
+                            <view class="course-stats">
+                                <!-- <text class="stat-item">{{item.viewnum || 0}}次浏览</text> -->
+                                <text class="stat-divider">·</text>
+                                <text class="stat-item">{{item.thumbsupnum || 0}}人点赞</text>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+            </view>
+        </view>
+
+        <!-- 新闻资讯 -->
+        <view class="news-box">
+            <view class="news-title-box">
+                <view class="news-title-text">公告信息</view>
+                <text class="news-title-more" bind:tap="toNewsList">更多</text>
+            </view>
+            
+            <view class="news-list-box">
+                <view 
+                    class="news-list-item" 
+                    wx:for="{{newsList}}" 
+                    bind:tap="toNewsDetail" 
+                    data-id="{{item.id}}" 
+                    wx:key="index">
+                    <image   
+                        class="list-item-image" 
+                        src="{{baseURL+'/'+item.picture}}" 
+                        mode="aspectFill"
+                        lazy-load="true"
+                        binderror="imageErrorHandler">
+                    </image>
+                    <view class="list-item-body">
+                        <view class="list-item-title">{{item.title}}</view>
+                        <view class="list-item-introduction">{{item.introduction}}</view>
+                        <view class="list-item-text">{{item.addtime}}</view>
+                    </view>
+                </view>
+            </view>
+        </view>
+    </view>
+</view>
+    

@@ -1,0 +1,167 @@
+/**app.wxss**/
+@import "/static/iconfig/iconfont.wxss";
+
+/* 全局重置和基础样式 */
+view {
+  box-sizing: border-box;
+}
+
+/* 全局文字样式 */
+text {
+  color: #333333;
+  font-size: 28rpx;
+}
+
+/* 全局按钮样式 - 蓝色调主题 */
+button {
+  background: linear-gradient(135deg, #4A90E2 0%, #6AA9F4 100%);
+  color: #FFFFFF !important;
+  border-radius: 12rpx !important;
+  font-size: 32rpx !important;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(74, 144, 226, 0.2);
+  transition: all 0.3s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(74, 144, 226, 0.3);
+}
+
+/* 主容器样式 - 简洁蓝色调 */
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 200rpx 0;
+  box-sizing: border-box;
+  background-color: #F8F9FA;
+}
+
+/* 标题样式 - 蓝色主调 */
+.title {
+  color: #4A90E2;
+  font-weight: 600;
+  font-size: 36rpx;
+  text-shadow: 0 2rpx 4rpx rgba(74, 144, 226, 0.1);
+}
+
+/* 链接样式 - 蓝色强调 */
+a {
+  color: #4A90E2;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:active {
+  color: #2D7DD2;
+}
+
+
+
+input:focus {
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 4rpx rgba(74, 144, 226, 0.1);
+  outline: none;
+}
+
+/* 图标样式 - 蓝色点缀 */
+.icon {
+  color: #4A90E2;
+}
+
+/* 列表项样式 - 清爽分隔 */
+.list-item {
+  border-bottom: 1px solid #EEEEEE;
+  padding: 24rpx 0;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.list-item:active {
+  background-color: #F0F8FF;
+}
+
+/* 卡片样式 - 现代设计 */
+.card {
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 36rpx;
+  margin: 20rpx 0;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6rpx;
+  background: linear-gradient(90deg, #4A90E2 0%, #6AA9F4 100%);
+}
+
+/* 分割线样式 - 细微区分 */
+.divider {
+  height: 1px;
+  background-color: #EEEEEE;
+  margin: 24rpx 0;
+}
+
+/* 页面背景 - 清爽基调 */
+.page-bg {
+  background-color: #F8F9FA;
+}
+
+/* 高亮状态 - 蓝色突出 */
+.active {
+  color: #4A90E2;
+  font-weight: 500;
+}
+
+/* 按钮禁用状态 - 统一灰色调 */
+button:disabled {
+  background: #CCCCCC !important;
+  color: #FFFFFF !important;
+  box-shadow: none;
+  transform: none;
+}
+
+/* 提示文本 - 辅助说明 */
+.tip-text {
+  color: #999999;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+/* 加载状态 - 蓝色旋转动画 */
+.loading {
+  display: inline-block;
+  width: 40rpx;
+  height: 40rpx;
+  border: 3rpx solid rgba(74, 144, 226, 0.3);
+  border-radius: 50%;
+  border-top-color: #4A90E2;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 响应式调整 */
+@media (max-width: 375px) {
+  .card {
+    padding: 30rpx;
+  }
+  
+  .title {
+    font-size: 34rpx;
+  }
+}

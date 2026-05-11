@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cl.dao.ClasspkDao">
+
+    <resultMap type="com.cl.entity.ClasspkEntity" id="classpkMap">
+        <result property="studentaccount" column="studentaccount"/>
+        <result property="studentname" column="studentname"/>
+        <result property="classname" column="classname"/>
+        <result property="opponentaccount" column="opponentaccount"/>
+        <result property="opponentname" column="opponentname"/>
+        <result property="myscore" column="myscore"/>
+        <result property="opponentscore" column="opponentscore"/>
+        <result property="winneraccount" column="winneraccount"/>
+        <result property="winnername" column="winnername"/>
+        <result property="medalreward" column="medalreward"/>
+        <result property="pkstatus" column="pkstatus"/>
+        <result property="pktime" column="pktime"/>
+    </resultMap>
+
+    <select id="selectListView" resultType="com.cl.entity.view.ClasspkView">
+        SELECT classpk.* FROM classpk classpk
+        <where> 1=1 ${ew.sqlSegment}</where>
+    </select>
+
+    <select id="selectView" resultType="com.cl.entity.view.ClasspkView">
+        SELECT * FROM classpk classpk <where>1=1 ${ew.sqlSegment}</where>
+    </select>
+
+    <select id="selectValue" resultType="map">
+        SELECT ${params.xColumn}, ROUND(sum(${params.yColumn}),1) total FROM classpk
+        <where>1=1 ${ew.sqlSegment}</where>
+        group by ${params.xColumn}
+        limit 10
+    </select>
+
+    <select id="selectTimeStatValue" resultType="map">
+        <if test = 'params.timeStatType == "日"'>
+            SELECT DATE_FORMAT(${params.xColumn},'%Y-%m-%d') ${params.xColumn}, sum(${params.yColumn}) total FROM classpk
+            <where>1=1 ${ew.sqlSegment}</where>
+            group by DATE_FORMAT(${params.xColumn},'%Y-%m-%d')
+        </if>
+        <if test = 'params.timeStatType == "月"'>
+            SELECT DATE_FORMAT(${params.xColumn},'%Y-%m') ${params.xColumn}, sum(${params.yColumn}) total FROM classpk
+            <where>1=1 ${ew.sqlSegment}</where>
+            group by DATE_FORMAT(${params.xColumn},'%Y-%m')
+        </if>
+        <if test = 'params.timeStatType == "年"'>
+            SELECT DATE_FORMAT(${params.xColumn},'%Y') ${params.xColumn}, sum(${params.yColumn}) total FROM classpk
+            <where>1=1 ${ew.sqlSegment}</where>
+            group by DATE_FORMAT(${params.xColumn},'%Y')
+        </if>
+    </select>
+
+    <select id="selectGroup" resultType="map">
+        SELECT ${params.column}, count(1) total FROM classpk
+        <where>1=1 ${ew.sqlSegment}</where>
+        group by ${params.column}
+        limit 10
+    </select>
+
+</mapper>

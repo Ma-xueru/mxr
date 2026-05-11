@@ -1,0 +1,82 @@
+<view class="goodsClassify-container">
+    <!-- 顶部装饰条 -->
+    <view class="top-decoration"></view>
+    
+    <!-- 装饰元素 -->
+    <view class="decorative-element top-left"></view>
+    <view class="decorative-element bottom-right"></view>
+    
+    <view class="content">
+        <!-- 页面标题 -->
+        <view class="page-title">
+            <text>古诗词学习预约管理</text>
+        </view>
+        
+        <view class="list-box">
+            <!-- 搜索区域 -->
+            <view class="search">
+                <view class="search-inp-box">
+                    <text class="iconfont icon-sousuo1"></text>
+                    <input class="search-input" model:value="{{studentname}}" type="text" placeholder="搜索用户姓名" />
+                </view>
+                <view class="searchBtn" bind:tap="search">搜索</view>
+            </view>
+            
+            <!-- 列表内容 -->
+            <view class="categoryFlag-box">
+                <view class="goodsList-box">
+                    <!-- 列表项 -->
+                    <view class="goods-item" wx:for="{{goodsListData}}" wx:key="index" bind:tap="detailBtn" data-item="{{item}}">
+                        <view class="left-icon">
+                            <text class="iconfont">📅</text>
+                        </view>
+                        <view class="goods-info">
+                            <view class="goods-title">用户姓名: {{item.studentname}}</view>
+                            <view class="goods-status">
+                                <span class="status-label">预约状态:</span>
+                                <span class="status-value {{item.reservestatus === '已预约' ? 'status-booked' : item.reservestatus === '已取消' ? 'status-canceled' : 'status-pending'}}">
+                                    {{item.reservestatus}}
+                                </span>
+                                <span class="status-label">审核通过:</span>
+                                <span class="status-value {{item.sfsh === '是' ? 'status-booked' : item.sfsh === '否' ? 'status-canceled' : 'status-pending'}}">
+                                    {{item.sfsh}}
+                                </span>
+                            </view>
+                            
+                            <!-- 操作按钮区 -->
+                            <view class="operate-box">
+                                <view bind:tap="editBtn" class="edit-box" wx:if="{{editAuth}}">
+                                    <text class="iconfont icon-xiugai3 edit-icons"></text>
+                                    <text data-id="{{item.id}}" class="edit-text">修改</text>
+                                </view>
+                                <view wx:if="{{delAuth}}" class="delete-box" catchtap="deletetap">
+                                    <text class="iconfont icon-shanchu4 del-icons"></text>
+                                    <text data-id="{{item.id}}" bind:tap="deleteBtn" class="del-text">删除</text>
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                    
+                    <!-- 无数据状态 -->
+                    <view class="nodata" wx:if="{{goodsListData.length === 0}}">
+                        <text class="iconfont">📋</text>
+                        <text>暂无预约记录</text>
+                    </view>
+                    
+                    <!-- 加载动画 -->
+                    <view class="loading" wx:if="{{!flag && goodsListData.length > 0}}">
+                        <view class="dot"></view>
+                        <view class="dot"></view>
+                        <view class="dot"></view>
+                    </view>
+                </view>
+            </view>
+            
+            <!-- 新增按钮 -->
+            <button class="add-btn" wx:if="{{addAuth}}" bind:tap="addTap">
+                <text class="iconfont icon-add">+</text>
+            </button>
+        </view>
+    </view>
+</view>
+    

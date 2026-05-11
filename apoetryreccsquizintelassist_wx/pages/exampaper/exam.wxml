@@ -1,0 +1,144 @@
+<view class="exam-container">
+    <!-- 顶部装饰条 -->
+    <view class="top-decoration"></view>
+    
+    <!-- 进度指示器 -->
+    <view class="progress-bar-container">
+        <view class="progress-track">
+            <view class="progress-fill" style="width: {{(num/examList.length)*100}}%"></view>
+        </view>
+        <view class="progress-text">{{num+1}}/{{examList.length}}</view>
+    </view>
+
+    <view class="box">
+        <view class="header-section">
+            <view class="title">{{info.name}}</view>
+            <view class="countdown">
+                <text class="iconfont icon-clock"></text>
+                倒计时: {{reversetime}}
+            </view>
+        </view>
+        
+        <view class="quite">
+            <button type="warn" bind:tap="quitTap" class="quit-btn">退出练习</button>
+        </view>
+        
+        <view class="content">
+            <view class="topic-card">
+                <view class="question-number">#{{num+1}}</view>
+                <!-- <view class="topic-content">{{examList[num].questionname.replace((num+1)+'. ', '')}}</view> -->
+                <view class="topic-content">{{examList[num].questionname}}</view>
+                <view class="question-type">
+                    <view class="type-tag" wx:if="{{examList[num].type==0}}">单选题</view>
+                    <view class="type-tag multiple" wx:if="{{examList[num].type==1}}">多选题</view>
+                    <view class="type-tag judgment" wx:if="{{examList[num].type==2}}">判断题</view>
+                    <view class="type-tag fill" wx:if="{{examList[num].type==3}}">填空题</view>
+                </view>
+            </view>
+            
+            <!-- 选项列表 - 所有有选项的题型（不包括填空题） -->
+            <view class="options-list" wx:if="{{examList[num].options && examList[num].type!=3}}">
+                <view class="option-item" 
+                      wx:for="{{examList[num].options}}" 
+                      wx:key="index"        
+                      bindtap="{{!isdisabled ? ((examList[num].type==0 || examList[num].type==2) ? 'selectOption' : (examList[num].type==1 ? 'toggleMultipleOption' : '')) : ''}}"
+                      data-code="{{item.code}}"
+                      data-index="{{index}}" 
+                      style="{{!isdisabled && ((examList[num].type==0 || examList[num].type==2) && myanswer == item.code || (examList[num].type==1 && checkedOptions.indexOf(item.code) > -1)) ? 'border-color: #4169e1; background-color: rgba(65, 105, 225, 0.05);' : ''}}">
+                    <view class="option-letter">{{item.code}}</view>
+                    <view class="option-text">{{item.text}}</view>
+                    
+                    <!-- 提交后的答案状态显示 -->
+                    <view class="option-status" wx:if="{{isdisabled}}">
+                        <text class="iconfont icon-check correct-icon" wx:if="{{examList[num].answer.indexOf(item.code) > -1}}"></text>
+                        <text class="iconfont icon-close wrong-icon" wx:if="{{(myanswer.indexOf(item.code) > -1 || checkedOptions.indexOf(item.code) > -1) && examList[num].answer.indexOf(item.code) == -1}}"></text>
+                    </view>
+                </view>
+            </view>
+            
+            <!-- 答案反馈区域 -->
+            <view class="feedback-box" wx:if="{{error || correct}}">
+                <view class="feedback-header error-header" wx:if="{{error}}">
+                    <text class="iconfont icon-close-circle"></text>
+                    <text class="feedback-title">答案错误</text>
+                </view>
+                <view class="feedback-header correct-header" wx:if="{{correct}}">
+                    <text class="iconfont icon-check-circle"></text>
+                    <text class="feedback-title">答案正确</text>
+                </view>
+                <view class="feedback-content">
+                    <view class="answer-item">
+                        <text class="label">我的答案：</text>
+                        <text>{{myanswer || '未作答'}}</text>
+                    </view>
+                    <view class="answer-item">
+                        <text class="label">正确答案：</text>
+                        <text>{{examList[num].answer}}</text>
+                    </view>
+                </view>
+            </view>
+            
+            <!-- 多选题答案输入区域 -->
+            <view wx:if="{{examList[num].type==1}}">
+                <input type="text" 
+                       disabled="{{true}}" 
+                       placeholder="点击选择答案" 
+                       model:value="{{myanswer}}" 
+                       bind:tap="manyTap"
+                       class="answer-input" />
+                <com-manySel parentList="{{manyOptions}}" 
+                            showValue="{{showValue}}" 
+                            bind:acceptChild="acceptChild">
+                </com-manySel>
+            </view>
+            
+            <!-- 单选题和判断题的答案选择器 -->
+            <view wx:if="{{(examList[num].type==0 || examList[num].type==2) && !isdisabled}}">
+                <picker mode="selector" 
+                        disabled="{{isdisabled}}" 
+                        range="{{optionsCode}}" 
+                        value="{{index}}" 
+                        bindchange="answerChange">
+                    <input type="text" 
+                           placeholder="请选择答案" 
+                           model:value="{{myanswer}}" 
+                           class="answer-input" />
+                </picker>
+            </view>
+            
+            <!-- 填空题输入区域 -->
+            <view wx:if="{{examList[num].type==3 }}">
+                <input type="text" 
+                       placeholder="请输入答案" 
+                       model:value="{{myanswer}}" 
+                       class="answer-input" />
+            </view>
+            
+            <!-- 操作按钮区域 -->
+            <view class="action-buttons">
+                <view class="analysis-toggle" wx:if="{{nextShow}}" bind:tap="analysisTap">
+                    <text class="iconfont icon-info-circle"></text>
+                    查看解析
+                    <view class="analysis-content" wx:if="{{analysis}}">
+                        <view class="analysis-title">解析：</view>
+                        <view class="analysis-text">{{examList[num].analysis || '暂无解析'}}</view>
+                    </view>
+                </view>
+                
+                <button class="submit-btn" wx:if="{{subShow}}" bind:tap="submit">提交答案</button>
+                <button class="next-btn" wx:if="{{nextShow}}" bind:tap="nextTap">下一题</button>
+                
+                <!-- 结束页面 -->
+                <view class="result-container" wx:if="{{end}}">
+                    <view class="score-circle">
+                        <view class="score-number">{{score}}</view>
+                        <view class="score-label">得分</view>
+                    </view>
+                    <view class="result-text">恭喜完成所有练习！</view>
+                    <button type="warn" class="finish-btn" bind:tap="quitTap">结束练习</button>
+                </view>
+            </view>
+        </view>
+    </view>
+</view>
+    

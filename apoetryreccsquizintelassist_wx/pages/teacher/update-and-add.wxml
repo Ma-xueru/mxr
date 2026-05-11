@@ -1,0 +1,62 @@
+
+<view class="update-container">
+ <view class="content">
+     <view class="form-box">
+    <view class="item-box">
+        <view class="item-label">教师账号</view>
+        <input  class="item-input"
+type="text"  disabled="{{ro.teacheraccount==true}}"  placeholder="教师账号" model:value="{{teacheraccount}}" />
+    </view>
+    <view class="item-box">
+        <view class="item-label">教师密码</view>
+        <input  class="item-input"
+type="text"  disabled="{{ro.teacherpassword==true}}"  placeholder="教师密码" model:value="{{teacherpassword}}" />
+    </view>
+    <view class="item-box">
+        <view class="item-label">教师姓名</view>
+        <input  class="item-input"
+type="text"  disabled="{{ro.teachername==true}}"  placeholder="教师姓名" model:value="{{teachername}}" />
+    </view>
+<view class="item-box"    bindtap="uploadzhaopian">
+    <view   class="item-label">照片</view>
+    <image  src="{{zhaopianPath?zhaopianPath:imgIcon}}" mode="aspectFill"  class="item-img"></image>
+</view>
+<view class="item-box">
+<view class="item-label" >性别</view>
+<picker   class="down-item-picker"     bindchange="genderChange" value="{{genderIndex}}"  range="{{genderList}}">
+    <view class="down-item-picker-text">
+        {{genderIndex||genderIndex==0?genderList[genderIndex]:"请选择性别"}}
+    </view>
+</picker>
+</view>
+    <view class="item-box">
+        <view class="item-label">联系电话</view>
+        <input  class="item-input"
+type="text"  disabled="{{ro.lianxidianhua==true}}"  placeholder="联系电话" model:value="{{lianxidianhua}}" />
+    </view>
+    <view class="item-box">
+        <view class="item-label">可约人数</view>
+        <input  class="item-input"
+type="text"  disabled="{{ro.reservecount==true}}"  placeholder="可约人数" model:value="{{reservecount}}" />
+    </view>
+
+ <view class="item-box">
+     <view class="item-label">可约人数</view>
+     <input  class="item-input" type="text"  disabled="{{ro.reservecount==true}}"  placeholder="可约人数" model:value="{{reservecount}}" />
+ </view>
+
+
+     </view>
+
+
+     <view class="btn-box">
+
+
+
+  <button     class="submit-btn" bindtap="submit">提交</button>
+     </view>
+
+
+    </view>
+
+</view>

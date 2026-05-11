@@ -1,0 +1,58 @@
+<view class="update-container">
+  <view class="content">
+    <view class="form-box">
+      <view class="item-box">
+        <view class="item-label">用户账号</view>
+        <input class="item-input" type="text" disabled="{{ro.studentaccount==true}}" placeholder="用户账号" model:value="{{studentaccount}}" />
+      </view>
+      <view class="item-box">
+        <view class="item-label">用户姓名</view>
+        <input class="item-input" type="text" disabled="{{ro.studentname==true}}" placeholder="用户姓名" model:value="{{studentname}}" />
+      </view>
+      <view class="item-box">
+        <view class="item-label">预约时间</view>
+        <view class="down-item-picker" bindtap="onreservetimeTap">
+          <view class="down-item-picker-text"> {{reservetime}}</view>
+        </view>
+      </view>
+      <com-date isShowPicker="{{showreservetime}}" bind:dateHandler="reservetimeTap"></com-date>
+      <view class="item-box">
+        <view class="item-label">预约教师</view>
+        <picker class="down-item-picker" bindchange="teacherChange" disabled="{{ro.teacheraccount==true}}" value="{{teacherIndex}}" range="{{teacherList}}" range-key="teachername">
+          <view class="down-item-picker-text">
+            {{teacherIndex>=0?teacherList[teacherIndex].teachername + '(' + teacherList[teacherIndex].teacheraccount + ')':"请选择教师"}}
+          </view>
+        </picker>
+      </view>
+      <view class="item-box">
+        <view class="item-label">预约状态</view>
+        <picker class="down-item-picker" bindchange="reservestatusChange" value="{{reservestatusIndex}}" range="{{reservestatusList}}">
+          <view class="down-item-picker-text">
+            {{reservestatusIndex||reservestatusIndex==0?reservestatusList[reservestatusIndex]:"请选择预约状态"}}
+          </view>
+        </picker>
+      </view>
+      <view class="item-box">
+        <view class="item-label">人数</view>
+        <input class="item-input" bindinput="reservecountInput" type="text" disabled="{{ro.reservecount==true}}" placeholder="人数" model:value="{{reservecount}}" />
+      </view>
+      <view class="item-box">
+        <view class="item-label">是否审核</view>
+        <input class="item-input" type="text" disabled="{{ro.sfsh==true}}" placeholder="是否审核" model:value="{{sfsh}}" />
+      </view>
+
+
+    </view>
+
+
+    <view class="btn-box">
+
+
+
+      <button class="submit-btn" bindtap="submit">提交</button>
+    </view>
+
+
+  </view>
+
+</view>

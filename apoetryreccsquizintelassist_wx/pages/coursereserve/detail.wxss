@@ -1,0 +1,234 @@
+/* 全局样式变量定义 - 皇家蓝为主色调 */
+page {
+  --primary-color: #4169e1; /* 皇家蓝主色调 */
+  --primary-light: #e6eeff; /* 浅蓝 - 用于背景和次要元素 */
+  --primary-dark: #3056b3; /* 深蓝 - 用于强调和交互元素 */
+  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  --text-primary: #2c3e50; /* 主要文本色 */
+  --text-secondary: #667580; /* 次要文本色 */
+  --text-placeholder: #95a5a6; /* 占位符文本色 */
+  --border-color: #c9d5e0; /* 边框颜色 */
+  --bg-color: #f5f8ff; /* 页面背景色 */
+  --card-bg: #ffffff; /* 卡片背景色 */
+  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.1); /* 阴影效果 */
+  --shadow-hover: 0 12rpx 32rpx rgba(65, 105, 225, 0.15); /* 悬停阴影效果 */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 过渡动画 */
+  --success-color: #52c41a; /* 成功状态颜色 */
+  --danger-color: #ff4d4f; /* 取消/删除颜色 */
+  --pending-color: #faad14; /* 待处理状态颜色 */
+}
+
+/* 顶部装饰条 */
+.top-decoration {
+  height: 10rpx;
+  width: 100%;
+  background: var(--primary-gradient);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+}
+
+/* 装饰元素 */
+.decorative-element {
+  position: absolute;
+  width: 300rpx;
+  height: 300rpx;
+  background: var(--primary-gradient);
+  opacity: 0.03;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.top-left {
+  top: -150rpx;
+  left: -150rpx;
+}
+
+.bottom-right {
+  bottom: -150rpx;
+  right: -150rpx;
+}
+
+.detail-container {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  position: relative;
+  padding-bottom: 120rpx;
+}
+
+/* 页面标题 */
+.page-title {
+  text-align: center;
+  padding: 30rpx 0;
+  margin: 20rpx 20rpx 30rpx 20rpx;
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow);
+  border-radius: 16rpx;
+}
+
+.page-title text {
+  font-size: 36rpx;
+  color: var(--primary-color);
+  font-weight: 600;
+  position: relative;
+  padding: 0 30rpx;
+}
+
+.page-title text::after {
+  content: '';
+  position: absolute;
+  bottom: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 6rpx;
+  background: var(--primary-gradient);
+  border-radius: 3rpx;
+}
+
+.content {
+  width: 100%;
+  padding: 0px;
+  position: relative;
+  background: var(--bg-color);
+  height: auto;
+  z-index: 1;
+}
+
+.detail-box {
+  padding: 30rpx 24rpx;
+  background: var(--card-bg);
+  margin: 0 20rpx 30rpx 20rpx;
+  border-radius: 20rpx;
+  box-shadow: var(--shadow);
+  width: calc(100% - 40rpx);
+  height: auto;
+}
+
+.detail-item-box {
+  margin: 0;
+  padding: 20rpx 0;
+  border-color: var(--border-color);
+  border-width: 0 0 2rpx 0;
+  background: transparent;
+  display: flex;
+  width: 100%;
+  border-style: solid;
+  height: auto;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.detail-item-box:last-child {
+  border-bottom: none;
+}
+
+.detail-item-box:hover {
+  background-color: rgba(65, 105, 225, 0.03);
+}
+
+.detail-item-label {
+  width: 240rpx;
+  padding: 0 20rpx 0 10rpx;
+  line-height: 1.4;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  text-align: right;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.detail-item-text {
+  padding: 0 10rpx 0 0;
+  margin: 0;
+  line-height: 1.4;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  flex: 1;
+  word-break: break-all;
+}
+
+/* 状态标签样式 */
+.status-passed {
+  color: var(--success-color);
+  background-color: rgba(82, 196, 26, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+.status-rejected {
+  color: var(--danger-color);
+  background-color: rgba(255, 77, 79, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+.status-pending {
+  color: var(--pending-color);
+  background-color: rgba(250, 173, 20, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+/* 操作按钮区 */
+.operate-box {
+  padding: 20rpx;
+  margin: 0 20rpx 40rpx 20rpx;
+  flex-wrap: wrap;
+  background: var(--card-bg);
+  display: flex;
+  width: calc(100% - 40rpx);
+  height: auto;
+  border-radius: 20rpx;
+  box-shadow: var(--shadow);
+  justify-content: center;
+  gap: 20rpx;
+}
+
+.common-btn {
+  border: none;
+  padding: 0 40rpx;
+  margin: 0;
+  color: white;
+  border-radius: 60rpx;
+  background: var(--primary-gradient);
+  font-size: 28rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  transition: var(--transition);
+  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.common-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.3);
+}
+
+.common-btn.cancel-btn {
+  background: var(--danger-color);
+  box-shadow: 0 4rpx 12rpx rgba(255, 77, 79, 0.2);
+}
+
+.common-btn.cancel-btn:active {
+  box-shadow: 0 2rpx 8rpx rgba(255, 77, 79, 0.3);
+}
+
+/* 回复内容样式 */
+.reply-content {
+  background-color: var(--primary-light);
+  padding: 20rpx;
+  border-radius: 12rpx;
+  margin-top: 5rpx;
+  line-height: 1.6;
+}
+
+/* 引入图标样式 */
+@import "/static/iconfig/iconfont.wxss";

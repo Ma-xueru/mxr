@@ -1,0 +1,148 @@
+.content {
+  width: calc(100vw - 40rpx);
+  margin: 20rpx;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.search-inp-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #f7f8fa;
+  border-radius: 20rpx;
+  padding: 0 24rpx;
+  height: 80rpx;
+}
+
+.search-input {
+  flex: 1;
+  margin-left: 12rpx;
+}
+
+.searchBtn {
+  margin-left: 20rpx;
+  background: #5fb959;
+  color: #fff;
+  border-radius: 18rpx;
+  padding: 0 28rpx;
+  line-height: 80rpx;
+}
+
+.category-screen {
+  margin-bottom: 24rpx;
+}
+
+.info-right {
+  background: #fff8ed;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.screen-input-box {
+  margin-bottom: 20rpx;
+}
+
+.screen-input-label {
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.screen-intervalInput-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.screen-btn-box {
+  display: flex;
+  gap: 20rpx;
+}
+
+.screen-btn-reset,
+.screen-btn-confirm {
+  flex: 1;
+}
+
+.goods-item {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.05);
+}
+
+.goods-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.goods-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.8;
+}
+
+.operate-box {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.upload-box,
+.edit-box,
+.delete-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 144rpx;
+  height: 60rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  margin-left: 0;
+}
+
+.upload-box {
+  background: linear-gradient(135deg, #ff8c61 0%, #ff6a88 100%);
+  box-shadow: 0 10rpx 20rpx rgba(255, 122, 110, 0.22);
+}
+
+.upload-text {
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.upload-icons {
+  color: #fff;
+  margin-right: 8rpx;
+}
+
+.edit-text {
+  color: #5fb959;
+}
+
+.del-text {
+  color: #e95b56;
+}
+
+.add-btn {
+  position: fixed;
+  right: 40rpx;
+  bottom: 140rpx;
+  width: 92rpx;
+  height: 92rpx;
+  line-height: 92rpx;
+  border-radius: 50%;
+  background: #5fb959;
+  color: #fff;
+}

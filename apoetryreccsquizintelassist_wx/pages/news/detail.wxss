@@ -1,0 +1,26 @@
+/* pages/news/detail.wxss */
+.page-container {
+background-color: var(--primary-bg);
+min-height: 100vh;
+padding-bottom: 30rpx;
+}
+
+.title {
+text-align: center;
+font-size: 36rpx;
+font-weight: 700;
+margin: 40rpx 20rpx;
+color: var(--primary-color);
+padding-bottom: 20rpx;
+border-bottom: 2rpx solid var(--border-color);
+}
+
+.article-content {
+margin: 0 30rpx;
+padding: 30rpx;
+background-color: #fff;
+border-radius: 20rpx;
+box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+line-height: 52rpx;
+color: var(--text-color);
+}

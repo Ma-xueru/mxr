@@ -1,0 +1,141 @@
+<view class="detail-container">
+  <view class="content" bind:tap="authTap">
+
+    <swiper indicator-dots="{{true}}" autoplay="{{true}}" interval="{{5000}}" class="swiper" vertical="{{false}}" interval="{{5000}}" duration="{{500}}" indicator-color='#ffffff' indicator-active-color="#ff746d" autoplay="{{true}}" circular="{{true}}">
+      <swiper-item class="swiper-item" wx:for="{{picture}}" wx:key="{{index}}">
+        <image src="{{baseURL+item}}" mode="aspectFit" class="swiper-img"></image>
+        <view wx:if="$conf.menu.flag" class="swiper-title">{{item.title}}</view>
+      </swiper-item>
+    </swiper>
+
+
+
+
+
+
+    <view class="detail-box">
+
+      <view class="detail-detail-img-box">
+        <view class="detail-item-label">图片：</view>
+        <image class="detail-detail-img-img" wx:if="{{detailList.picture}}" src="{{baseURL+picture[0]}}"></image>
+      </view>
+      <view class="detail-item-box">
+        <view class="detail-item-label">贴子标题：</view>
+        <view class="detail-item-text">{{detailList.forumtitle}}</view>
+      </view>
+      <view class="detail-item-box">
+        <view class="detail-item-label">发布时间：</view>
+        <view class="detail-item-text">{{detailList.releasetime}}</view>
+      </view>
+
+
+
+      <!-- 点赞和踩按钮 -->
+      <view style="width: 100%;display: flex; justify-content: space-between; margin-bottom: 20rpx;">
+        <view class="detail-zan-box" wx:if="{{!crazilynumShow && !thumbsupnumShow}}">
+          <view class="detail-zan-lable">赞：</view>
+          <view class="detail-zan-content-box">
+            <view wx:if="{{detailList.thumbsupnum!=null && detailList.thumbsupnum!=0}}" class="detail-zan-content-num">{{detailList.thumbsupnum}}</view>
+            <view class="iconfont icon-thumb-up-line2 detail-zan-content-icon" bind:tap="thumbsupnumTap"></view>
+          </view>
+        </view>
+        <view class="detail-zan-box" wx:if="{{!crazilynumShow && thumbsupnumShow}}">
+          <view class="detail-zan-lable">已赞：</view>
+          <view class="detail-zan-content-box">
+            <view class="detail-zan-content-num">{{detailList.thumbsupnum}}</view>
+            <view class="iconfont icon-thumb-up-fill3 detail-zan-content-icon" bind:tap="canceThumbsupnumTap"></view>
+          </view>
+        </view>
+
+        <view class="detail-cai-box" wx:if="{{!crazilynumShow && !thumbsupnumShow}}">
+          <view class="detail-cai-lable">踩：</view>
+          <view class="detail-cai-content-box">
+            <view wx:if="{{detailList.crazilynum!=null && detailList.crazilynum!=0}}" class="detail-cai-content-num">{{detailList.crazilynum}}</view>
+            <view class="iconfont icon-thumb-down-line2 detail-cai-content-icon" bind:tap="crazilynumTap"></view>
+          </view>
+        </view>
+        <view class="detail-cai-box" wx:if="{{crazilynumShow && !thumbsupnumShow}}">
+          <view class="detail-cai-lable">已踩：</view>
+          <view class="detail-cai-content-box">
+            <view class="detail-cai-content-num">{{detailList.crazilynum}}</view>
+            <view class="iconfont icon-thumb-down-fill2 detail-cai-content-icon" bind:tap="cancelCrazilynumTap"></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 收藏按钮 -->
+      <view style="width: 100%;margin-bottom: 20rpx;">
+        <view class="detail-storeup-box" wx:if="{{!storeupShow}}">
+          <view class="detail-storeup-lable">收藏：</view>
+          <view class="detail-storeup-content-box">
+            <view class="icon iconfont icon-likeline2 detail-storeup-content-icon" bind:tap="storeupTap"></view>
+          </view>
+        </view>
+        <view class="detail-storeup-box" wx:else>
+          <view class="detail-storeup-lable">已收藏</view>
+          <view class="detail-storeup-content-box">
+            <view class="icon iconfont icon-likefill2 detail-storeup-content-icon" bind:tap="cancelStoreupTap"></view>
+          </view>
+        </view>
+      </view>
+
+
+
+
+
+
+
+      <view class="textarea-box">
+        <view class="textarea-label">帖子内容</view>
+        <view class="textarea-text">
+          <rich-text nodes="{{detailList.forumcontent}}"></rich-text>
+        </view>
+      </view>
+
+
+      <view class="commment-box">
+        <view class="commment-header">
+          <view class="commment-title">评论</view>
+          <view class="comment-add-box" bind:tap="addCommentap">
+            <view class="comment-add-icon" class="iconfont icon-xinzeng3"></view>
+            <view class="comment-add-text">添加评论</view>
+          </view>
+        </view>
+        <view class="commment-item-box" wx:for="{{commmentList}}" wx:key="index">
+          <view class="commmentuser">
+            <image class="item-avatar" src="{{baseURL+item.avatarurl}}" mode="aspectFit" />
+            <view class="item-nickname">{{item.nickname}}</view>
+          </view>
+          <view class="commment-item-content">
+            <rich-text nodes="{{item.content}}" />
+            <view wx:if="{{item.reply}}">
+              回复：
+              <rich-text nodes="{{item.reply}}" />
+            </view>
+            <view class="commment-time">{{item.addtime}}</view>
+          </view>
+        </view>
+      </view>
+
+
+
+
+    </view>
+
+
+
+
+
+
+
+
+    <view class="operate-box">
+
+
+
+
+
+    </view>
+
+  </view>
+</view>

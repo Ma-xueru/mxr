@@ -1,0 +1,63 @@
+<view class="chat-container">
+  <!-- 顶部标题栏（参考示例风格） -->
+  <view class="chat-header">
+    <text class="header-title">智能客服</text>
+  </view>
+
+  <!-- 聊天内容区 -->
+  <scroll-view 
+    scroll-y="true" 
+    class="chat-list" 
+    scroll-top="{{scrollTop}}" 
+    scroll-with-animation 
+    bindscrolltoupper="loadPreviousPage"
+    upper-threshold="100">
+    <!-- 加载提示 -->
+    <view class="loading-tip" wx:if="{{loading && !hasMore}}">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 空消息提示 -->
+    <view class="empty-tip" wx:if="{{messages.length === 0 && !loading}}">
+      <image src="../../static/center/empty.png" class="empty-img"></image>
+      <text class="empty-text">暂无对话，开始聊天吧~</text>
+    </view>
+
+    <!-- 消息列表 -->
+    <view class="message-wrapper" wx:for="{{messages}}" wx:key="id">
+      <!-- 用户消息（右侧） -->
+      <view wx:if="{{item.isreply==0}}" class="message-item right">
+        <image class="avatar" src="{{item.zhaopian ? baseUrl+item.zhaopian : '../../static/center/user.png'}}"></image>
+        <view class="content-container">
+          <view class="bubble">{{item.ask}}</view>
+          <view class="time">{{item.addtime}}</view>
+        </view>
+      </view>
+
+      <!-- 客服消息（左侧） -->
+      <view wx:else class="message-item left">
+        <image class="avatar" src="../../static/center/kefu.png"></image>
+        <view class="content-container">
+          <view class="bubble">{{item.ask}}</view>
+          <view class="time">{{item.addtime}}</view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 输入区 -->
+  <view class="input-container">
+    <input 
+      class="input" 
+      value="{{inputText}}" 
+      bindinput="onInput" 
+      placeholder="输入您的问题..." 
+      confirm-type="send" 
+      bindconfirm="sendMessage" 
+      disabled="{{isSending}}"
+    />
+    <button class="send-btn" bindtap="sendMessage" disabled="{{isSending || !inputText}}">
+      {{isSending ? '发送中...' : '发送'}}
+    </button>
+  </view>
+</view>

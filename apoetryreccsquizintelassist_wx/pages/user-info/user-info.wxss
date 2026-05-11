@@ -1,0 +1,294 @@
+/* 全局样式变量定义 - 皇家蓝为主色调 */
+page {
+  --primary-color: #4169e1; /* 皇家蓝主色调 */
+  --primary-light: #e6eeff; /* 浅蓝 - 用于背景和次要元素 */
+  --primary-dark: #3056b3; /* 深蓝 - 用于强调和交互元素 */
+  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  --text-primary: #2c3e50; /* 主要文本色 */
+  --text-secondary: #667580; /* 次要文本色 */
+  --text-placeholder: #95a5a6; /* 占位符文本色 */
+  --border-color: #c9d5e0; /* 边框颜色 */
+  --bg-color: #f5f8ff; /* 页面背景色 */
+  --card-bg: #ffffff; /* 卡片背景色 */
+  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.1); /* 阴影效果 */
+  --shadow-hover: 0 12rpx 32rpx rgba(65, 105, 225, 0.15); /* 悬停阴影效果 */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 过渡动画 */
+  --success-color: #52c41a; /* 成功状态颜色 */
+  --danger-color: #ff4d4f; /* 取消/删除颜色 */
+}
+
+/* 装饰元素 */
+.decorative-element {
+  position: absolute;
+  width: 300rpx;
+  height: 300rpx;
+  background: var(--primary-gradient);
+  opacity: 0.03;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.top-left {
+  top: -150rpx;
+  left: -150rpx;
+}
+
+.bottom-right {
+  bottom: -150rpx;
+  right: -150rpx;
+}
+
+/* 顶部装饰条 */
+.top-decoration {
+  height: 10rpx;
+  width: 100%;
+  background: var(--primary-gradient);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+}
+
+/* 页面标题 */
+.page-title {
+  text-align: center;
+  padding: 30rpx 0;
+  margin: 20rpx 20rpx 30rpx 20rpx;
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow);
+  border-radius: 16rpx;
+}
+
+.page-title text {
+  font-size: 36rpx;
+  color: var(--primary-color);
+  font-weight: 600;
+  position: relative;
+  padding: 0 30rpx;
+}
+
+.page-title text::after {
+  content: '';
+  position: absolute;
+  bottom: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 6rpx;
+  background: var(--primary-gradient);
+  border-radius: 3rpx;
+}
+
+.register-container {
+  min-height: calc(100vh - 44px);
+  box-sizing: border-box;
+  background-color: var(--bg-color);
+  position: relative;
+  padding-bottom: 40rpx;
+}
+
+.content {
+  width: calc(100% - 40rpx);
+  margin: 20rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.userInfo-from {
+  padding: 30rpx 24rpx;
+  background-color: var(--card-bg);
+  border-radius: 16rpx;
+  box-shadow: var(--shadow);
+  display: block;
+  height: auto;
+}
+
+.item-box {
+  padding: 10rpx 0;
+  margin: 0 0 30rpx 0;
+  border-color: var(--border-color);
+  align-items: center;
+  border-width: 0 0 2rpx 0;
+  background: transparent;
+  display: flex;
+  width: 100%;
+  border-style: solid;
+  height: auto;
+  transition: var(--transition);
+}
+
+.item-box:last-child {
+  margin-bottom: 0;
+  border-width: 0;
+}
+
+.item-label {
+  width: 180rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  color: var(--primary-color);
+  font-weight: 500;
+  text-align: right;
+  padding-left: 20rpx;
+  padding-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.item-input {
+  border: 2rpx solid var(--border-color);
+  padding: 0 24rpx;
+  margin: 0;
+  color: var(--text-primary);
+  border-radius: 8rpx;
+  flex: 1;
+  background: transparent;
+  font-size: 28rpx;
+  height: 80rpx;
+  transition: var(--transition);
+}
+
+.item-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4rpx rgba(65, 105, 225, 0.1);
+}
+
+.item-input:disabled {
+  background-color: var(--primary-light);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.item-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.item-img {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 12rpx;
+  object-fit: cover;
+  display: block;
+  border: 2rpx dashed var(--border-color);
+  transition: var(--transition);
+  padding: 4rpx;
+}
+
+.item-img:hover {
+  border-color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.down-item-picker {
+  width: 100%;
+  flex: 1;
+  height: auto;
+}
+
+.down-item-picker-text {
+  width: 100%;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  padding: 0 24rpx;
+  background-color: var(--primary-light);
+  border-radius: 8rpx;
+}
+
+.btn-box {
+  width: 100%;
+  margin: 40rpx 0 0 0;
+  justify-content: center;
+  display: flex;
+  height: auto;
+  gap: 30rpx;
+}
+
+.save-btn {
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #fff;
+  border-radius: 60rpx;
+  background: var(--primary-gradient);
+  width: 240rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  height: 80rpx;
+  transition: var(--transition);
+  box-shadow: 0 4rpx 12rpx rgba(65, 105, 225, 0.2);
+}
+
+.save-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.3);
+}
+
+.quit-btn {
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #fff;
+  border-radius: 60rpx;
+  background: var(--danger-color);
+  width: 240rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  height: 80rpx;
+  transition: var(--transition);
+  box-shadow: 0 4rpx 12rpx rgba(255, 77, 79, 0.2);
+}
+
+.quit-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(255, 77, 79, 0.3);
+}
+
+.item-radio-itemBox,
+.item-checkbox-itemBox {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  padding: 0 24rpx;
+}
+
+.item-radio-item,
+.item-checkbox-item {
+  align-items: center;
+  margin: 0 20rpx 10rpx 0;
+  display: flex;
+}
+
+.radio-itemText {
+  color: var(--text-primary);
+  font-size: 28rpx;
+  margin-left: 10rpx;
+}
+
+checkbox .wx-checkbox-input {
+  border: 2rpx solid var(--border-color);
+  border-radius: 4rpx;
+  background: #ffffff;
+  transition: var(--transition);
+}
+
+checkbox .wx-checkbox-input.wx-checkbox-input-checked {
+  border: 2rpx solid var(--primary-color);
+  color: #fff;
+  border-radius: 4rpx;
+  background: var(--primary-color);
+}
+
+radio .wx-radio-input {
+  border: 2rpx solid var(--border-color);
+  transition: var(--transition);
+}
+
+radio .wx-radio-input.wx-radio-input-checked {
+  border-color: var(--primary-color);
+}
+
+radio .wx-radio-input.wx-radio-input-checked::before {
+  background-color: var(--primary-color);
+}
+    

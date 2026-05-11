@@ -1,0 +1,58 @@
+<view class="form-container">
+  <view class="form-section">
+    <view class="form-item">
+      <view class="form-label">古诗词学习号</view>
+      <view class="form-input-box">
+        <input class="form-input" model:value="{{courseno}}" placeholder="请输入古诗词学习号" />
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">古诗词学习标题</view>
+      <view class="form-input-box">
+        <input class="form-input" model:value="{{coursetitle}}" placeholder="请输入古诗词学习标题" />
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">古诗词学习类型</view>
+      <view class="form-input-box">
+        <input class="form-input" model:value="{{coursetype}}" placeholder="请输入古诗词学习类型" />
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">古诗词学习封面</view>
+      <view class="form-upload-box">
+        <button class="upload-btn" bindtap="uploadImage">上传图片</button>
+        <image wx:if="{{picture}}" class="upload-preview" src="{{baseURL}}{{picture}}" mode="aspectFill"></image>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">古诗词学习视频</view>
+      <view class="form-upload-box">
+        <button class="upload-btn" bindtap="uploadVideo">上传视频</button>
+        <video wx:if="{{video}}" class="upload-preview" src="{{baseURL}}{{video}}" controls></video>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">古诗词学习简介</view>
+      <view class="form-textarea-box">
+        <textarea class="form-textarea" model:value="{{intro}}" placeholder="请输入古诗词学习简介" rows="3"></textarea>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">古诗词学习详情</view>
+      <view class="form-textarea-box">
+        <textarea class="form-textarea" model:value="{{content}}" placeholder="请输入古诗词学习详情" rows="6"></textarea>
+      </view>
+    </view>
+  </view>
+
+  <view class="btn-section">
+    <button class="save-btn" bindtap="saveData">{{isEdit ? '修改' : '新增'}}</button>
+  </view>
+</view>

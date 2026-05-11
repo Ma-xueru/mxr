@@ -1,0 +1,60 @@
+<view class="update-container">
+  <!-- 顶部装饰条 -->
+  <view class="top-decoration"></view>
+
+  <!-- 装饰元素 -->
+  <view class="decorative-element top-left"></view>
+
+  <view class="content">
+    <!-- 页面标题 -->
+    <view class="page-title">
+      <text>{{editStatus ? '编辑反馈' : '新增反馈'}}</text>
+    </view>
+
+    <view class="form-box">
+      <!-- 表单卡片 -->
+      <view class="form-card">
+        <view class="item-box">
+          <view class="item-label">用户账号</view>
+          <input class="item-input" type="text" disabled="{{ro.studentaccount==true}}" placeholder="用户账号" model:value="{{studentaccount}}" />
+        </view>
+
+        <view class="item-box">
+          <view class="item-label">用户姓名</view>
+          <input class="item-input" type="text" disabled="{{ro.studentname==true}}" placeholder="用户姓名" model:value="{{studentname}}" />
+        </view>
+
+        <view class="item-box">
+          <view class="item-label">反馈标题</view>
+          <input class="item-input" type="text" disabled="{{ro.feedbacktitle==true}}" placeholder="反馈标题" model:value="{{feedbacktitle}}" />
+        </view>
+
+        <view class="item-box">
+          <view class="item-label">反馈内容</view>
+          <input class="item-input" type="text" disabled="{{ro.feedbackcontent==true}}" placeholder="反馈内容" model:value="{{feedbackcontent}}" />
+        </view>
+
+        <view class="item-box">
+          <view class="item-label">反馈时间</view>
+          <view class="down-item-picker" bindtap="onfeedbacktimeTap">
+            <view class="down-item-picker-text">{{feedbacktime}}</view>
+            <text class="iconfont icon-arrow-down"></text>
+          </view>
+        </view>
+
+        <com-date isShowPicker="{{showfeedbacktime}}" bind:dateHandler="feedbacktimeTap"></com-date>
+
+        <view class="item-box">
+          <view class="item-label">是否审核</view>
+          <input class="item-input" type="text" disabled="{{ro.sfsh==true}}" placeholder="是否审核" model:value="{{sfsh}}" />
+        </view>
+
+        <com-edit></com-edit>
+        </view>
+      </view>
+
+      <view class="btn-box">
+        <button class="submit-btn" bindtap="submit">提交</button>
+      </view>
+    </view>
+  </view>

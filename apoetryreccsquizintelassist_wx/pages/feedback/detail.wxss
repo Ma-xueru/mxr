@@ -1,0 +1,327 @@
+/* 全局样式变量定义 - 皇家蓝为主色调 */
+page {
+  --primary-color: #4169e1; /* 皇家蓝主色调 */
+  --primary-light: #e6eeff; /* 浅蓝 - 用于背景和次要元素 */
+  --primary-dark: #3056b3; /* 深蓝 - 用于强调和交互元素 */
+  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  --text-primary: #2c3e50; /* 主要文本色 */
+  --text-secondary: #667580; /* 次要文本色 */
+  --text-placeholder: #95a5a6; /* 占位符文本色 */
+  --border-color: #c9d5e0; /* 边框颜色 */
+  --bg-color: #f5f8ff; /* 页面背景色 */
+  --card-bg: #ffffff; /* 卡片背景色 */
+  --shadow: 0 8rpx 24rpx rgba(65, 105, 225, 0.1); /* 阴影效果 */
+  --shadow-hover: 0 12rpx 32rpx rgba(65, 105, 225, 0.15); /* 悬停阴影效果 */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 过渡动画 */
+  
+  /* 状态颜色 */
+  --status-pending: #ff9800; /* 待审核 */
+  --status-approved: #4caf50; /* 通过 */
+  --status-rejected: #f44336; /* 不通过 */
+}
+
+/* 顶部装饰条 */
+.top-decoration {
+  height: 10rpx;
+  width: 100%;
+  background: var(--primary-gradient);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+}
+
+/* 装饰元素 */
+.decorative-element {
+  position: absolute;
+  width: 300rpx;
+  height: 300rpx;
+  background: var(--primary-gradient);
+  opacity: 0.03;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.top-left {
+  top: -150rpx;
+  left: -150rpx;
+}
+
+.bottom-right {
+  bottom: -150rpx;
+  right: -150rpx;
+}
+
+.detail-container {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  position: relative;
+  padding-top: 0;
+}
+
+.content {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  position: relative;
+  background: var(--bg-color);
+  height: auto;
+  z-index: 1;
+}
+
+/* 页面标题 */
+.page-title {
+  text-align: center;
+  padding: 30rpx 0;
+  margin: 0 0 20rpx 0;
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.page-title text {
+  font-size: 36rpx;
+  color: var(--primary-color);
+  font-weight: 600;
+  position: relative;
+  padding: 0 30rpx;
+}
+
+.page-title text::after {
+  content: '';
+  position: absolute;
+  bottom: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 6rpx;
+  background: var(--primary-gradient);
+  border-radius: 3rpx;
+}
+
+.detail-box {
+  padding: 30rpx 24rpx;
+  margin: 20rpx;
+  background-color: var(--card-bg);
+  border-radius: 20rpx;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  position: relative;
+}
+
+.detail-box:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+/* 详情项样式 */
+.detail-item-box {
+  margin: 20rpx 0;
+  padding: 10rpx 0;
+  display: flex;
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.detail-item-box:last-child {
+  border-bottom: none;
+}
+
+.detail-item-label {
+  width: 200rpx;
+  padding: 0 20rpx 0 0;
+  line-height: 60rpx;
+  font-size: 28rpx;
+  color: var(--primary-dark);
+  text-align: right;
+  font-weight: 500;
+}
+
+.detail-item-text {
+  padding: 0;
+  margin: 0;
+  line-height: 60rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* 状态标签样式 */
+.status-tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.status-pending {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: var(--status-pending);
+}
+
+.status-approved {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: var(--status-approved);
+}
+
+.status-rejected {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: var(--status-rejected);
+}
+
+/* 反馈内容区域 */
+.textarea-box {
+  margin: 30rpx 0;
+  background-color: var(--primary-light);
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.textarea-label {
+  padding: 0 24rpx;
+  color: var(--primary-color);
+  text-align: left;
+  background-color: rgba(255, 255, 255, 0.8);
+  width: 100%;
+  line-height: 60rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(65, 105, 225, 0.1);
+}
+
+.textarea-text {
+  padding: 24rpx;
+  margin: 0;
+  line-height: 48rpx;
+  color: var(--text-primary);
+  font-size: 28rpx;
+}
+
+/* 操作按钮区域 */
+.operate-box {
+  padding: 20rpx;
+  margin: 20rpx;
+  display: flex;
+  width: calc(100% - 40rpx);
+  height: auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+/* 按钮样式统一 */
+.pay, .addCart, .tuan, .integral, .common-btn, .reserve, .wan {
+  border: 0;
+  padding: 0 30rpx;
+  margin: 0;
+  border-radius: 60rpx;
+  font-size: 28rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 主按钮样式 */
+.pay {
+  color: #fff;
+  background: var(--primary-gradient);
+}
+
+.pay:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 2rpx 8rpx rgba(65, 105, 225, 0.3);
+}
+
+/* 次要按钮样式 */
+.addCart, .common-btn {
+  color: var(--primary-color);
+  background: transparent;
+  border: 2rpx solid var(--primary-color);
+}
+
+.addCart:active, .common-btn:active {
+  background-color: var(--primary-light);
+}
+
+/* 点赞和收藏样式 */
+.detail-zan-box, .detail-cai-box {
+  padding: 0 30rpx;
+  margin: 0 10rpx 20rpx 10rpx;
+  border-radius: 60rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 68rpx;
+  background-color: var(--primary-light);
+  transition: var(--transition);
+}
+
+.detail-zan-box:active, .detail-cai-box:active {
+  background-color: rgba(65, 105, 225, 0.2);
+}
+
+.detail-zan-content-icon, .detail-cai-content-icon {
+  color: var(--primary-color);
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.detail-zan-content-num, .detail-cai-content-num {
+  font-size: 26rpx;
+  color: var(--text-primary);
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+  color: var(--text-placeholder);
+}
+
+.empty-state .iconfont {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+/* 加载动画 */
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 50rpx 0;
+}
+
+.loading .dot {
+  width: 16rpx;
+  height: 16rpx;
+  margin: 0 8rpx;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}

@@ -1,0 +1,41 @@
+<view class="forumCenter-container">
+  <!-- 顶部装饰条 -->
+  <view class="top-decoration"></view>
+  
+  <!-- 装饰元素 -->
+  <view class="decorative-element top-left"></view>
+  <view class="decorative-element bottom-right"></view>
+  
+  <view class="content">
+    <!-- 页面标题 -->
+    <view class="page-title">
+      <text>古诗词学习练习记录</text>
+    </view>
+    
+    <view class="list">
+      <view class="list-item" wx:for="{{list}}" wx:key="{{index}}" bindtap="onDetailTap" data-item="{{item}}">
+        <view class="left-icon">
+          <text class="iconfont icon-danxuan"></text>
+        </view>
+        <view class="right">
+          <view class="exercise-name">专题名称：{{item.papername}}</view>
+          <view class="username">共{{item.questionCount}}题</view>
+          <view class="score-container">
+            <view class="score-label">得分</view>
+            <view class="score-value">{{item.myscore}} / {{item.totalScore}}分</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 空状态 -->
+      <view class="nodata" wx:if="{{list.length == 0}}">
+        <text class="iconfont icon-wushuju"></text>
+        <text>暂无练习记录</text>
+      </view>
+      
+      <!-- 加载更多提示 -->
+      <view class="loading" wx:if="{{list.length > 0}}">
+      </view>
+    </view>
+  </view>
+</view>

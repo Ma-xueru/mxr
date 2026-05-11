@@ -1,0 +1,60 @@
+<view class="forumCenter-container">
+    <!-- 装饰元素 -->
+    <view class="decorative-element top-left"></view>
+    <view class="decorative-element bottom-right"></view>
+    
+    <!-- 顶部装饰条 -->
+    <view class="top-decoration"></view>
+    
+    <!-- 页面标题 -->
+    <view class="page-title">
+        <text>{{papername || '测验记录详情'}}</text>
+    </view>
+    
+    <view class="content">
+        <view class="list">
+            <view class="list-item" wx:for="{{list}}" wx:key="{{index}}">
+                <view class="left-icon">
+                    <text class="iconfont">📝</text>
+                </view>
+                <view class="right">
+                    <view class="exercise-name">专题：{{item.papername}}</view>
+                    <view class="question-name">题目: {{item.questionname}}</view>
+                    
+                    <view class="info-row">
+                        <view class="info-item">
+                            <span class="info-label">标准答案</span>
+                            <span class="info-value">{{item.answer}}</span>
+                        </view>
+                        <view class="info-item score-item">
+                            <span class="info-label">满分</span>
+                            <span class="info-value score">{{item.score}}</span>
+                        </view>
+                    </view>
+                    
+                    <view class="info-row">
+                        <view class="info-item">
+                            <span class="info-label">我的答案</span>
+                            <span class="info-value">{{item.myanswer || '未作答'}}</span>
+                        </view>
+                        <view class="info-item score-item">
+                            <span class="info-label">我的得分</span>
+                            <!-- 当得分为0时添加zero-score类 -->
+                            <span class="info-value my-score {{item.myscore == 0 ? 'zero-score' : ''}}">{{item.myscore}}</span>
+                        </view>
+                    </view>
+                </view>
+            </view>
+            
+            <view class="nodata" wx:if="{{list.length == 0}}">
+                <text class="iconfont">📊</text>
+                <text>暂无考试记录</text>
+            </view>
+            
+            <!-- 加载动画 -->
+            <view class="loading" wx:if="{{loading}}">
+            </view>
+        </view>
+    </view>
+</view>
+    

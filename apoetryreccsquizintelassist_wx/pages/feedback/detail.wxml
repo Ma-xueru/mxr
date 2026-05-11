@@ -1,0 +1,62 @@
+<view class="detail-container">
+  <!-- 顶部装饰条 -->
+  <view class="top-decoration"></view>
+  
+  <!-- 装饰元素 -->
+  <view class="decorative-element top-left"></view>
+  <view class="decorative-element bottom-right"></view>
+  
+  <view class="content" bind:tap="authTap">
+    <!-- 页面标题 -->
+    <view class="page-title">
+      <text>反馈详情</text>
+    </view>
+    
+    <view class="detail-box">
+      <view class="detail-item-box">
+        <view class="detail-item-label">用户账号：</view>
+        <view class="detail-item-text">{{detailList.studentaccount}}</view>
+      </view>
+      
+      <view class="detail-item-box">
+        <view class="detail-item-label">用户姓名：</view>
+        <view class="detail-item-text">{{detailList.studentname}}</view>
+      </view>
+      
+      <view class="detail-item-box">
+        <view class="detail-item-label">反馈标题：</view>
+        <view class="detail-item-text">{{detailList.feedbacktitle}}</view>
+      </view>
+      
+      <view class="detail-item-box">
+        <view class="detail-item-label">反馈时间：</view>
+        <view class="detail-item-text">{{detailList.addtime}}</view>
+      </view>
+      
+      <view class="detail-item-box">
+        <view class="detail-item-label">审核状态：</view>
+        <view class="detail-item-text">
+          <view wx:if="{{detailList.sfsh=='是'}}" class="status-tag status-approved">通过</view>
+          <view wx:if="{{detailList.sfsh=='否'}}" class="status-tag status-rejected">不通过</view>
+          <view wx:if="{{detailList.sfsh=='待审核'}}" class="status-tag status-pending">待审核</view>
+        </view>
+      </view>
+      
+      <view class="detail-item-box">
+        <view class="detail-item-label">回复内容：</view>
+        <view class="detail-item-text">
+          {{detailList.shhf || '暂无回复'}}
+        </view>
+      </view>
+      
+      <view class="textarea-box">
+        <view class="textarea-label">反馈内容</view>
+        <view class="textarea-text">
+          <rich-text nodes="{{detailList.feedbackcontent || '<text>暂无反馈内容</text>'}}"></rich-text>
+        </view>
+      </view>
+    </view>
+    
+
+  </view>
+</view>

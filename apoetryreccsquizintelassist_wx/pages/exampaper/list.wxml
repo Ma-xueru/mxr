@@ -1,0 +1,51 @@
+<view class="forumCenter-container">
+  <!-- 顶部装饰条 -->
+  <view class="top-decoration"></view>
+  
+  <!-- 页面标题 -->
+  <view class="page-title">
+    <view class="title-text">古诗词学习中心</view>
+    <view class="title-underline"></view>
+  </view>
+  
+  <view class="search">
+    <input class="search-input" model:value="{{name}}" type="text" placeholder="搜索古诗词学习练习名称">
+    <text class="iconfont icon-sousuo4 icons"></text>
+    </input>
+    <view class="searchBtn" bind:tap="searhandler">搜索</view>
+  </view>
+
+  <view class="content">
+    <view class="title">古诗词学习列表</view>
+    <view class="list">
+      <view class="list-item" wx:for="{{currentList}}" wx:key="{{index}}">
+        <!-- 优化后的左侧字符显示区域 -->
+        <view class="left">
+          <view class="iconfont icon-book1 char-item">{{item.name[0] || ''}}</view>
+          <view class="iconfont icon-book1 char-item">{{item.name[1] || ''}}</view>
+          <view class="iconfont icon-book1 char-item">{{item.name[2] || ''}}</view>
+          <view class="iconfont icon-book1 char-item">{{item.name[3] || ''}}</view>
+        </view>
+        <view class="right">
+          <view>{{item.name}}</view>
+          <view>
+            <text class="iconfont icon-clock"></text>
+            限时:{{item.time}}分钟
+          </view>
+          <view>
+            <button bindtap="examTap" data-id="{{item.id}}">开始测验</button>
+          </view>
+        </view>
+      </view>
+      <view class="nodata" wx:if="{{currentList.length === 0}}">
+        <text class="iconfont icon-book1 nodata-icon"></text>
+        <view>~没有找到相关古诗词学习~</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 回到顶部按钮 -->
+  <view class="to-top-btn" bindtap="backToTop">
+    <view class="iconfont icon-arrowup">top</view>
+  </view>
+</view>

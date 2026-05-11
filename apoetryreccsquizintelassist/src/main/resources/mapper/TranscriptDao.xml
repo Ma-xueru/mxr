@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cl.dao.TranscriptDao">
+
+    <resultMap type="com.cl.entity.TranscriptEntity" id="transcriptMap">
+        <result property="studentaccount" column="studentaccount"/>
+        <result property="studentname" column="studentname"/>
+        <result property="kaoshichengji" column="kaoshichengji"/>
+        <result property="teacheraccount" column="teacheraccount"/>
+        <result property="teachername" column="teachername"/>
+        <result property="releasetime" column="releasetime"/>
+    </resultMap>
+
+    <select id="selectListView" resultType="com.cl.entity.view.TranscriptView">
+        SELECT transcript.* FROM transcript transcript
+        <where>1=1 ${ew.sqlSegment}</where>
+    </select>
+
+    <select id="selectView" resultType="com.cl.entity.view.TranscriptView">
+        SELECT * FROM transcript transcript <where>1=1 ${ew.sqlSegment}</where>
+    </select>
+
+    <select id="selectGroupBy" resultType="com.cl.entity.view.TranscriptView">
+        select userid,username,paperid,papername,sum(myscore) myscore,ROUND(sum(case when myscore>0 then 1 else 0 end)/(sum(1)),2) accuracy from examrecord
+        <where>1=1 ${ew.sqlSegment}</where>
+        group by userid,username,paperid,papername
+    </select>
+
+    <select id="selectValue" resultType="map">
+        SELECT ${params.xColumn}, ROUND(sum(${params.yColumn}),1) total FROM transcript
+        <where>1=1 ${ew.sqlSegment}</where>
+        group by ${params.xColumn}
+        limit 10
+    </select>
+
+    <select id="selectTimeStatValue" resultType="map">
+        <if test = 'params.timeStatType == "日"'>
+            SELECT DATE_FORMAT(${params.xColumn},'%Y-%m-%d') ${params.xColumn}, sum(${params.yColumn}) total FROM transcript
+            <where>1=1 ${ew.sqlSegment}</where>
+            group by DATE_FORMAT(${params.xColumn},'%Y-%m-%d')
+        </if>
+        <if test = 'params.timeStatType == "月"'>
+            SELECT DATE_FORMAT(${params.xColumn},'%Y-%m') ${params.xColumn}, sum(${params.yColumn}) total FROM transcript
+            <where>1=1 ${ew.sqlSegment}</where>
+            group by DATE_FORMAT(${params.xColumn},'%Y-%m')
+        </if>
+        <if test = 'params.timeStatType == "年"'>
+            SELECT DATE_FORMAT(${params.xColumn},'%Y') ${params.xColumn}, sum(${params.yColumn}) total FROM transcript
+            <where>1=1 ${ew.sqlSegment}</where>
+            group by DATE_FORMAT(${params.xColumn},'%Y')
+        </if>
+    </select>
+
+    <select id="selectGroup" resultType="map">
+        SELECT ${params.column}, count(1) total FROM transcript
+        <where>1=1 ${ew.sqlSegment}</where>
+        group by ${params.column}
+        limit 10
+    </select>
+
+    <select id="kaoshichengjiSectionStat" resultType="map">
+        SELECT '不及格' as kaoshichengji,case when t.不及格 is null then 0 else t.不及格 end total
+        from
+        (select
+        sum(case when kaoshichengji >= 0 and kaoshichengji &lt;= 59 then 1 else 0 end) as 不及格,        sum(case when kaoshichengji >= 60 and kaoshichengji &lt;= 79 then 1 else 0 end) as 及格,        sum(case when kaoshichengji >= 80 and kaoshichengji &lt;= 89 then 1 else 0 end) as 良,        sum(case when kaoshichengji >= 90 and kaoshichengji &lt;= 100 then 1 else 0 end) as 优        from transcript
+        <where>1=1 ${ew.sqlSegment}</where>
+        ) t
+        union all
+        SELECT '及格' as kaoshichengji,case when t.及格 is null then 0 else t.及格 end total
+        from
+        (select
+        sum(case when kaoshichengji >= 0 and kaoshichengji &lt;= 59 then 1 else 0 end) as 不及格,        sum(case when kaoshichengji >= 60 and kaoshichengji &lt;= 79 then 1 else 0 end) as 及格,        sum(case when kaoshichengji >= 80 and kaoshichengji &lt;= 89 then 1 else 0 end) as 良,        sum(case when kaoshichengji >= 90 and kaoshichengji &lt;= 100 then 1 else 0 end) as 优        from transcript
+        <where>1=1 ${ew.sqlSegment}</where>
+        ) t
+        union all
+        SELECT '良' as kaoshichengji,case when t.良 is null then 0 else t.良 end total
+        from
+        (select
+        sum(case when kaoshichengji >= 0 and kaoshichengji &lt;= 59 then 1 else 0 end) as 不及格,        sum(case when kaoshichengji >= 60 and kaoshichengji &lt;= 79 then 1 else 0 end) as 及格,        sum(case when kaoshichengji >= 80 and kaoshichengji &lt;= 89 then 1 else 0 end) as 良,        sum(case when kaoshichengji >= 90 and kaoshichengji &lt;= 100 then 1 else 0 end) as 优        from transcript
+        <where>1=1 ${ew.sqlSegment}</where>
+        ) t
+        union all
+        SELECT '优' as kaoshichengji,case when t.优 is null then 0 else t.优 end total
+        from
+        (select
+        sum(case when kaoshichengji >= 0 and kaoshichengji &lt;= 59 then 1 else 0 end) as 不及格,        sum(case when kaoshichengji >= 60 and kaoshichengji &lt;= 79 then 1 else 0 end) as 及格,        sum(case when kaoshichengji >= 80 and kaoshichengji &lt;= 89 then 1 else 0 end) as 良,        sum(case when kaoshichengji >= 90 and kaoshichengji &lt;= 100 then 1 else 0 end) as 优        from transcript
+        <where>1=1 ${ew.sqlSegment}</where>
+        ) t
+    </select>
+
+</mapper>

@@ -1,0 +1,58 @@
+
+<view class="update-container">
+ <view class="content">
+     <view class="form-box">
+    <!-- 无   xueshengaccount 下2  -->
+<view class="item-box">
+    <view class="item-label" >用户账号</view>
+    <picker   class="down-item-picker"     bindchange="xueshengaccountChange" value="{{xueshengaccountIndex}}"  range="{{xueshengaccountList}}">
+                <view class="down-item-picker-text">
+                    {{xueshengaccountIndex||xueshengaccountIndex==0?xueshengaccountList[xueshengaccountIndex]:"请选择用户账号"}}
+                </view>
+    </picker>
+</view>
+    <view class="item-box">
+        <!-- 随 -->
+
+        <view class="item-label">用户姓名</view>
+        <input  class="item-input" type="text"   placeholder="用户姓名" model:value="{{xueshengname}}" />
+    </view>
+    <view class="item-box">
+        <view class="item-label">测验成绩</view>
+        <input  class="item-input"
+type="text"  disabled="{{ro.kaoshichengji==true}}"  placeholder="测验成绩" model:value="{{kaoshichengji}}" />
+    </view>
+    <view class="item-box">
+        <view class="item-label">教师账号</view>
+        <input  class="item-input"
+type="text"  disabled="{{ro.teacheraccount==true}}"  placeholder="教师账号" model:value="{{teacheraccount}}" />
+    </view>
+    <view class="item-box">
+        <view class="item-label">教师姓名</view>
+        <input  class="item-input"
+type="text"  disabled="{{ro.teachername==true}}"  placeholder="教师姓名" model:value="{{teachername}}" />
+    </view>
+    <view class="item-box"  >
+        <view class="item-label">发布日期</view>
+        <view class="down-item-picker"  bindtap="onfaburiqiTap">
+            <view class="down-item-picker-text">         {{faburiqi}}</view>
+        </view>
+    </view>
+    <com-date isShowPicker="{{showfaburiqi}}" bind:dateHandler="faburiqiTap"></com-date>
+
+
+
+     </view>
+
+
+     <view class="btn-box">
+
+
+
+  <button     class="submit-btn" bindtap="submit">提交</button>
+     </view>
+
+
+    </view>
+
+</view>
