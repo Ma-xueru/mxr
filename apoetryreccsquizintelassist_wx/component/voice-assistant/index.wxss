@@ -1,0 +1,50 @@
+.va-root { position: fixed; right: 0; bottom: 0; z-index: 9999; width: 160rpx; height: 300rpx; pointer-events: none; }
+
+/* 气泡 */
+.va-bubble {
+  position: fixed; left: 30rpx; right: 130rpx; bottom: 190rpx;
+  background: #fff; border-radius: 24rpx 24rpx 24rpx 6rpx; padding: 20rpx 26rpx;
+  box-shadow: 0 10rpx 32rpx rgba(0,0,0,.12); font-size: 27rpx; color: #333;
+  line-height: 1.6; opacity: 0; transform: translateY(16rpx); transition: all .25s;
+  word-break: break-all; z-index: 9998;
+}
+.va-bubble.show { opacity: 1; transform: translateY(0); }
+
+/* 可拖动区域 */
+.va-movable-area { width: 160rpx; height: 300rpx; pointer-events: auto; }
+.va-movable-area .va-ball { pointer-events: auto; }
+
+/* 精灵球 */
+.va-ball {
+  width: 110rpx; height: 110rpx; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #81C784, #4CAF50);
+  box-shadow: 0 8rpx 24rpx rgba(76,175,80,.4);
+  transition: transform .2s;
+}
+.va-ball:active { transform: scale(.88); }
+.va-ball.recording { background: linear-gradient(135deg, #EF5350, #E53935); box-shadow: 0 0 0 8rpx rgba(244,67,54,.15); }
+.va-ball.thinking { background: linear-gradient(135deg, #FFA726, #FB8C00); }
+.va-ball.speaking { background: linear-gradient(135deg, #42A5F5, #1E88E5); box-shadow: 0 0 0 8rpx rgba(66,165,245,.15); }
+
+.va-emoji { font-size: 50rpx; }
+
+/* 录音波纹 */
+.va-ripple { position: relative; width: 110rpx; height: 110rpx; display: flex; align-items: center; justify-content: center; }
+.va-ring { position: absolute; border-radius: 50%; border: 3rpx solid rgba(255,255,255,.7); animation: vaRipple 1.4s ease-out infinite; }
+.r1 { width: 90rpx; height: 90rpx; }
+.r2 { width: 120rpx; height: 120rpx; animation-delay: .3s; }
+.r3 { width: 150rpx; height: 150rpx; animation-delay: .6s; }
+@keyframes vaRipple { 0% { opacity: 1; transform: scale(.6); } 100% { opacity: 0; transform: scale(1.1); } }
+
+/* 思考旋转 */
+.va-spin { animation: vaSpin 1s linear infinite; }
+@keyframes vaSpin { 100% { transform: rotate(360deg); } }
+
+/* 音波跳动 */
+.va-waves { display: flex; align-items: flex-end; gap: 6rpx; }
+.va-bar { width: 8rpx; background: rgba(255,255,255,.85); border-radius: 4rpx; animation: vaBar .5s ease-in-out infinite alternate; }
+.b1 { height: 18rpx; }
+.b2 { height: 36rpx; animation-delay: .12s; }
+.b3 { height: 26rpx; animation-delay: .24s; }
+@keyframes vaBar { 0% { transform: scaleY(.3); } 100% { transform: scaleY(1); } }

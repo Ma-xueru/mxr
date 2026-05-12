@@ -121,11 +121,5 @@
             </view>
         </view>
     </view>
-    <view class="ai-float" bindtap="toAichat">
-        <view class="ai-face">
-            <view class="ai-eye"></view>
-            <view class="ai-eye"></view>
-        </view>
-        <text class="ai-text">智能助手</text>
-    </view>
+    <voice-assistant />
 </view>

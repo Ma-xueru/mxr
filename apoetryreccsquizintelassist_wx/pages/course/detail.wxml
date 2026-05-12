@@ -35,4 +35,6 @@
       <view class="section-block"><text>{{detailList.intro}}</text></view>
     </view>
   </view>
+
+<voice-assistant />
 </view>

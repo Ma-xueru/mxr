@@ -134,5 +134,7 @@
     "sitemapLocation": "sitemap.json",
     "style": "v2",
     "navigationStyle": "default",
-    "usingComponents": {}
+    "usingComponents": {
+    "voice-assistant": "/component/voice-assistant/index"
+  }
 }

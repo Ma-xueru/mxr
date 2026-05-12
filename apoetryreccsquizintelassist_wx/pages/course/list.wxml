@@ -24,4 +24,6 @@
       </view>
     </view>
   </view>
+
+<voice-assistant />
 </view>

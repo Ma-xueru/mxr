@@ -1,7 +1,8 @@
 {
 
   "usingComponents": {
-    "com-popup": "/component/com-popup/com-popup"
+    "com-popup": "/component/com-popup/com-popup",
+    "voice-assistant": "/component/voice-assistant/index"
   },
 
   "navigationBarTitleText": "首页",

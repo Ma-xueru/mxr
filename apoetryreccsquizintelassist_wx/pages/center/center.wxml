@@ -288,4 +288,6 @@
 
   <!-- 底部装饰 -->
   <view class="bottom-decoration"></view>
+
+<voice-assistant />
 </view>

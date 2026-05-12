@@ -1,0 +1,24 @@
+<view class="va-root">
+  <!-- 对话气泡 -->
+  <view class="va-bubble {{bubbleShow ? 'show' : ''}}">{{bubbleText}}</view>
+
+  <!-- 可拖动精灵球 -->
+  <movable-area class="va-movable-area">
+    <movable-view class="va-ball {{state}}" direction="all" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd" bindchange="onMove">
+      <!-- 待机 -->
+      <text class="va-emoji" wx:if="{{state=='idle'}}">🧚</text>
+      <!-- 录音中 -->
+      <view class="va-ripple" wx:if="{{state=='recording'}}">
+        <view class="va-ring r1"></view><view class="va-ring r2"></view><view class="va-ring r3"></view>
+        <text class="va-emoji">🎤</text>
+      </view>
+      <!-- 思考 -->
+      <text class="va-emoji va-spin" wx:if="{{state=='thinking'}}">🤔</text>
+      <!-- 播报 -->
+      <view class="va-waves" wx:if="{{state=='speaking'}}">
+        <view class="va-bar b1"></view><view class="va-bar b2"></view><view class="va-bar b3"></view>
+        <text class="va-emoji">🔊</text>
+      </view>
+    </movable-view>
+  </movable-area>
+</view>

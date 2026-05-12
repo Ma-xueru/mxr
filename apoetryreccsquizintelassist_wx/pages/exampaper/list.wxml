@@ -48,4 +48,6 @@
   <view class="to-top-btn" bindtap="backToTop">
     <view class="iconfont icon-arrowup">top</view>
   </view>
+
+<voice-assistant />
 </view>
