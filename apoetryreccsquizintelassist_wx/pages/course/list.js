@@ -123,31 +123,22 @@ Page({
     return ""
   },
   buildPageParams(pageNum) {
-    const params = {
-      pageNum,
-      pageSize: this.data.pageSize,
+    return {
+      page: pageNum,
+      limit: 100,
       order: 'desc'
     }
-    if (this.data.studentGrade) {
-      params.searchForm = {
-        grade: this.data.studentGrade
-      }
-    }
-    return params
   },
   // 搜索处理
   async searhandler() {
     const name = this.data.name;
     const searchForm = {};
-    if (this.data.studentGrade) {
-      searchForm.grade = this.data.studentGrade;
-    }
     if (name) {
       searchForm.coursetitle = name;
     }
     const res = await page('course',{
-      pageNum: 1,
-      pageSize: this.data.pageSize,
+      page: 1,
+      limit: 100,
       searchForm: searchForm,
       order: 'desc'
     })

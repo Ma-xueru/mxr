@@ -1,178 +1,65 @@
-<view class="detail-container">
-  <view class="detail-content" bind:tap="authTap">
+<view class="poem-page">
+  <view class="poem-header">
+    <view class="poem-title">{{poem.title}}</view>
+    <view class="poem-meta">{{poem.dynasty}} · {{poem.author}}</view>
+  </view>
 
-    <!-- 图片轮播区域 -->
-    <swiper indicator-dots="{{true}}" autoplay="{{true}}" interval="{{5000}}" class="swiper" vertical="{{false}}" duration="{{500}}" indicator-color='#ffffff' indicator-active-color="#ff746d" circular="{{true}}" wx:if="{{detailList.picture}}">
-      <swiper-item class="swiper-item" wx:for="{{picture}}" wx:key="{{index}}">
-        <image src="{{baseURL+item}}" mode="aspectFill" class="swiper-img"></image>
-      </swiper-item>
-    </swiper>
-
-    <!-- 详情盒子 -->
-    <view class="detail-box">
-      <!-- 标题区域 -->
-      <view class="title-section">
-        <view class="title">{{detailList.coursetitle}}</view>
-        <view class="info">
-        <view class="info-item">古诗词学习号: {{detailList.courseno}}</view>
-        <view class="info-item">古诗词学习类型: {{detailList.coursetype}}</view>
-        <view class="info-item">适用年级: {{detailList.grade || '未设置'}}</view>
-        <view class="info-item">点击数: {{detailList.clicktime}}</view>
-      </view>
-      </view>
-
-      <!-- 详情信息 -->
-      <view class="detail-item-box">
-        <view class="detail-item-label">古诗词学习号：</view>
-        <view class="detail-item-text">{{detailList.courseno}}</view>
-      </view>
-
-      <view class="detail-item-box">
-        <view class="detail-item-label">古诗词学习类型：</view>
-        <view class="detail-item-text">{{detailList.coursetype}}</view>
-      </view>
-
-      <view class="detail-item-box">
-        <view class="detail-item-label">适用年级：</view>
-        <view class="detail-item-text">{{detailList.grade || '未设置'}}</view>
-      </view>
-
-      <view class="detail-item-box">
-        <view class="detail-item-label">点击数：</view>
-        <view class="detail-item-text">{{detailList.clicktime}}</view>
-      </view>
-
-      <!-- 点赞和踩按钮 -->
-      <view style="width: 100%;display: flex; justify-content: space-between; margin-bottom: 20rpx;">
-        <view class="detail-zan-box" wx:if="{{!crazilynumShow && !thumbsupnumShow}}">
-          <view class="detail-zan-lable">赞：</view>
-          <view class="detail-zan-content-box">
-            <view wx:if="{{detailList.thumbsupnum!=null && detailList.thumbsupnum!=0}}" class="detail-zan-content-num">{{detailList.thumbsupnum}}</view>
-            <view class="iconfont icon-thumb-up-line2 detail-zan-content-icon" bind:tap="thumbsupnumTap"></view>
-          </view>
-        </view>
-        <view class="detail-zan-box" wx:if="{{!crazilynumShow && thumbsupnumShow}}">
-          <view class="detail-zan-lable">已赞：</view>
-          <view class="detail-zan-content-box">
-            <view class="detail-zan-content-num">{{detailList.thumbsupnum}}</view>
-            <view class="iconfont icon-thumb-up-fill3 detail-zan-content-icon" bind:tap="canceThumbsupnumTap"></view>
-          </view>
-        </view>
-        
-        <view class="detail-cai-box" wx:if="{{!crazilynumShow && !thumbsupnumShow}}">
-          <view class="detail-cai-lable">踩：</view>
-          <view class="detail-cai-content-box">
-            <view wx:if="{{detailList.crazilynum!=null && detailList.crazilynum!=0}}" class="detail-cai-content-num">{{detailList.crazilynum}}</view>
-            <view class="iconfont icon-thumb-down-line2 detail-cai-content-icon" bind:tap="crazilynumTap"></view>
-          </view>
-        </view>
-        <view class="detail-cai-box"  wx:if="{{crazilynumShow && !thumbsupnumShow}}">
-          <view class="detail-cai-lable">已踩：</view>
-          <view class="detail-cai-content-box">
-            <view class="detail-cai-content-num">{{detailList.crazilynum}}</view>
-            <view class="iconfont icon-thumb-down-fill2 detail-cai-content-icon" bind:tap="cancelCrazilynumTap"></view>
-          </view>
-        </view>
-      </view>
-      
-      <!-- 收藏按钮 -->
-      <view style="width: 100%;margin-bottom: 20rpx;">
-        <view class="detail-storeup-box" wx:if="{{!storeupShow}}">
-          <view class="detail-storeup-lable">收藏：</view>
-          <view class="detail-storeup-content-box">
-            <view class="icon iconfont icon-likeline2 detail-storeup-content-icon" bind:tap="storeupTap"></view>
-          </view>
-        </view>
-        <view class="detail-storeup-box" wx:else>
-          <view class="detail-storeup-lable">已收藏</view>
-          <view class="detail-storeup-content-box">
-            <view class="icon iconfont icon-likefill2 detail-storeup-content-icon" bind:tap="cancelStoreupTap"></view>
-          </view>
+  <view class="poem-body" wx:if="{{poem.lines.length > 0}}">
+    <view class="poem-line" wx:for="{{poem.lines}}" wx:key="index">
+      <view class="char-unit" wx:for="{{item.chars}}" wx:for-item="ch" wx:for-index="ci" wx:key="ci">
+        <text class="char-pinyin">{{item.pinyins[ci] || ''}}</text>
+        <view class="char-grid">
+          <text class="char-hanzi">{{ch}}</text>
         </view>
       </view>
     </view>
+  </view>
 
-    <!-- 视频区域 -->
-    <view class="video-section" wx:if="{{detailList.video}}">
-      <video src="{{baseURL}}{{detailList.video}}" controls></video>
-    </view>
-
-    <!-- 古诗词学习简介 -->
-    <view class="intro-section" wx:if="{{detailList.intro}}">
-      <view class="section-title">古诗词学习简介</view>
-      <view class="intro-content">{{detailList.intro}}</view>
-    </view>
-
-    <!-- 古诗词学习详情 -->
-    <view class="detail-section" wx:if="{{detailList.content}}">
-      <view class="section-title">古诗词学习详情</view>
-      <rich-text nodes="{{detailList.content}}"></rich-text>
-    </view>
-
-    <!-- AI跟读练习 -->
-    <view class="follow-read-entry" wx:if="{{detailList.content}}">
-      <view class="fr-card" bindtap="startFollowRead">
-        <view class="fr-icon">🎙️</view>
-        <view class="fr-info">
-          <text class="fr-title">AI 跟读练习</text>
-          <text class="fr-desc">AI逐句朗读，你跟读模仿，实时评分纠音</text>
-        </view>
-        <view class="fr-arrow">→</view>
+  <view class="poem-follow" wx:if="{{detailList.content}}">
+    <view class="fr-card" bindtap="startFollowRead">
+      <view class="fr-icon">🎙️</view>
+      <view class="fr-info">
+        <text class="fr-title">AI 跟读练习</text>
+        <text class="fr-desc">AI逐句朗读，你跟读模仿，智能评分</text>
       </view>
-      <view class="fr-last" wx:if="{{lastFollowRead}}" bindtap="startFollowRead">
-        <text class="fr-last-label">上次跟读</text>
-        <text class="fr-last-score">{{lastFollowRead.score}}分</text>
-        <text class="fr-last-time">{{lastFollowRead.time}}</text>
+      <view class="fr-arrow">→</view>
+    </view>
+    <view class="fr-last" wx:if="{{lastFollowRead}}" bindtap="startFollowRead">
+      <text class="fr-last-label">上次跟读</text>
+      <text class="fr-last-score">{{lastFollowRead.score}}分</text>
+      <text class="fr-last-time">{{lastFollowRead.time}}</text>
+    </view>
+  </view>
+
+  <view class="poem-section" wx:if="{{poem.annotations.length > 0}}">
+    <view class="section-header" bindtap="toggleSection" data-key="annoOpen">
+      <text class="section-title">注解</text>
+      <text class="section-arrow">{{annoOpen ? '▾' : '▸'}}</text>
+    </view>
+    <view class="section-body" wx:if="{{annoOpen}}">
+      <view class="section-block" wx:for="{{poem.annotations}}" wx:key="index">
+        <text>{{item}}</text>
       </view>
     </view>
+  </view>
 
-    <view class="practice-section" wx:if="{{relatedPracticeList.length > 0}}">
-      <view class="section-title">学完即练</view>
-      <view class="practice-tip">学习完这首诗后，马上做几道相关练习题，帮助理解和记忆。</view>
-      <view class="practice-list">
-        <view class="practice-item" wx:for="{{relatedPracticeList}}" wx:key="id">
-          <view class="practice-main">
-            <view class="practice-name">{{item.name}}</view>
-            <view class="practice-meta">建议学习后立即练习，限时{{item.time || 30}}分钟</view>
-          </view>
-          <button class="practice-btn" bindtap="startPractice" data-id="{{item.id}}">立即练习</button>
-        </view>
-      </view>
+  <view class="poem-section" wx:if="{{poem.translation}}">
+    <view class="section-header" bindtap="toggleSection" data-key="transOpen">
+      <text class="section-title">译文</text>
+      <text class="section-arrow">{{transOpen ? '▾' : '▸'}}</text>
     </view>
-
-    <!-- 评论列表 -->
-    <view class="commment-box" wx:if="{{commmentList.length > 0}}">
-      <view class="commment-header">
-        <view class="commment-title">评论</view>
-        <view class="comment-add-box" bind:tap="addCommentap">
-          <view class="comment-add-icon iconfont icon-xinzeng3"></view>
-          <view class="comment-add-text">添加评论</view>
-        </view>
-      </view>
-      <view class="commment-item-box" wx:for="{{commmentList}}" wx:key="index">
-        <view class="commmentuser">
-          <image class="item-avatar" src="{{baseURL+item.avatarurl}}" mode="aspectFit" />
-          <view class="item-nickname">{{item.nickname}}</view>
-        </view>
-        <view class="commment-item-content">
-          <rich-text nodes="{{item.content}}" />
-          <view wx:if="{{item.reply}}">
-            回复：
-            <rich-text nodes="{{item.reply}}" />
-          </view>
-          <view class="commment-time">{{item.addtime}}</view>
-        </view>
-      </view>
+    <view class="section-body" wx:if="{{transOpen}}">
+      <view class="section-block"><text>{{poem.translation}}</text></view>
     </view>
+  </view>
 
-
-
-
-
-    <!-- 未登录提示 -->
-    <view class="login-tip" wx:if="{{!token}}">
-      <text>请先登录后进行操作</text>
+  <view class="poem-section" wx:if="{{detailList.intro}}">
+    <view class="section-header" bindtap="toggleSection" data-key="introOpen">
+      <text class="section-title">简介</text>
+      <text class="section-arrow">{{introOpen ? '▾' : '▸'}}</text>
     </view>
-
+    <view class="section-body" wx:if="{{introOpen}}">
+      <view class="section-block"><text>{{detailList.intro}}</text></view>
+    </view>
   </view>
 </view>
