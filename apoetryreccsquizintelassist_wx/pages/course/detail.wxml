@@ -1,16 +1,14 @@
 <view class="poem-page">
   <view class="poem-header">
     <view class="poem-title">{{poem.title}}</view>
-    <view class="poem-meta">{{poem.dynasty}} · {{poem.author}}</view>
+    <view class="poem-meta">{{poem.author}}</view>
   </view>
 
   <view class="poem-body" wx:if="{{poem.lines.length > 0}}">
     <view class="poem-line" wx:for="{{poem.lines}}" wx:key="index">
-      <view class="char-unit" wx:for="{{item.chars}}" wx:for-item="ch" wx:for-index="ci" wx:key="ci">
-        <text class="char-pinyin">{{item.pinyins[ci] || ''}}</text>
-        <view class="char-grid">
-          <text class="char-hanzi">{{ch}}</text>
-        </view>
+      <view class="hanzi-grid" wx:for="{{item.chars}}" wx:for-item="ch" wx:for-index="ci" wx:key="ci">
+        <text class="grid-pinyin">{{item.pinyins[ci] || ''}}</text>
+        <text class="grid-char">{{ch}}</text>
       </view>
     </view>
   </view>
@@ -31,34 +29,9 @@
     </view>
   </view>
 
-  <view class="poem-section" wx:if="{{poem.annotations.length > 0}}">
-    <view class="section-header" bindtap="toggleSection" data-key="annoOpen">
-      <text class="section-title">注解</text>
-      <text class="section-arrow">{{annoOpen ? '▾' : '▸'}}</text>
-    </view>
-    <view class="section-body" wx:if="{{annoOpen}}">
-      <view class="section-block" wx:for="{{poem.annotations}}" wx:key="index">
-        <text>{{item}}</text>
-      </view>
-    </view>
-  </view>
-
-  <view class="poem-section" wx:if="{{poem.translation}}">
-    <view class="section-header" bindtap="toggleSection" data-key="transOpen">
-      <text class="section-title">译文</text>
-      <text class="section-arrow">{{transOpen ? '▾' : '▸'}}</text>
-    </view>
-    <view class="section-body" wx:if="{{transOpen}}">
-      <view class="section-block"><text>{{poem.translation}}</text></view>
-    </view>
-  </view>
-
   <view class="poem-section" wx:if="{{detailList.intro}}">
-    <view class="section-header" bindtap="toggleSection" data-key="introOpen">
-      <text class="section-title">简介</text>
-      <text class="section-arrow">{{introOpen ? '▾' : '▸'}}</text>
-    </view>
-    <view class="section-body" wx:if="{{introOpen}}">
+    <view class="section-header"><text class="section-title">简介</text></view>
+    <view class="section-body">
       <view class="section-block"><text>{{detailList.intro}}</text></view>
     </view>
   </view>

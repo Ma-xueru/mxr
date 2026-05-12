@@ -108,7 +108,7 @@ public class CourseController {
     @RequestMapping("/info/{id}")
     public R info(@PathVariable("id") Long id){
         CourseEntity course = courseService.selectById(id);
-        course.setClicknum(course.getClicknum()+1);
+        course.setClicknum((course.getClicknum()==null?0:course.getClicknum())+1);
         course.setClicktime(new Date());
         courseService.updateById(course);
         return R.ok().put("data", course);
@@ -121,7 +121,7 @@ public class CourseController {
     @RequestMapping("/detail/{id}")
     public R detail(@PathVariable("id") Long id){
         CourseEntity course = courseService.selectById(id);
-        course.setClicknum(course.getClicknum()+1);
+        course.setClicknum((course.getClicknum()==null?0:course.getClicknum())+1);
         course.setClicktime(new Date());
         courseService.updateById(course);
         return R.ok().put("data", course);

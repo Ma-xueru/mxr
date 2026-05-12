@@ -64,6 +64,12 @@
 		private String coursetitle;
 
 		/**
+		 * 作者姓名
+		 */
+		@TableField("author_name")
+		private String authorName;
+
+		/**
 		 * 古诗词类型
 		 */
 
@@ -104,6 +110,16 @@
 		 */
 
 		private String contentpinyin;
+
+		/**
+		 * 注释
+		 */
+		private String annotations;
+
+		/**
+		 * 译文
+		 */
+		private String translation;
 
 		/**
 		 * 点赞数
@@ -284,6 +300,18 @@
 		public Integer getClicknum() {
 			return clicknum;
 		}
+
+		public String getContentpinyin() { return contentpinyin; }
+		public void setContentpinyin(String v) { this.contentpinyin = v; }
+
+		public String getAuthorName() { return authorName; }
+		public void setAuthorName(String v) { this.authorName = v; }
+
+		public String getAnnotations() { return annotations; }
+		public void setAnnotations(String v) { this.annotations = v; }
+
+		public String getTranslation() { return translation; }
+		public void setTranslation(String v) { this.translation = v; }
 
 		/**
 		 * 设置：最后点击时间

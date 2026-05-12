@@ -1,27 +1,47 @@
 .poem-page { min-height: 100vh; background: #fdfbf0; padding-bottom: 60rpx; }
 
-/* 头部 */
 .poem-header { text-align: center; padding: 60rpx 40rpx 30rpx; }
 .poem-title { font-size: 48rpx; font-weight: 800; color: #333; letter-spacing: 8rpx; }
 .poem-meta { font-size: 28rpx; color: #888; margin-top: 16rpx; }
 
 /* 田字格诗句 */
 .poem-body { display: flex; flex-direction: column; align-items: center; padding: 20rpx 30rpx; }
-.poem-line { display: flex; justify-content: center; margin-bottom: 16rpx; }
-.char-unit { display: flex; flex-direction: column; align-items: center; margin: 0 6rpx; }
-.char-pinyin { 
-  font-size: 22rpx; color: #555; height: 34rpx; line-height: 34rpx;
-  text-align: center; white-space: nowrap;
-}
-.char-grid {
-  width: 80rpx; height: 80rpx;
+.poem-line { display: flex; justify-content: center; margin-bottom: 12rpx; gap: 6rpx; }
+
+/* 田字格 — 拼音+汉字共居一格的父容器 */
+.hanzi-grid {
+  width: 100rpx; height: 110rpx;
   border: 1rpx solid #dcdcdc;
   background-image:
-    linear-gradient(to bottom, transparent 49%, #eee 50%, transparent 51%),
-    linear-gradient(to right, transparent 49%, #eee 50%, transparent 51%);
-  display: flex; align-items: center; justify-content: center;
+    linear-gradient(to bottom, transparent 49%, #e8e8e8 50%, transparent 51%),
+    linear-gradient(to right, transparent 49%, #e8e8e8 50%, transparent 51%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4rpx 0;
+  box-sizing: border-box;
 }
-.char-hanzi { font-size: 44rpx; color: #333; line-height: 1; }
+
+.grid-pinyin {
+  font-size: 24rpx;
+  color: #555;
+  line-height: 1;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-top: 6rpx;
+}
+
+.grid-char {
+  font-size: 44rpx;
+  color: #333;
+  line-height: 1;
+  text-align: center;
+  padding-bottom: 6rpx;
+}
 
 /* AI跟读入口 */
 .poem-follow { margin: 20rpx 30rpx; }
@@ -35,7 +55,7 @@
 .fr-last { display: flex; align-items: center; gap: 16rpx; padding: 14rpx 20rpx; margin-top: 12rpx; background: #FFF8E1; border-radius: 14rpx; }
 .fr-last-label { font-size: 22rpx; color: #8B8B6F; }
 .fr-last-score { font-size: 30rpx; font-weight: 800; color: #F57C00; }
-.fr-last-time { font-size: 20rpx; color: #aaa; margin-left: auto; }
+.fr-last-time { font-size: 24rpx; color: #aaa; margin-left: auto; }
 
 /* 折叠区域 */
 .poem-section { margin: 8rpx 30rpx; }
