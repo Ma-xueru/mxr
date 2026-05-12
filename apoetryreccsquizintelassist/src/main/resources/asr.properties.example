@@ -1,0 +1,16 @@
+# 火山引擎 Ark (豆包大模型)
+ark.api.key=your-ark-api-key
+ark.model=doubao-seed-1-8-251228
+
+# 火山引擎一句话识别
+volc.asr.appid=your-asr-appid
+volc.asr.token=your-asr-token
+volc.asr.cluster=volcengine_input_common
+
+# 火山引擎语音合成（TTS）
+volc.tts.voice=BV700_streaming
+
+# 阿里云语音识别
+aliyun.ak.id=your-aliyun-ak-id
+aliyun.ak.secret=your-aliyun-ak-secret
+aliyun.app.key=your-aliyun-app-key
