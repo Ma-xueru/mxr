@@ -1,6 +1,14 @@
 // app.js
 App({
     onLaunch() {
+        // 云开发初始化
+        if (wx.cloud) {
+            wx.cloud.init({
+                env: 'cloudbase-d6g5mlt4tbaa32ec2',
+                traceUser: true
+            })
+        }
+
         const tabarList=[]
         tabarList.push("course")
         tabarList.push("exampaper")
