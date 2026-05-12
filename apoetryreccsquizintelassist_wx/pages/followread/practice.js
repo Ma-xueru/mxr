@@ -49,18 +49,21 @@ Page({
   },
 
   autoPlay() {
-    setTimeout(() => {
+    clearTimeout(this._autoPlayTimer)
+    this._autoPlayTimer = setTimeout(() => {
       if (this.data.state === 'idle' && this.data.currentTtsUrl) this.playTTS()
-    }, 500)
+    }, 600)
   },
 
   playTTS() {
     if (!this.data.currentTtsUrl) return
+    // 先清旧回调再绑新回调，最后才播放 — 防止短音频瞬间播完卡死
+    innerAudio.offEnded(); innerAudio.offError(); innerAudio.offStop()
+    innerAudio.onEnded(() => { this.setData({ playing: false, state: 'played' }) })
+    innerAudio.onError(() => { this.setData({ playing: false, state: 'played' }) })
     innerAudio.src = this.data.currentTtsUrl
     innerAudio.play()
     this.setData({ playing: true })
-    innerAudio.onEnded(() => { this.setData({ playing: false, state: 'played' }); innerAudio.offEnded() })
-    innerAudio.onError(() => { this.setData({ playing: false, state: 'played' }); innerAudio.offError() })
   },
 
   startRecord() {
@@ -123,7 +126,6 @@ Page({
 
     this.setData({ scoringProgress: 70, scoringHint: 'AI 正在综合评分...' })
 
-    // 请求报告
     const linesParam = this.data.records.map((r, i) => {
       const rs = results[i] || {}
       return r.text + '|' + (rs.recognized || '') + '|' + (rs.score || 0)
@@ -150,7 +152,6 @@ Page({
             scoringProgress: 100, scoringHint: '评分完成！',
             totalScore: report.overallScore, report, showReport: true
           })
-          // 保存到数据库
           const ui = getApp().globalData.userInfo || {}
           wx.request({
             url: baseURL + '/followread/saveRecord',
@@ -185,10 +186,12 @@ Page({
   },
 
   closeReport() {
-    this.setData({ showReport: false, scoring: false, totalScore: 0, records: [], currentLine: 1, state: 'idle' })
+    const courseId = this.data.courseId
+    // 回到古诗详情页
+    wx.redirectTo({ url: '/pages/course/detail?id=' + courseId })
   },
 
-  _cleanup() { clearInterval(this.recordTimer); innerAudio.stop() },
+  _cleanup() { clearInterval(this.recordTimer); clearTimeout(this._autoPlayTimer); innerAudio.stop() },
 
   onUnload() { this._cleanup(); if (this.recorder) try { this.recorder.stop() } catch(e) {}; innerAudio.destroy() }
 })

@@ -42,7 +42,7 @@ public class VolcengineTtsUtil {
             body.put("audio", new JSONObject()
                     .put("voice_type", VOICE_TYPE)
                     .put("encoding", "mp3")
-                    .put("speed_ratio", 0.9));
+                    .put("speed_ratio", 1.0));
             body.put("request", new JSONObject()
                     .put("reqid", reqId)
                     .put("text", text)

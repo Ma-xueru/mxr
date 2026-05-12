@@ -126,7 +126,7 @@ Component({
       var audio = wx.createInnerAudioContext()
       this._audio = audio
       audio.src = url
-      audio.playbackRate = 0.9
+      audio.playbackRate = 1.0
       audio.autoplay = true
       audio.onEnded(function () {
         that.setData({ bubbleShow: false, state: 'idle' })

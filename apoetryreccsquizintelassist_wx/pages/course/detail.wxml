@@ -4,6 +4,7 @@
     <view class="poem-meta">{{poem.author}}</view>
   </view>
 
+  <!-- 田字格正文 -->
   <view class="poem-body" wx:if="{{poem.lines.length > 0}}">
     <view class="poem-line" wx:for="{{poem.lines}}" wx:key="index">
       <view class="hanzi-grid" wx:for="{{item.chars}}" wx:for-item="ch" wx:for-index="ci" wx:key="ci">
@@ -13,22 +14,66 @@
     </view>
   </view>
 
-  <view class="poem-follow" wx:if="{{detailList.content}}">
-    <view class="fr-card" bindtap="startFollowRead">
-      <view class="fr-icon">🎙️</view>
-      <view class="fr-info">
-        <text class="fr-title">AI 跟读练习</text>
-        <text class="fr-desc">AI逐句朗读，你跟读模仿，智能评分</text>
+  <!-- AI跟读练习 + 跟读记录 -->
+  <view class="follow-section" wx:if="{{detailList.content}}">
+    <!-- 跟读入口 -->
+    <view class="follow-main-card" bindtap="startFollowRead">
+      <view class="follow-card-left">
+        <text class="follow-card-icon">🎙️</text>
       </view>
-      <view class="fr-arrow">→</view>
+      <view class="follow-card-center">
+        <text class="follow-card-title">AI 跟读练习</text>
+        <text class="follow-card-desc">逐句朗读 · 跟读模仿 · 智能评分</text>
+      </view>
+      <view class="follow-card-right">
+        <text class="follow-card-btn">开始跟读 →</text>
+      </view>
     </view>
-    <view class="fr-last" wx:if="{{lastFollowRead}}" bindtap="startFollowRead">
-      <text class="fr-last-label">上次跟读</text>
-      <text class="fr-last-score">{{lastFollowRead.score}}分</text>
-      <text class="fr-last-time">{{lastFollowRead.time}}</text>
+    <!-- 跟读记录 -->
+    <view class="follow-history" wx:if="{{followHistory.length > 0}}">
+      <view class="follow-history-title">📊 跟读记录</view>
+      <view class="follow-history-item" wx:for="{{followHistory}}" wx:key="index" data-index="{{index}}" bindtap="viewFollowReport">
+        <text class="fhi-score {{item.score>=85?'score-high':item.score>=60?'score-mid':'score-low'}}">{{item.score}}分</text>
+        <view class="fhi-bars">
+          <view class="fhi-dim" wx:for="{{item.dims}}" wx:for-item="d" wx:key="name">
+            <text class="fhi-dim-name">{{d.name}}</text>
+            <view class="fhi-dim-bar"><view class="fhi-dim-fill" style="width:{{d.score}}%;background:{{d.score>=85?'#4CAF50':d.score>=60?'#FF9800':'#F44336'}}"></view></view>
+          </view>
+        </view>
+        <text class="fhi-time">{{item.time}}</text>
+      </view>
     </view>
   </view>
 
+  <!-- 报告弹窗 -->
+  <view class="fr-report-overlay" wx:if="{{showFollowReport}}" bindtap="closeFollowReport">
+    <view class="fr-report-modal" catchtap="">
+      <view class="fr-report-close" bindtap="closeFollowReport">✕</view>
+      <view class="fr-report-head">
+        <text class="fr-big-score">{{followReport.overallScore}}</text>
+        <text class="fr-big-label">综合评分</text>
+      </view>
+      <scroll-view class="fr-report-scroll" scroll-y>
+        <view class="fr-dim-card" wx:for="{{followReport.dimensions}}" wx:key="name">
+          <view class="fr-dim-header">
+            <text class="fr-dim-name">{{item.name}}</text>
+            <text class="fr-dim-weight">权重{{item.weight}}%</text>
+            <text class="fr-dim-score">{{item.score}}分</text>
+          </view>
+          <view class="fr-dim-bar"><view class="fr-dim-fill" style="width:{{item.score}}%;background:{{item.score>=85?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}"></view></view>
+          <text class="fr-dim-comment">{{item.comment}}</text>
+          <text class="fr-dim-encourage">{{item.encourage}}</text>
+        </view>
+        <view class="fr-overall" wx:if="{{followReport.overallComment}}">
+          <text class="fr-overall-label">📝 总评</text>
+          <text class="fr-overall-text">{{followReport.overallComment}}</text>
+        </view>
+      </scroll-view>
+      <button class="fr-close-btn" bindtap="closeFollowReport">关闭</button>
+    </view>
+  </view>
+
+  <!-- 简介 -->
   <view class="poem-section" wx:if="{{detailList.intro}}">
     <view class="section-header"><text class="section-title">简介</text></view>
     <view class="section-body">
@@ -36,5 +81,5 @@
     </view>
   </view>
 
-<voice-assistant />
+  <voice-assistant />
 </view>

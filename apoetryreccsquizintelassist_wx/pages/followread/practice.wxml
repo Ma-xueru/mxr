@@ -45,7 +45,7 @@
     </view>
   </view>
 
-  <!-- 报告弹窗 -->
+  <!-- 本次报告弹窗 -->
   <view class="fr-report-overlay" wx:if="{{showReport}}" bindtap="closeReport">
     <view class="fr-report-modal" catchtap="">
       <view class="fr-report-close" bindtap="closeReport">✕</view>

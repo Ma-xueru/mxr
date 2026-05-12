@@ -11,7 +11,9 @@ Page({
     id: '', token: '', baseURL: '',
     detailList: {},
     poem: { title: '', dynasty: '', author: '', lines: [], annotations: [], translation: '' },
-    lastFollowRead: null
+    followHistory: [],
+    showFollowReport: false,
+    followReport: null
   },
 
   async onLoad(options) {
@@ -25,6 +27,7 @@ Page({
 
   async onShow() {
     this.setData({ token: wx.getStorageSync('token') })
+    if (this.data.id) this.loadFollowRead()
   },
 
   async loadPoem() {
@@ -78,23 +81,43 @@ Page({
     })
 
     // Load last follow-read
-    try {
-      var baseURL = wx.getStorageSync('baseURL') || ''
-      var that = this
-      wx.request({
-        url: baseURL + '/followread/records?courseid=' + this.data.id + '&page=1&limit=1',
-        method: 'GET', header: { Token: wx.getStorageSync('token') },
-        success: function(res) {
-          var list = (res.data && res.data.data && res.data.data.list) || []
-          if (list.length > 0) {
-            var r = list[0]
-            var rd = null
-            try { rd = JSON.parse(r.reportjson || '{}') } catch(e) {}
-            that.setData({ lastFollowRead: { score: r.totalscore, report: rd, time: r.addtime } })
-          }
-        }
-      })
-    } catch(e) {}
+    this.loadFollowRead()
+  },
+
+  loadFollowRead() {
+    var that = this
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/followread/records?courseid=' + this.data.id + '&page=1&limit=10',
+      method: 'GET', header: { Token: wx.getStorageSync('token') },
+      success: function(res) {
+        var list = (res.data && res.data.data && res.data.data.list) || []
+        var history = []
+        list.forEach(function(r) {
+          var rd = null
+          try { rd = JSON.parse(r.reportjson || '{}') } catch(e) {}
+          var dims = (rd && rd.dimensions) ? rd.dimensions.map(function(d) {
+            return { name: d.name, score: d.score }
+          }) : []
+          var t = r.addtime
+          if (t && t.length > 10) t = t.substring(0, 16)
+          history.push({ score: r.totalscore, dims: dims, time: t || '', fullReport: rd })
+        })
+        that.setData({ followHistory: history })
+      }
+    })
+  },
+
+  viewFollowReport(e) {
+    var idx = e.currentTarget.dataset.index
+    var item = this.data.followHistory[idx]
+    if (item && item.fullReport) {
+      this.setData({ followReport: item.fullReport, showFollowReport: true })
+    }
+  },
+
+  closeFollowReport() {
+    this.setData({ showFollowReport: false })
   },
 
   startFollowRead() {

@@ -110,7 +110,7 @@ public class FollowReadController {
 
             if (StringUtils.hasText(recognized)) {
                 AIRecitationReviewUtil.ReviewResult aiResult =
-                        AIRecitationReviewUtil.review(expectedText, recognized, "跟读第" + lineIndex + "句");
+                        AIRecitationReviewUtil.reviewFollowRead(expectedText, recognized, "跟读第" + lineIndex + "句");
                 if (aiResult != null && aiResult.getTotalScore() > 0) {
                     score = aiResult.getTotalScore();
                     comment = aiResult.getOverallComment();
@@ -162,7 +162,7 @@ public class FollowReadController {
 
             // 调用同一套AI多维度评测
             com.cl.utils.AIRecitationReviewUtil.ReviewResult aiResult =
-                    com.cl.utils.AIRecitationReviewUtil.review(fullText, recognizedAll.toString(), poemTitle);
+                    com.cl.utils.AIRecitationReviewUtil.reviewFollowRead(fullText, recognizedAll.toString(), poemTitle);
 
             Map<String, Object> result = new LinkedHashMap<>();
             if (aiResult != null && aiResult.getTotalScore() > 0) {
