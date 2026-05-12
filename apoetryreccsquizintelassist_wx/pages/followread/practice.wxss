@@ -1,0 +1,73 @@
+.fr-container { min-height: 100vh; background: #f5f7fa; padding-bottom: 40rpx; }
+.fr-header { background: linear-gradient(135deg, #2E7D32, #43A047); padding: 40rpx 30rpx 30rpx; color: #fff; }
+.fr-badge { display: inline-block; padding: 6rpx 18rpx; background: rgba(255,255,255,.2); border-radius: 16rpx; font-size: 22rpx; margin-bottom: 12rpx; }
+.fr-poem-title { font-size: 36rpx; font-weight: 800; margin-bottom: 16rpx; }
+.fr-progress { font-size: 24rpx; opacity: .8; margin-bottom: 12rpx; }
+.fr-progress-bar { height: 8rpx; background: rgba(255,255,255,.2); border-radius: 4rpx; overflow: hidden; }
+.fr-progress-fill { height: 100%; background: #fff; border-radius: 4rpx; transition: width .3s; }
+
+.fr-body { padding: 24rpx; }
+.fr-current-line { background: #fff; border-radius: 20rpx; padding: 30rpx; margin-bottom: 20rpx; text-align: center; box-shadow: 0 4rpx 16rpx rgba(0,0,0,.06); }
+.fr-line-label { font-size: 22rpx; color: #999; margin-bottom: 10rpx; }
+.fr-line-text { font-size: 40rpx; font-weight: 700; color: #333; line-height: 1.6; letter-spacing: 4rpx; }
+
+.fr-ai-play { text-align: center; padding: 20rpx 0; }
+.fr-play-btn { width: 400rpx; height: 80rpx; line-height: 80rpx; background: #4CAF50; color: #fff; font-size: 28rpx; font-weight: 700; border-radius: 40rpx; border: none; }
+.fr-play-btn.playing { background: #FF9800; }
+
+.fr-record-area { text-align: center; padding: 20rpx 0; }
+.fr-rec-indicator { display: flex; align-items: center; justify-content: center; gap: 14rpx; margin-bottom: 16rpx; }
+.fr-rec-dot { width: 20rpx; height: 20rpx; border-radius: 50%; background: #F44336; animation: blink .8s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+.fr-rec-time { font-size: 48rpx; font-weight: 700; color: #333; font-family: monospace; }
+.fr-rec-btn { width: 400rpx; height: 100rpx; line-height: 100rpx; background: #F44336; color: #fff; font-size: 32rpx; font-weight: 700; border-radius: 50rpx; border: none; }
+.fr-stop-btn { width: 280rpx; height: 80rpx; line-height: 80rpx; background: #333; color: #fff; font-size: 28rpx; border-radius: 40rpx; border: none; }
+.fr-done-hint { font-size: 32rpx; color: #4CAF50; font-weight: 700; }
+
+.fr-records-info { text-align: center; color: #888; font-size: 24rpx; margin-top: 12rpx; }
+
+/* 评分结果 */
+.fr-result-panel { margin: 24rpx; padding: 40rpx; background: #fff; border-radius: 24rpx; text-align: center; box-shadow: 0 8rpx 30rpx rgba(0,0,0,.08); }
+.fr-big-score { font-size: 120rpx; font-weight: 800; color: #4CAF50; line-height: 1; }
+.fr-big-label { font-size: 28rpx; color: #888; margin: 10rpx 0 16rpx; }
+.fr-score-msg { font-size: 26rpx; color: #555; line-height: 1.6; }
+
+.fr-scoring-panel { display: flex; align-items: center; justify-content: center; gap: 16rpx; margin: 40rpx; font-size: 28rpx; color: #888; }
+.fr-scoring-spinner { width: 36rpx; height: 36rpx; border: 4rpx solid #eee; border-top-color: #4CAF50; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fr-footer { padding: 0 24rpx 60rpx; }
+.fr-next-btn { width: 100%; height: 88rpx; line-height: 88rpx; background: #42A5F5; color: #fff; font-size: 30rpx; font-weight: 700; border-radius: 44rpx; border: none; }
+.fr-submit-btn { width: 100%; height: 88rpx; line-height: 88rpx; background: linear-gradient(135deg, #FF9800, #F57C00); color: #fff; font-size: 30rpx; font-weight: 700; border-radius: 44rpx; border: none; }
+.fr-submit-btn { width: 100%; height: 88rpx; line-height: 88rpx; background: linear-gradient(135deg,#FF9800,#F57C00); color: #fff; font-size: 30rpx; font-weight: 700; border-radius: 44rpx; border: none; }
+
+/* 评分进度蒙层 */
+.fr-scoring-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,.6); z-index: 999; display: flex; align-items: center; justify-content: center; }
+.fr-scoring-modal { width: 560rpx; background: #fff; border-radius: 32rpx; padding: 60rpx 40rpx 40rpx; text-align: center; }
+.fr-scoring-icon { font-size: 80rpx; margin-bottom: 16rpx; }
+.fr-scoring-title { font-size: 30rpx; font-weight: 700; color: #333; margin-bottom: 28rpx; }
+.fr-scoring-bar { height: 16rpx; background: #e8e8e8; border-radius: 8rpx; overflow: hidden; margin-bottom: 20rpx; }
+.fr-scoring-fill { height: 100%; background: linear-gradient(90deg,#4CAF50,#388E3C); border-radius: 8rpx; transition: width .5s; }
+.fr-scoring-hint { font-size: 24rpx; color: #888; }
+
+/* 报告弹窗 */
+.fr-report-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.fr-report-modal { width: 640rpx; max-height: 85vh; background: #fff; border-radius: 32rpx; overflow: hidden; }
+.fr-report-close { position: absolute; top: 20rpx; right: 20rpx; width: 48rpx; height: 48rpx; line-height: 48rpx; text-align: center; font-size: 28rpx; color: #999; }
+.fr-report-head { text-align: center; padding: 40rpx 0 24rpx; background: linear-gradient(135deg,#E8F5E9,#C8E6C9); }
+.fr-big-score { font-size: 100rpx; font-weight: 800; color: #2E7D32; display: block; line-height: 1; }
+.fr-big-label { font-size: 26rpx; color: #666; margin-top: 8rpx; display: block; }
+.fr-report-scroll { padding: 20rpx 28rpx; max-height: 55vh; }
+.fr-dim-card { padding: 18rpx 14rpx; margin-bottom: 14rpx; border-radius: 14rpx; background: #fafbfc; border: 1rpx solid #eee; }
+.fr-dim-header { display: flex; align-items: center; gap: 10rpx; margin-bottom: 10rpx; }
+.fr-dim-name { font-size: 26rpx; font-weight: 700; color: #333; }
+.fr-dim-weight { font-size: 20rpx; color: #aaa; }
+.fr-dim-score { margin-left: auto; font-size: 28rpx; font-weight: 800; color: #4CAF50; }
+.fr-dim-bar { height: 10rpx; background: #eee; border-radius: 5rpx; overflow: hidden; margin-bottom: 10rpx; }
+.fr-dim-fill { height: 100%; border-radius: 5rpx; transition: width .6s ease; }
+.fr-dim-comment { font-size: 22rpx; color: #555; line-height: 1.6; display: block; margin-bottom: 4rpx; }
+.fr-dim-encourage { font-size: 22rpx; color: #FF9800; font-weight: 600; display: block; }
+.fr-overall { margin-top: 12rpx; padding: 16rpx; background: #FFF8E1; border-radius: 14rpx; }
+.fr-overall-label { font-size: 24rpx; font-weight: 700; color: #F57C00; display: block; margin-bottom: 6rpx; }
+.fr-overall-text { font-size: 24rpx; color: #555; line-height: 1.6; }
+.fr-close-btn { width: 100%; height: 80rpx; line-height: 80rpx; background: #4CAF50; color: #fff; font-size: 28rpx; font-weight: 700; border-radius: 0; border: none; }

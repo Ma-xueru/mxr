@@ -65,9 +65,26 @@
       <view class="f-item"><view class="f-label">截止日期</view><text class="f-value">{{deadline}}</text></view>
     </view>
 
+    <!-- AI评分进度蒙层 -->
+    <view class="ai-overlay" wx:if="{{submitting}}">
+      <view class="ai-modal">
+        <view class="ai-icon">🤖</view>
+        <view class="ai-title">AI 正在评分中...</view>
+        <view class="ai-progress-bar">
+          <view class="ai-progress-fill" style="width:{{aiProgress}}%"></view>
+        </view>
+        <view class="ai-step">{{aiStepText}}</view>
+        <view class="ai-score-preview" wx:if="{{aiScore > 0}}">
+          <text class="ai-score-num">{{aiScore}}</text>
+          <text class="ai-score-label">分</text>
+        </view>
+        <button class="ai-done-btn" wx:if="{{aiScore > 0}}" bindtap="goDetail">查看详情</button>
+      </view>
+    </view>
+
     <!-- 提交按钮 -->
     <view class="submit-area" wx:if="{{tableName=='student' && !audioLocked || tableName=='teacher'}}">
-      <button class="btn-submit" bindtap="submit">{{tableName=='teacher' ? '发布任务' : '提交背诵'}}</button>
+      <button class="btn-submit" bindtap="submit" disabled="{{submitting}}">{{tableName=='teacher' ? '发布任务' : '提交背诵'}}</button>
     </view>
   </view>
 </view>

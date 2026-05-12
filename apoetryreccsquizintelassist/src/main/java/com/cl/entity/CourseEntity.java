@@ -100,6 +100,12 @@
 		private String video;
 
 		/**
+		 * 拼音内容
+		 */
+
+		private String contentpinyin;
+
+		/**
 		 * 点赞数
 		 */
 

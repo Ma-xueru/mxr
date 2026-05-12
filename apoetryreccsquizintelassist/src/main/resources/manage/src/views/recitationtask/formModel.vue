@@ -167,14 +167,17 @@
 					</el-col>
 					<el-col :span="12">
 						<el-form-item label="指定古诗" prop="courseids">
-							<el-input
-								class="list_inp"
-								v-model="form.coursetitles"
-								placeholder="请输入古诗名称，可输入一首或多首，用顿号、逗号或换行隔开"
-								type="textarea"
-								:rows="3"
-								:readonly="disabledForm.tasktitle?true:false"
-								@input="coursetitlesInput" />
+							<el-select class="list_sel" v-model="selectedGrade" placeholder="先选年级" @change="gradeChange" style="margin-bottom:8px">
+								<el-option label="一年级" value="一年级"></el-option>
+								<el-option label="二年级" value="二年级"></el-option>
+								<el-option label="三年级" value="三年级"></el-option>
+								<el-option label="四年级" value="四年级"></el-option>
+								<el-option label="五年级" value="五年级"></el-option>
+								<el-option label="六年级" value="六年级"></el-option>
+							</el-select>
+							<el-select class="list_sel" v-model="selectedCourseIds" placeholder="选择古诗（可多选）" multiple collapse-tags :disabled="!selectedGrade" @change="courseSelectChange">
+								<el-option v-for="item in filteredCourseOptions" :key="item.id" :label="item.coursetitle" :value="item.id"></el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
@@ -326,6 +329,13 @@ const validateIntNumber = (rule, value, callback) => {
 	if (!value) callback(); else if (!context?.$toolUtil.isIntNumer(value)) callback(new Error("请输入整数")); else callback();
 }
 const selectedCourseTitles = ref([])
+const selectedGrade = ref('')
+const selectedCourseIds = ref([])
+const allCourseOptions = ref([])
+const filteredCourseOptions = computed(() => {
+    if (!selectedGrade.value) return []
+    return allCourseOptions.value.filter(item => item.grade === selectedGrade.value)
+})
 const assignTargetSummary = computed(() => {
 	if (assignMode.value === 'multiple') {
 		return selectedStudentAccounts.value.length ? `已选择 ${selectedStudentAccounts.value.length} 位学生` : '尚未选择学生'
@@ -484,11 +494,60 @@ const getInfo = () => {
 	context?.$http({ url: `${tableName}/info/${id.value}`, method: 'get' }).then(res => {
 		form.value = res.data.data
 		selectedCourseTitles.value = form.value.coursetitles ? form.value.coursetitles.split(/[,，、\n]+/).filter(Boolean) : []
+			// set selected grade from first course
+			if (form.value.courseids) {
+				const ids = form.value.courseids.split(",").map(Number)
+				selectedCourseIds.value = ids
+				if (ids.length > 0 && allCourseOptions.value.length > 0) {
+					const firstCourse = allCourseOptions.value.find(c => c.id === ids[0])
+					if (firstCourse) selectedGrade.value = firstCourse.grade
+				}
+			}
 		loadStudentInfo(form.value.studentaccount).finally(() => {
 			formVisible.value = true
 		})
 	})
 }
+const loadCourseOptions = () => {
+    context.$http({ url: 'course/list', method: 'get', params: { page: 1, limit: 200 } }).then(res => {
+        allCourseOptions.value = (res.data.data.list || []).map(item => ({
+            id: item.id,
+            coursetitle: item.coursetitle,
+            grade: item.grade
+        }))
+    })
+}
+const gradeChange = () => {
+    selectedCourseIds.value = []
+    form.value.courseids = ''
+    form.value.coursetitles = ''
+    selectedCourseTitles.value = []
+}
+const courseSelectChange = (ids) => {
+    if (!ids || !ids.length) {
+        form.value.courseids = ''
+        form.value.coursetitles = ''
+        selectedCourseTitles.value = []
+        return
+    }
+    form.value.courseids = ids.join(',')
+    const titles = ids.map(id => {
+        const found = allCourseOptions.value.find(item => item.id === id)
+        return found ? found.coursetitle : ''
+    }).filter(Boolean)
+    form.value.coursetitles = titles.join('、')
+    selectedCourseTitles.value = titles
+    // auto-fill task title
+    if (!form.value.tasktitle || form.value.tasktitle.startsWith('背诵')) {
+        if (titles.length === 1) form.value.tasktitle = '背诵《' + titles[0].replace(/[《》]/g, '') + '》'
+        else if (titles.length > 1) form.value.tasktitle = '背诵' + titles.length + '首古诗'
+    }
+    // auto-fill task content
+    if (titles.length && (!form.value.taskcontent || form.value.taskcontent.startsWith('请完成以下古诗背诵：'))) {
+        form.value.taskcontent = '请完成以下古诗背诵：' + titles.join('、') + '。'
+    }
+}
+
 const coursetitlesInput = (value) => {
 	const titles = String(value || '')
 		.split(/[,，、\n]+/)
@@ -511,6 +570,7 @@ const init = (formId=null, formType='add') => {
 	id.value = formId || 0
 	type.value = formType
 	form.value.releasetime = context?.$toolUtil.getCurDateTime()
+	loadCourseOptions()
 	if (formType == 'add') { isAdd.value = true; formTitle.value = '新增' + formName; formVisible.value = true }
 	else if (formType == 'info') { isAdd.value = false; formTitle.value = '查看' + formName; getInfo() }
 	else if (formType == 'edit') { isAdd.value = true; formTitle.value = '修改' + formName; getInfo() }

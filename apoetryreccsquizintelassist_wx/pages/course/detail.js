@@ -30,7 +30,8 @@ Page({
     commmentList: [],
     commentContent: "",
     tableName: "course",
-    relatedPracticeList: []
+    relatedPracticeList: [],
+    lastFollowRead: null
   },
   /**
    * 生命周期函数--监听页面加载
@@ -115,6 +116,7 @@ Page({
         picture: detailList.picture ? detailList.picture.split(',') : [],
       })
       await this.loadRelatedPractices(detailList)
+      await this.loadLastFollowRead()
 
       if (!this.data.token) {
         return
@@ -733,6 +735,33 @@ Page({
       title: this.data.detailList.coursetitle || '古诗词学习详情',
       path: `/pages/course/detail?id=${this.data.id}&tableName=course`
     }
+  },
+  startFollowRead() {
+    const id = this.data.detailList.id
+    if (!id) return wx.showToast({ title: '请先加载古诗', icon: 'none' })
+    wx.navigateTo({ url: '/pages/followread/practice?id=' + id })
+  },
+  // 加载上次跟读记录
+  async loadLastFollowRead() {
+    const courseId = this.data.detailList?.id || this.data.id
+    if (!courseId) return
+    try {
+      const baseURL = wx.getStorageSync('baseURL') || ''
+      const res = await new Promise((resolve, reject) => {
+        wx.request({
+          url: baseURL + '/followread/records?courseid=' + courseId + '&page=1&limit=1',
+          method: 'GET', header: { Token: wx.getStorageSync('token') },
+          success: resolve, fail: reject
+        })
+      })
+      const list = res.data?.data?.list || []
+      if (list.length > 0) {
+        const r = list[0]
+        let reportData = null
+        try { reportData = JSON.parse(r.reportjson || '{}') } catch(e) {}
+        this.setData({ lastFollowRead: { score: r.totalscore, report: reportData, time: r.addtime } })
+      }
+    } catch(e) {}
   },
   // 生命周期函数--监听页面显示
   async onShow() {

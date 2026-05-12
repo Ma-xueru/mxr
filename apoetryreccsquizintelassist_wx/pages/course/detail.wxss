@@ -663,3 +663,19 @@ page {
   font-size: 36rpx;
   line-height: 1;
 }
+
+
+/* AI跟读入口 */
+.follow-read-entry { margin: 20rpx 24rpx; }
+.fr-card { display: flex; align-items: center; padding: 24rpx 20rpx; background: linear-gradient(135deg, #E8F5E9, #C8E6C9); border-radius: 20rpx; border: 2rpx solid rgba(76,175,80,.2); }
+.fr-card:active { transform: scale(.98); }
+.fr-icon { font-size: 48rpx; margin-right: 16rpx; }
+.fr-info { flex: 1; }
+.fr-title { font-size: 30rpx; font-weight: 700; color: #2E7D32; display: block; }
+.fr-desc { font-size: 24rpx; color: #6B8B6F; margin-top: 4rpx; display: block; }
+.fr-arrow { font-size: 32rpx; color: #4CAF50; font-weight: 700; }
+
+.fr-last { display: flex; align-items: center; gap: 16rpx; padding: 14rpx 20rpx; margin-top: 12rpx; background: #FFF8E1; border-radius: 14rpx; }
+.fr-last-label { font-size: 22rpx; color: #8B8B6F; }
+.fr-last-score { font-size: 30rpx; font-weight: 800; color: #F57C00; }
+.fr-last-time { font-size: 20rpx; color: #aaa; margin-left: auto; }

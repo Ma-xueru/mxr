@@ -34,7 +34,7 @@ export const routes = [{
 		component: () => import('../views/index'),
 		children: [{
 			path: '/',
-			name: '首页',
+			name: '首页子',
 			component: () => import('../views/HomeView.vue'),
 			meta: {
 				affix: true

@@ -15,6 +15,8 @@ Page({
     // state machine: idle | recording | preview | uploading | done
     state: 'idle', recordTime: 0, recordTimeDisplay: '00:00', recordTimer: null,
     localAudioPath: '',
+    // AI评分进度
+    submitting: false, aiProgress: 10, aiStepText: '正在上传...', aiScore: 0,
     isPlaying: false, playProgress: 0, currentTimeDisplay: '00:00', durationDisplay: '00:00', playTimer: null
   },
 
@@ -66,7 +68,21 @@ Page({
     this.setData(d)
   },
 
-  onUnload() { this.cleanup() },
+
+  simulateProgress() {
+    const steps = [
+      { pct: 30, text: '正在分析音频...', delay: 800 },
+      { pct: 45, text: '正在转写文字...', delay: 1600 },
+      { pct: 55, text: '正在匹配古诗...', delay: 2400 },
+    ]
+    steps.forEach(s => setTimeout(() => {
+      if (this.data.submitting) this.setData({ aiProgress: s.pct, aiStepText: s.text })
+    }, s.delay))
+  },
+  goDetail() {
+    const id = this.data.id
+    wx.navigateTo({ url: '/pages/recitationtask/detail?id=' + id })
+  },  onUnload() { this.cleanup() },
 
   cleanup() {
     clearInterval(this.data.recordTimer); clearInterval(this.data.playTimer)
@@ -188,10 +204,48 @@ Page({
       obj.completiontime = utils.getCurrentDate("yMDhms")
     }
     obj.id = this.data.id || undefined
-    if (this.data.editStatus && obj.id) { await update('recitationtask', obj) }
-    else { await add('recitationtask', obj) }
-    wx.showToast({ title: '提交成功', icon: 'success' })
-    setTimeout(() => wx.navigateBack({ delta: 1 }), 1000)
+    
+    // 学生提交时显示AI评分进度
+    if (!isTeacher) {
+      this.setData({ submitting: true, aiProgress: 10, aiStepText: '正在上传录音...', aiScore: 0 })
+      this.simulateProgress()
+    }
+    
+    try {
+      if (this.data.editStatus && obj.id) { await update('recitationtask', obj) }
+      else { await add('recitationtask', obj) }
+    } catch(e) {}
+    
+    if (isTeacher) {
+      wx.showToast({ title: '发布成功', icon: 'success' })
+      setTimeout(() => wx.navigateBack({ delta: 1 }), 1000)
+      return
+    }
+    
+    // 轮询获取AI评分结果
+    this.setData({ aiStepText: 'AI 正在评分...', aiProgress: 60 })
+    let retry = 0
+    const pollScore = async () => {
+      if (retry >= 15) {
+        this.setData({ submitting: false })
+        wx.showToast({ title: '提交成功', icon: 'success' })
+        setTimeout(() => wx.navigateBack({ delta: 1 }), 1000)
+        return
+      }
+      retry++
+      try {
+        const res = await info('recitationtask', obj.id)
+        const data = res.data
+        if (data && data.kaoshichengji && data.kaoshichengji > 0) {
+          this.setData({ aiProgress: 100, aiStepText: '评分完成！', aiScore: data.kaoshichengji })
+          return
+        }
+      } catch(e) {}
+      const p = 60 + Math.min(retry * 3, 35)
+      this.setData({ aiProgress: p })
+      setTimeout(pollScore, 1500)
+    }
+    pollScore()
   }
 })
 

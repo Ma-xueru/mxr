@@ -1,0 +1,80 @@
+<view class="fr-container">
+  <view class="fr-header">
+    <view class="fr-badge">AI 跟读练习</view>
+    <view class="fr-poem-title">{{poemTitle}}</view>
+    <view class="fr-progress">{{currentLine}} / {{totalLines}} 句</view>
+    <view class="fr-progress-bar">
+      <view class="fr-progress-fill" style="width:{{(currentLine-1)/totalLines*100}}%"></view>
+    </view>
+  </view>
+
+  <view class="fr-body">
+    <view class="fr-current-line">
+      <view class="fr-line-label">第 {{currentLine}} 句</view>
+      <view class="fr-line-text">{{currentText}}</view>
+    </view>
+
+    <view class="fr-ai-play" wx:if="{{state=='idle'||state=='played'}}">
+      <button class="fr-play-btn {{playing?'playing':''}}" bindtap="playTTS">
+        {{playing ? '⏸ 播放中...' : (state=='played' ? '🔄 重听' : '🔊 AI朗读')}}
+      </button>
+    </view>
+
+    <view class="fr-record-area" wx:if="{{state=='played'||state=='recording'||state=='done'}}">
+      <view class="fr-rec-indicator" wx:if="{{state=='recording'}}">
+        <view class="fr-rec-dot"></view>
+        <text class="fr-rec-time">{{recordTimeDisplay}}</text>
+      </view>
+      <button class="fr-rec-btn" wx:if="{{state=='played'}}" bindtap="startRecord">🎤 开始跟读</button>
+      <button class="fr-stop-btn" wx:if="{{state=='recording'}}" bindtap="stopRecord">⏹ 停止</button>
+      <view class="fr-done-hint" wx:if="{{state=='done'}}">✓ 已录</view>
+    </view>
+
+    <view class="fr-records-info" wx:if="{{records.length > 0}}">
+      <text>已录 {{records.length}} / {{totalLines}} 句</text>
+    </view>
+  </view>
+
+  <!-- AI评分进度蒙层 -->
+  <view class="fr-scoring-overlay" wx:if="{{scoring}}">
+    <view class="fr-scoring-modal">
+      <view class="fr-scoring-icon">🤖</view>
+      <view class="fr-scoring-title">AI 正在综合评分...</view>
+      <view class="fr-scoring-bar"><view class="fr-scoring-fill" style="width:{{scoringProgress}}%"></view></view>
+      <view class="fr-scoring-hint">{{scoringHint}}</view>
+    </view>
+  </view>
+
+  <!-- 报告弹窗 -->
+  <view class="fr-report-overlay" wx:if="{{showReport}}" bindtap="closeReport">
+    <view class="fr-report-modal" catchtap="">
+      <view class="fr-report-close" bindtap="closeReport">✕</view>
+      <view class="fr-report-head">
+        <text class="fr-big-score">{{totalScore}}</text>
+        <text class="fr-big-label">综合评分</text>
+      </view>
+      <scroll-view class="fr-report-scroll" scroll-y>
+        <view class="fr-dim-card" wx:for="{{report.dimensions}}" wx:key="name">
+          <view class="fr-dim-header">
+            <text class="fr-dim-name">{{item.name}}</text>
+            <text class="fr-dim-weight">权重{{item.weight}}%</text>
+            <text class="fr-dim-score">{{item.score}}分</text>
+          </view>
+          <view class="fr-dim-bar"><view class="fr-dim-fill" style="width:{{item.score}}%;background:{{item.score>=85?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}"></view></view>
+          <text class="fr-dim-comment">{{item.comment}}</text>
+          <text class="fr-dim-encourage">{{item.encourage}}</text>
+        </view>
+        <view class="fr-overall" wx:if="{{report.overallComment}}">
+          <text class="fr-overall-label">📝 总评</text>
+          <text class="fr-overall-text">{{report.overallComment}}</text>
+        </view>
+      </scroll-view>
+      <button class="fr-close-btn" bindtap="closeReport">完成</button>
+    </view>
+  </view>
+
+  <view class="fr-footer">
+    <button class="fr-next-btn" wx:if="{{state=='done' && currentLine < totalLines}}" bindtap="nextLine">下一句 →</button>
+    <button class="fr-submit-btn" wx:if="{{records.length > 0 && totalScore == 0 && !scoring && (currentLine >= totalLines || state=='done')}}" bindtap="submitAll">📊 提交综合评分 ({{records.length}}/{{totalLines}}句)</button>
+  </view>
+</view>

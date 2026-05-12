@@ -22,6 +22,32 @@
             </swiper-item>
         </swiper>
 
+        <!-- AI背诵评分 -->
+        <view class="recite-hero">
+          <view class="recite-card {{isStudent ? 'student' : 'teacher'}}" bindtap="goRecite">
+            <view class="recite-badge">AI 背诵评分</view>
+            <view class="recite-main">
+              <text class="recite-icon">{{isStudent ? '🎙️' : '📋'}}</text>
+              <view class="recite-text">
+                <text class="recite-title">{{isStudent ? '我的背诵任务' : '背诵任务管理'}}</text>
+                <text class="recite-sub">{{isStudent ? '录音背诵，AI智能评分' : '一键发布，AI自动评分反馈'}}</text>
+              </view>
+            </view>
+            <view class="recite-bottom" wx:if="{{isStudent && pendingCount > 0}}">
+              <view class="recite-task" wx:for="{{pendingTasks}}" wx:key="id" bindtap="goReciteTask" data-id="{{item.id}}">
+                <view class="recite-dot"></view>
+                <text class="recite-task-title">{{item.tasktitle}}</text>
+                <text class="recite-deadline">{{item.deadline}}</text>
+              </view>
+            </view>
+            <view class="recite-btn-row">
+              <text class="recite-count" wx:if="{{isStudent}}">{{pendingCount > 0 ? pendingCount + '个待完成' : '暂无任务'}}</text>
+              <text class="recite-count" wx:else>{{taskStats.total}}任务 · {{taskStats.pending}}待完成</text>
+              <text class="recite-arrow">→</text>
+            </view>
+          </view>
+        </view>
+
         <!-- 古诗词学习推荐 -->
         <view class="course-section">
             <view class="section-header">

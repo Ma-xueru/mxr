@@ -109,6 +109,23 @@
       <rich-text nodes="{{detailList.content}}"></rich-text>
     </view>
 
+    <!-- AI跟读练习 -->
+    <view class="follow-read-entry" wx:if="{{detailList.content}}">
+      <view class="fr-card" bindtap="startFollowRead">
+        <view class="fr-icon">🎙️</view>
+        <view class="fr-info">
+          <text class="fr-title">AI 跟读练习</text>
+          <text class="fr-desc">AI逐句朗读，你跟读模仿，实时评分纠音</text>
+        </view>
+        <view class="fr-arrow">→</view>
+      </view>
+      <view class="fr-last" wx:if="{{lastFollowRead}}" bindtap="startFollowRead">
+        <text class="fr-last-label">上次跟读</text>
+        <text class="fr-last-score">{{lastFollowRead.score}}分</text>
+        <text class="fr-last-time">{{lastFollowRead.time}}</text>
+      </view>
+    </view>
+
     <view class="practice-section" wx:if="{{relatedPracticeList.length > 0}}">
       <view class="section-title">学完即练</view>
       <view class="practice-tip">学习完这首诗后，马上做几道相关练习题，帮助理解和记忆。</view>

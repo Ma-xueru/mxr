@@ -1,6 +1,7 @@
 const {
   newsData,
   list,
+  page,
   autoSort,
   swiperData,
   info,
@@ -18,7 +19,12 @@ const {
   newsList:[],
   swiperList:[],
   frontMenuList: [],
-  courseList: []
+  courseList: [],
+    showRecite: true,
+    isStudent: true,
+    pendingCount: 0,
+    pendingTasks: [],
+    taskStats: { total: 0, completed: 0, pending: 0 }
   },
   
   onReady() {
@@ -113,9 +119,15 @@ const {
       }
   },
   toAichat() {
-      wx.navigateTo({
-          url: '/pages/chat/chat',
-      })
+      wx.navigateTo({ url: '/pages/chat/chat' })
+  },
+  goRecite() {
+      wx.navigateTo({ url: '/pages/recitationtask/list' })
+  },
+  goReciteTask(e) {
+      const id = e.currentTarget.dataset.id
+      getApp().globalData.detailId = id
+      wx.navigateTo({ url: '/pages/recitationtask/update-and-add?id=' + id })
   },
       
   

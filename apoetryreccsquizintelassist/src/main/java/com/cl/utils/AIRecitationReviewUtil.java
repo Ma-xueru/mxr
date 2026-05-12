@@ -23,6 +23,9 @@ public class AIRecitationReviewUtil {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    public static String getApiKey() { return API_KEY; }
+    public static String getModel() { return MODEL; }
+
     public static class DimensionScore {
         private String name; private int score; private int weight;
         private String comment; private String encourage;
