@@ -5,7 +5,7 @@ const ASSETS_COLL = 'poem_assets'
 /**
  * 获取单首古诗的图片资源
  * @param {number} courseId - 古诗ID
- * @returns {Promise<Object|null>} { courseId, imgUrl, ... }
+ * @returns {Promise<Object|null>} { courseId, imageUrl, ... }
  */
 function getPoemAsset(courseId) {
   if (!db) return Promise.resolve(null)
@@ -23,7 +23,7 @@ function getPoemAsset(courseId) {
 /**
  * 批量获取古诗图片
  * @param {number[]} courseIds
- * @returns {Promise<Object>} { [courseId]: imgUrl, ... }
+ * @returns {Promise<Object>} { [courseId]: imageUrl, ... }
  */
 function getPoemAssetsBatch(courseIds) {
   if (!db || !courseIds.length) return Promise.resolve({})
@@ -33,7 +33,7 @@ function getPoemAssetsBatch(courseIds) {
     .then(res => {
       const map = {}
       if (res.data) {
-        res.data.forEach(item => { map[item.courseId] = item.imgUrl || item.image || '' })
+        res.data.forEach(item => { map[item.courseId] = item.imageUrl || item.image || '' })
       }
       return map
     })
@@ -46,9 +46,9 @@ function getPoemAssetsBatch(courseIds) {
 /**
  * 插入或更新古诗图片
  * @param {number} courseId
- * @param {string} imgUrl
+ * @param {string} imageUrl
  */
-function upsertPoemAsset(courseId, imgUrl) {
+function upsertPoemAsset(courseId, imageUrl) {
   if (!db) return Promise.resolve(null)
   return db.collection(ASSETS_COLL)
     .where({ courseId: Number(courseId) })
@@ -56,9 +56,9 @@ function upsertPoemAsset(courseId, imgUrl) {
     .get()
     .then(res => {
       if (res.data && res.data.length > 0) {
-        return db.collection(ASSETS_COLL).doc(res.data[0]._id).update({ data: { imgUrl, updateTime: new Date() } })
+        return db.collection(ASSETS_COLL).doc(res.data[0]._id).update({ data: { imageUrl, updateTime: new Date() } })
       } else {
-        return db.collection(ASSETS_COLL).add({ data: { courseId: Number(courseId), imgUrl, createTime: new Date() } })
+        return db.collection(ASSETS_COLL).add({ data: { courseId: Number(courseId), imageUrl, createTime: new Date() } })
       }
     })
     .catch(err => { console.error('[poem_assets] upsert失败:', err) })

@@ -22,6 +22,7 @@ Page({
     onPageScrollTop: 0, // 存储滚动距离的变量
 
     goodsListData: [],
+    poemImages: {},
     activeIndex: 0,
     allData: [],
     deleteShow: false,
@@ -129,6 +130,41 @@ Page({
       order: 'desc'
     }
   },
+  // 批量加载云数据库图片
+  loadPoemImages(list) {
+    if (!wx.cloud || !list.length) return
+    var that = this
+    var ids = list.map(function(item) { return Number(item.id) })
+    var db = wx.cloud.database()
+    db.collection('poem_assets').where({ courseId: db.command.in(ids) }).get()
+      .then(function(res) {
+        if (!res.data || !res.data.length) return
+        var cloudIds = []
+        var map = {}
+        res.data.forEach(function(row) {
+          if (row.imageUrl) {
+            map[row.courseId] = row.imageUrl
+            if (row.imageUrl.indexOf('cloud://') === 0) cloudIds.push(row.imageUrl)
+          }
+        })
+        // 把 cloud:// fileID 转成临时URL
+        if (cloudIds.length > 0) {
+          wx.cloud.getTempFileURL({ fileList: cloudIds }).then(function(urlRes) {
+            var urlMap = {}
+            (urlRes.fileList || []).forEach(function(f) { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
+            for (var k in map) {
+              map[k] = urlMap[map[k]] || map[k]
+            }
+            that.setData({ poemImages: Object.assign({}, that.data.poemImages, map) })
+          }).catch(function() {
+            that.setData({ poemImages: Object.assign({}, that.data.poemImages, map) })
+          })
+        } else {
+          that.setData({ poemImages: Object.assign({}, that.data.poemImages, map) })
+        }
+      }).catch(function() {})
+  },
+
   // 搜索处理
   async searhandler() {
     const name = this.data.name;
@@ -147,6 +183,7 @@ Page({
       total: res.total,
       pageNum: 1
     })
+    this.loadPoemImages(res.data.list)
   },
   // 获取数据
   async getData() {
@@ -156,6 +193,7 @@ Page({
       goodsListData: res.data.list,
       total: res.total
     })
+    this.loadPoemImages(res.data.list)
   },
   // 详情
   detailBtn(e) {

@@ -10,7 +10,15 @@
 
     <view class="card-list">
       <view class="poem-card" bindtap="detailBtn" data-item="{{item}}" data-id="{{item.id}}" wx:for="{{goodsListData}}" wx:key="id">
-        <image class="card-img" src="https://picsum.photos/seed/poem{{item.id}}/600/300" mode="aspectFill" lazy-load="true" />
+        <view class="card-img-wrap">
+          <image class="card-img" wx:if="{{poemImages[item.id]}}" src="{{poemImages[item.id]}}" mode="aspectFill" lazy-load="true" />
+          <view class="card-img-warm" wx:if="{{poemImages[item.id]}}"></view>
+          <view class="card-cover" wx:else>
+          <view class="cover-border">
+            <text class="cover-title">{{item.coursetitle}}</text>
+            </view>
+          </view>
+        </view>
         <view class="card-info">
           <view class="card-title-row">
             <text class="card-title">{{item.coursetitle}}</text>

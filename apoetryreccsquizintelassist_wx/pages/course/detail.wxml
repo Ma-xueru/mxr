@@ -4,6 +4,18 @@
     <view class="poem-meta">{{poem.author}}</view>
   </view>
 
+  <!-- 古诗意境图 -->
+  <view class="poem-image-section" wx:if="{{imageUrl || imageLoading || imageError}}">
+    <image class="poem-image" wx:if="{{imageUrl}}" src="{{imageUrl}}" mode="aspectFill" />
+    <view class="poem-image-loading" wx:if="{{imageLoading}}">
+      <text class="poem-image-loading-icon">🎨</text>
+      <text class="poem-image-loading-text">精灵球正在绘制意境图...</text>
+    </view>
+    <view class="poem-image-error" wx:if="{{imageError}}">
+      <text class="poem-image-error-text">图片生成失败，下拉刷新重试</text>
+    </view>
+  </view>
+
   <!-- 田字格正文 -->
   <view class="poem-body" wx:if="{{poem.lines.length > 0}}">
     <view class="poem-line" wx:for="{{poem.lines}}" wx:key="index">

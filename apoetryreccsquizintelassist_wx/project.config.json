@@ -47,7 +47,7 @@
         "swc": false,
         "disableSWC": true
     },
-    "appid": "wxa070dd14642cd2d0",
+    "appid": "wx57dec8b4d87f5f37",
     "cloudfunctionRoot": "cloudfunctions/",
     "compileType": "miniprogram",
     "libVersion": "3.10.2",
@@ -57,5 +57,6 @@
         "tabIndent": "insertSpaces",
         "tabSize": 4
     },
-    "simulatorPluginLibVersion": {}
+    "simulatorPluginLibVersion": {},
+    "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
 }

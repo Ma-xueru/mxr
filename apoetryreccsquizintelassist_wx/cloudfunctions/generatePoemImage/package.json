@@ -1,0 +1,9 @@
+{
+  "name": "generatePoemImage",
+  "version": "1.0.0",
+  "description": "调用豆包文生图API生成古诗意境插画",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

@@ -133,6 +133,79 @@ public class VoiceChatController {
         return m;
     }
 
+    /**
+     * AI 生成古诗意境插画 — 根据译文生成水墨画风图片
+     */
+    @com.cl.annotation.IgnoreAuth
+    @RequestMapping("/generateImage")
+    public R generateImage(@RequestParam String poemTitle, @RequestParam String translation) {
+        if (!StringUtils.hasText(translation)) return R.error("缺少译文内容");
+        try {
+            // 构建生图 prompt
+            String prompt = "中国风水墨画风格，古风意境。根据以下古诗译文创作插画：" +
+                translation.substring(0, Math.min(200, translation.length())) +
+                "。要求：画面唯美、留白、古典。no text, no words, no letters, clean background";
+
+            System.out.println("[生图] prompt=" + prompt.substring(0, Math.min(120, prompt.length())));
+
+            String apiKey = AIRecitationReviewUtil.getApiKey();
+            String model = "doubao-seedream-5-0-260128";
+            String body = new org.json.JSONObject()
+                .put("model", model)
+                .put("prompt", prompt)
+                .put("size", "2560x1440")
+                .put("output_format", "png")
+                .put("watermark", false)
+                .toString();
+
+            java.net.URL url = new java.net.URL("https://ark.cn-beijing.volces.com/api/v3/images/generations");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
+            conn.setConnectTimeout(30000);
+            conn.setReadTimeout(120000);
+            conn.setDoOutput(true);
+            conn.getOutputStream().write(body.getBytes("UTF-8"));
+
+            int code = conn.getResponseCode();
+            System.out.println("[生图] HTTP " + code);
+            if (code != 200) {
+                java.io.InputStream es = conn.getErrorStream();
+                String err = es != null ? new java.util.Scanner(es, "UTF-8").useDelimiter("\\A").next() : "";
+                return R.error("AI绘图失败 HTTP" + code + ": " + err.substring(0, Math.min(200, err.length())));
+            }
+
+            String resp = new java.util.Scanner(conn.getInputStream(), "UTF-8").useDelimiter("\\A").next();
+            org.json.JSONObject respJson = new org.json.JSONObject(resp);
+            String imgUrl = respJson.getJSONArray("data").getJSONObject(0).optString("url", "");
+            if (imgUrl.isEmpty()) return R.error("API未返回图片URL");
+
+            // 下载图片
+            System.out.println("[生图] 下载图片: " + imgUrl.substring(0, Math.min(80, imgUrl.length())));
+            java.net.URL imgUrlObj = new java.net.URL(imgUrl);
+            java.net.HttpURLConnection imgConn = (java.net.HttpURLConnection) imgUrlObj.openConnection();
+            imgConn.setConnectTimeout(30000);
+            imgConn.setReadTimeout(60000);
+            java.io.InputStream imgIn = imgConn.getInputStream();
+
+            String fileName = "poem_img_" + System.currentTimeMillis() + ".png";
+            File outFile = new File(getTtsDir(), fileName);
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(outFile);
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = imgIn.read(buf)) != -1) fos.write(buf, 0, n);
+            fos.close(); imgIn.close();
+            System.out.println("[生图] 保存: " + outFile.getAbsolutePath() + " (" + outFile.length() + " bytes)");
+
+            return R.ok().put("data", mapOf("imageUrl", "/file/" + fileName));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return R.error("生成失败: " + e.getMessage());
+        }
+    }
+
     private String getAudioDir() { File d = new File("file"); d.mkdirs(); return d.getAbsolutePath(); }
     private String getTtsDir() {
         try { return new File(org.springframework.util.ResourceUtils.getFile("classpath:static"), "file").getAbsolutePath(); }

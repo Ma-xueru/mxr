@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "openapi": []
+  },
+  "env": {
+    "ARK_API_KEY": "your-ark-api-key-here",
+    "ARK_MODEL": "doubao-seedream-5-0-260128"
+  }
+}

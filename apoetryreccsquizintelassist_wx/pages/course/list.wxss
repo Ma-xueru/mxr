@@ -1,9 +1,9 @@
-.list-container { min-height: 100vh; background: #f5f5f5; padding-bottom: 40rpx; }
+.list-container { min-height: 100vh; background: #f3f0ea; padding-bottom: 40rpx; }
 .content { padding: 20rpx; }
 
 /* 搜索栏 */
-.search-bar { display: flex; align-items: center; margin-bottom: 24rpx; background: #fff; padding: 16rpx 20rpx; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,.04); }
-.search-inp-box { flex: 1; display: flex; align-items: center; background: #f5f5f5; border-radius: 16rpx; padding: 0 20rpx; margin-right: 16rpx; }
+.search-bar { display: flex; align-items: center; margin-bottom: 24rpx; background: #fafaf8; padding: 16rpx 20rpx; border-radius: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,.03); }
+.search-inp-box { flex: 1; display: flex; align-items: center; background: #f3f0ea; border-radius: 16rpx; padding: 0 20rpx; margin-right: 16rpx; }
 .search-icon { font-size: 28rpx; color: #999; margin-right: 8rpx; }
 .search-input { flex: 1; height: 64rpx; font-size: 28rpx; }
 .searchBtn { background: #85c9b6; color: #fff; padding: 0 32rpx; height: 64rpx; line-height: 64rpx; border-radius: 32rpx; font-size: 28rpx; font-weight: 600; }
@@ -12,30 +12,81 @@
 .card-list { display: flex; flex-direction: column; gap: 24rpx; }
 
 /* 诗词卡片 */
-.poem-card { margin: 0 10rpx; background: #fff; border-radius: 20rpx; overflow: hidden; box-shadow: 0 10rpx 30rpx rgba(0,0,0,.05); }
+.poem-card { margin: 0 10rpx; background: #fafaf8; border-radius: 20rpx; overflow: hidden; box-shadow: 0 10rpx 30rpx rgba(0,0,0,.04); }
 .poem-card:active { transform: scale(.98); transition: transform .2s; }
 
-/* 中国风渐变图 */
-.card-img { width: 100%; height: 260rpx; display: flex; align-items: center; justify-content: center; border-top-left-radius: 20rpx; border-top-right-radius: 20rpx; }
-.card-img-title { font-size: 52rpx; color: rgba(255,255,255,.55); font-weight: 800; letter-spacing: 12rpx; }
+/* 图片容器 — 固定16:9比例 */
+.card-img-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; }
 
-/* 8套中国风配色 */
-.card-bg-0 { background: linear-gradient(135deg, #a8e6cf, #88d8b0, #56ab91); }
-.card-bg-1 { background: linear-gradient(135deg, #fbc2eb, #a6c1ee, #84a9d6); }
-.card-bg-2 { background: linear-gradient(135deg, #ffecd2, #fcb69f, #e8936b); }
-.card-bg-3 { background: linear-gradient(135deg, #a1c4fd, #c2e9fb, #8bb8e8); }
-.card-bg-4 { background: linear-gradient(135deg, #d4fc79, #96e6a1, #6abf69); }
-.card-bg-5 { background: linear-gradient(135deg, #fddb92, #d1b38d, #ab8e6e); }
-.card-bg-6 { background: linear-gradient(135deg, #e0c3fc, #c3aed6, #9b8cbe); }
-.card-bg-7 { background: linear-gradient(135deg, #f9d5d3, #e6b0aa, #c9958b); }
+/* 云端AI图片 */
+.card-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 12rpx; display: block; }
+/* 暖色柔光覆层 */
+.card-img-warm { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(248,244,237,.05); border-radius: 12rpx; pointer-events: none; z-index: 1; }
+
+/* 古风牌匾兜底封面 */
+.card-cover {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12rpx;
+  background: linear-gradient(135deg, #f5f0e6 0%, #ede4d3 30%, #e8dcc8 60%, #f2ead8 100%);
+  overflow: hidden;
+}
+/* 宣纸纹理 */
+.card-cover::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(139,119,90,.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 20%, rgba(160,140,100,.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 50%, rgba(180,160,120,.04) 0%, transparent 40%);
+  opacity: .8;
+}
+.cover-border {
+  display: flex; align-items: center; justify-content: center;
+  width: calc(100% - 32rpx); height: calc(100% - 32rpx);
+  border: 4rpx solid #c8b898;
+  outline: 2rpx solid #d4c8a8;
+  outline-offset: -8rpx;
+  position: relative; z-index: 1;
+}
+/* 四角回纹 */
+.cover-border::before {
+  content: '❦'; position: absolute; top: -6rpx; left: 12rpx;
+  font-size: 28rpx; color: #c8b898;
+}
+.cover-border::after {
+  content: '❦'; position: absolute; bottom: -6rpx; right: 12rpx;
+  font-size: 28rpx; color: #c8b898;
+}
+.cover-title {
+  font-size: 36rpx; font-weight: 800; color: #5a4830;
+  text-align: center; line-height: 1.4;
+  padding: 0 20rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  letter-spacing: 4rpx;
+  font-family: "STKaiti", "KaiTi", "楷体", "SimSun", "宋体", "Georgia", "Times New Roman", serif;
+}
 
 /* 信息区 */
-.card-info { padding: 24rpx 30rpx; }
+.card-info { padding: 28rpx 32rpx 26rpx; }
 
 /* 标题行 */
-.card-title-row { margin-bottom: 16rpx; }
-.card-title { font-size: 40rpx; font-weight: 700; color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.card-title-row { margin-bottom: 18rpx; }
+.card-title {
+  font-size: 40rpx; font-weight: 500; color: #3d3532;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;
+  text-shadow: 0 0 1rpx rgba(0,0,0,.08), 0 1rpx 2rpx rgba(60,40,20,.04);
+  letter-spacing: 2rpx;
+  font-family: "STKaiti", "KaiTi", "楷体", "SimSun", "宋体", "Georgia", "Times New Roman", serif;
+}
 
 /* 标签行 */
-.card-tags { display: flex; flex-wrap: wrap; gap: 12rpx; }
-.tag { display: inline-block; padding: 6rpx 16rpx; border-radius: 8rpx; font-size: 24rpx; background: rgba(133,201,182,.1); color: #85c9b6; font-weight: 500; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 10rpx; }
+.tag {
+  display: inline-block; padding: 4rpx 16rpx; border-radius: 6rpx; font-size: 24rpx;
+  background: #f8f4ed; color: #8b6f5e; font-weight: 400;
+  border: 1rpx solid rgba(180,150,120,.25);
+}
+.tag:first-child { color: #a6433a; border-color: rgba(180,120,100,.3); }

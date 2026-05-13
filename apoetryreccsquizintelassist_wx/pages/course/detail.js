@@ -13,7 +13,8 @@ Page({
     poem: { title: '', dynasty: '', author: '', lines: [], annotations: [], translation: '' },
     followHistory: [],
     showFollowReport: false,
-    followReport: null
+    followReport: null,
+    imageUrl: '', imageLoading: false, imageError: false
   },
 
   async onLoad(options) {
@@ -82,6 +83,91 @@ Page({
 
     // Load last follow-read
     this.loadFollowRead()
+    // Load poem image from cloud DB
+    this.checkAndLoadImage()
+  },
+
+  checkAndLoadImage() {
+    var that = this
+    if (!wx.cloud) { this.setData({ imageUrl: '' }); return }
+    var db = wx.cloud.database()
+    db.collection('poem_assets').where({ courseId: Number(this.data.id) }).limit(1).get()
+      .then(function(res) {
+        if (res.data && res.data.length > 0 && res.data[0].imageUrl) {
+          var stored = res.data[0].imageUrl
+          if (stored.indexOf('cloud://') === 0) {
+            // 云存储fileID → 临时URL
+            wx.cloud.getTempFileURL({ fileList: [stored] }).then(function(urlRes) {
+              that.setData({ imageUrl: (urlRes.fileList && urlRes.fileList[0].tempFileURL) || stored, imageLoading: false })
+            }).catch(function() { that.setData({ imageUrl: stored, imageLoading: false }) })
+          } else if (stored.indexOf('/file/') !== -1 || stored.indexOf('http') === 0) {
+            // 旧格式(后端URL) → 自动迁移到云存储
+            that._uploadToCloudStorage(stored)
+          } else {
+            that.setData({ imageUrl: stored, imageLoading: false })
+          }
+        } else {
+          that.generateImage()
+        }
+      })
+      .catch(function() { that.generateImage() })
+  },
+
+  generateImage() {
+    var that = this
+    var translation = this.data.detailList.translation || this.data.detailList.intro || ''
+    if (!translation) { this.setData({ imageLoading: false }); return }
+    this.setData({ imageLoading: true, imageError: false })
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/voice/generateImage',
+      method: 'GET',
+      data: { poemTitle: this.data.detailList.coursetitle || '', translation: translation },
+      header: { Token: wx.getStorageSync('token') },
+      success: function(res) {
+        if (res.data && res.data.code === 0 && res.data.data && res.data.data.imageUrl) {
+          var backendUrl = baseURL + res.data.data.imageUrl
+          // 下载 → 上传云存储 → 写云数据库
+          that._uploadToCloudStorage(backendUrl)
+        } else {
+          that.setData({ imageLoading: false })
+        }
+      },
+      fail: function() { that.setData({ imageLoading: false }) }
+    })
+  },
+
+  _uploadToCloudStorage(backendUrl) {
+    var that = this
+    var pid = Number(this.data.id)
+    // 1. 从后端下载图片到本地临时文件
+    wx.downloadFile({
+      url: backendUrl,
+      success: function(dfRes) {
+        if (dfRes.statusCode !== 200) { that.generateImage(); return }
+        // 2. 上传到微信云存储
+        wx.cloud.uploadFile({
+          cloudPath: 'poem_images/' + pid + '.png',
+          filePath: dfRes.tempFilePath,
+          success: function(upRes) {
+            var fileID = upRes.fileID
+            that.setData({ imageUrl: fileID, imageLoading: false })
+            // 3. 写云数据库
+            var db = wx.cloud.database()
+            db.collection('poem_assets').where({ courseId: pid }).limit(1).get()
+              .then(function(qRes) {
+                if (qRes.data && qRes.data.length > 0) {
+                  db.collection('poem_assets').doc(qRes.data[0]._id).update({ data: { imageUrl: fileID } })
+                } else {
+                  db.collection('poem_assets').add({ data: { courseId: pid, imageUrl: fileID } })
+                }
+              }).catch(function() {})
+          },
+          fail: function() { that.generateImage() }
+        })
+      },
+      fail: function() { that.generateImage() }
+    })
   },
 
   loadFollowRead() {
