@@ -124,7 +124,11 @@ const {
   goRecite() {
       wx.navigateTo({ url: '/pages/recitationtask/list' })
   },
-  goReciteTask(e) {
+  goWrongbook() {
+		wx.navigateTo({ url: '/pages/quiz/wrongbook' })
+	},
+
+	goReciteTask(e) {
       const id = e.currentTarget.dataset.id
       getApp().globalData.detailId = id
       wx.navigateTo({ url: '/pages/recitationtask/update-and-add?id=' + id })

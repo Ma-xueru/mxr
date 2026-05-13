@@ -1,0 +1,27 @@
+.wb-page { min-height: 100vh; background: #f5f0e8; padding: 24rpx 30rpx 60rpx; }
+.wb-header { padding: 16rpx 0 20rpx; }
+.wb-header-text { font-size: 26rpx; color: #8b7d6b; }
+
+/* 空状态 */
+.wb-empty { display: flex; flex-direction: column; align-items: center; padding-top: 160rpx; }
+.wb-empty-icon { font-size: 100rpx; margin-bottom: 20rpx; }
+.wb-empty-text { font-size: 28rpx; color: #8b7d6b; margin-bottom: 32rpx; }
+.wb-empty-btn { background: linear-gradient(135deg,#8b9d6f,#6d8056); color: #fff; font-size: 28rpx; border-radius: 40rpx; border: none; padding: 12rpx 48rpx; }
+
+/* 错题卡片 */
+.wb-list { display: flex; flex-direction: column; gap: 20rpx; }
+.wb-card { background: #fffdf7; border-radius: 20rpx; padding: 28rpx; box-shadow: 0 4rpx 16rpx rgba(80,50,20,.05); }
+.wb-poem-tag { display: inline-block; padding: 4rpx 16rpx; background: #f0ebe0; color: #8b6f5e; font-size: 22rpx; border-radius: 8rpx; margin-bottom: 16rpx; }
+.wb-question { font-size: 30rpx; font-weight: 700; color: #3d3532; line-height: 1.8; margin-bottom: 16rpx; }
+
+.wb-options { display: flex; flex-direction: column; gap: 10rpx; }
+.wb-opt { padding: 16rpx 20rpx; border-radius: 12rpx; font-size: 26rpx; border: 2rpx solid #e8e0d0; background: #fdfbf6; color: #4a4030; display: flex; align-items: center; gap: 8rpx; }
+.wb-opt-letter { font-weight: 700; min-width: 36rpx; }
+.wb-opt-tag { margin-left: auto; font-size: 22rpx; color: #4CAF50; font-weight: 600; }
+.wb-opt-tag.wrong { color: #e57373; }
+.wb-opt.wb-right { background: #e8f5e9; border-color: #a5d6a7; }
+.wb-opt.wb-wrong { background: #fdecea; border-color: #ef9a9a; }
+
+.wb-analysis { margin-top: 16rpx; padding: 16rpx 20rpx; background: #fff8e1; border-radius: 12rpx; border-left: 4rpx solid #ffb74d; }
+.wb-analysis-label { font-size: 22rpx; font-weight: 700; color: #e65100; display: block; margin-bottom: 6rpx; }
+.wb-analysis-text { font-size: 24rpx; color: #5d4037; line-height: 1.8; }

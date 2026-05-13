@@ -76,6 +76,7 @@
         <text class="fhi-time">{{item.time}}</text>
       </view>
     </view>
+
   </view>
 
   <!-- 报告弹窗 -->

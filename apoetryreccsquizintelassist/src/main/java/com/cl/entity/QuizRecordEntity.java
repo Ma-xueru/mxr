@@ -7,8 +7,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.io.Serializable;
 import java.util.Date;
 
-@TableName("followread_record")
-public class FollowreadRecordEntity implements Serializable {
+@TableName("quiz_record")
+public class QuizRecordEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableId
@@ -17,10 +17,11 @@ public class FollowreadRecordEntity implements Serializable {
     private String studentname;
     private Long courseid;
     private String coursetitle;
-    private Integer totalscore;
-    private String reportjson;
-    private String recognizedtext;
-    private Long recordTimestamp;
+    private Integer score;
+    private Integer duration;
+    private Integer questionsCount;
+    private Integer correctCount;
+    private String wrongListJson;
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat
     private Date addtime;
@@ -35,14 +36,16 @@ public class FollowreadRecordEntity implements Serializable {
     public void setCourseid(Long v) { this.courseid = v; }
     public String getCoursetitle() { return coursetitle; }
     public void setCoursetitle(String v) { this.coursetitle = v; }
-    public Integer getTotalscore() { return totalscore; }
-    public void setTotalscore(Integer v) { this.totalscore = v; }
-    public String getReportjson() { return reportjson; }
-    public void setReportjson(String v) { this.reportjson = v; }
-    public String getRecognizedtext() { return recognizedtext; }
-    public void setRecognizedtext(String v) { this.recognizedtext = v; }
-    public Long getRecordTimestamp() { return recordTimestamp; }
-    public void setRecordTimestamp(Long v) { this.recordTimestamp = v; }
+    public Integer getScore() { return score; }
+    public void setScore(Integer v) { this.score = v; }
+    public Integer getDuration() { return duration; }
+    public void setDuration(Integer v) { this.duration = v; }
+    public Integer getQuestionsCount() { return questionsCount; }
+    public void setQuestionsCount(Integer v) { this.questionsCount = v; }
+    public Integer getCorrectCount() { return correctCount; }
+    public void setCorrectCount(Integer v) { this.correctCount = v; }
+    public String getWrongListJson() { return wrongListJson; }
+    public void setWrongListJson(String v) { this.wrongListJson = v; }
     public Date getAddtime() { return addtime; }
     public void setAddtime(Date v) { this.addtime = v; }
 }

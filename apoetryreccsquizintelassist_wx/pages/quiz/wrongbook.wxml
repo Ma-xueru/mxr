@@ -1,0 +1,30 @@
+<view class="wb-page">
+  <view class="wb-header" wx:if="{{list.length > 0}}">
+    <text class="wb-header-text">共 {{list.length}} 道错题，加油复习💪</text>
+  </view>
+
+  <view class="wb-empty" wx:if="{{list.length === 0 && !loading}}">
+    <text class="wb-empty-icon">📖</text>
+    <text class="wb-empty-text">还没有错题，继续努力！</text>
+    <button class="wb-empty-btn" bindtap="goQuiz">去测验</button>
+  </view>
+
+  <view class="wb-list" wx:for="{{list}}" wx:key="index">
+    <view class="wb-card">
+      <view class="wb-poem-tag">{{item.poemTitle}}</view>
+      <view class="wb-question">{{item.question}}</view>
+      <view class="wb-options">
+        <view class="wb-opt {{item.answer === i ? 'wb-right' : (item.selected === i ? 'wb-wrong' : '')}}" wx:for="{{item.options}}" wx:for-index="i" wx:key="i">
+          <text class="wb-opt-letter">{{['A','B','C','D'][i]}}.</text>
+          <text>{{opt}}</text>
+          <text class="wb-opt-tag" wx:if="{{item.answer === i}}">✓ 正确</text>
+          <text class="wb-opt-tag wrong" wx:if="{{item.selected === i && item.selected !== item.answer}}">✗ 你的选择</text>
+        </view>
+      </view>
+      <view class="wb-analysis" wx:if="{{item.analysis}}">
+        <text class="wb-analysis-label">📖 解析</text>
+        <text class="wb-analysis-text">{{item.analysis}}</text>
+      </view>
+    </view>
+  </view>
+</view>

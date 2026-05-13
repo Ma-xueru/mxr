@@ -95,21 +95,55 @@ Page({
     const score = Math.round((correctCount / questions.length) * 100)
     this.setData({ finished: true, totalDuration, timerDisplay: fmtTime(totalDuration), score, correctCount })
 
-    // 保存到云数据库
-    if (wx.cloud) {
-      wx.cloud.database().collection('quiz_records').add({
-        data: {
-          poem_id: this.data.poemId,
-          poem_title: this.data.poemTitle,
-          score: score,
-          duration: totalDuration,
-          questions_count: questions.length,
-          wrong_list: this.data.wrongList,
-          timestamp: Date.now(),
-          create_time: new Date()
-        }
-      }).catch(() => {})
-    }
+    // 保存到后端 MySQL
+    var ui = getApp().globalData.userInfo || {}
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/quiz/saveRecord',
+      method: 'POST',
+      header: { 'Content-Type': 'application/json', Token: wx.getStorageSync('token') },
+      data: JSON.stringify({
+        studentaccount: ui.studentaccount || wx.getStorageSync('nickname'),
+        studentname: ui.studentname || wx.getStorageSync('nickname') || '',
+        courseid: this.data.poemId,
+        coursetitle: this.data.poemTitle,
+        score: score,
+        duration: totalDuration,
+        questionsCount: questions.length,
+        correctCount: correctCount,
+        wrongListJson: JSON.stringify(this.data.wrongList)
+      })
+    })
+    this._migrateCloudData()
+  },
+
+  _migrateCloudData() {
+    if (!wx.cloud || !wx.getStorageSync('_quiz_migrated')) return
+    var that = this
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    var ui = getApp().globalData.userInfo || {}
+    wx.cloud.database().collection('quiz_records').limit(50).get()
+      .then(function(res) {
+        if (!res.data || !res.data.length) return
+        var remain = []
+        res.data.forEach(function(r) {
+          remain.push({
+            studentaccount: ui.studentaccount || wx.getStorageSync('nickname'),
+            studentname: ui.studentname || wx.getStorageSync('nickname') || '',
+            courseid: r.poem_id, coursetitle: r.poem_title,
+            score: r.score, duration: r.duration,
+            questionsCount: r.questions_count, correctCount: Math.round(r.score / 100 * (r.questions_count || 5)),
+            wrongListJson: JSON.stringify(r.wrong_list || [])
+          })
+        })
+        if (!remain.length) return
+        wx.request({
+          url: baseURL + '/quiz/migrate',
+          method: 'POST', header: { 'Content-Type': 'application/json', Token: wx.getStorageSync('token') },
+          data: JSON.stringify(remain),
+          success: function() { wx.setStorageSync('_quiz_migrated', '1') }
+        })
+      }).catch(function() {})
   },
 
   retryQuiz() {

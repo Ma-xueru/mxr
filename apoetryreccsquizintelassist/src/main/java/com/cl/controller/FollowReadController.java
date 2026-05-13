@@ -3,8 +3,10 @@ package com.cl.controller;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.cl.annotation.IgnoreAuth;
 import com.cl.dao.FollowreadRecordDao;
+import com.cl.dao.QuizRecordDao;
 import com.cl.entity.CourseEntity;
 import com.cl.entity.FollowreadRecordEntity;
+import com.cl.entity.QuizRecordEntity;
 import com.cl.service.CourseService;
 import com.cl.utils.AIRecitationReviewUtil;
 import com.cl.utils.PageUtils;
@@ -37,6 +39,8 @@ public class FollowReadController {
     private CourseService courseService;
     @Autowired
     private FollowreadRecordDao followreadRecordDao;
+    @Autowired
+    private QuizRecordDao quizRecordDao;
 
     /**
      * 获取古诗分行内容 + TTS音频
@@ -238,6 +242,7 @@ public class FollowReadController {
         record.setReportjson(String.valueOf(body.getOrDefault("reportjson", "")));
         record.setRecognizedtext(String.valueOf(body.getOrDefault("recognizedtext", "")));
         record.setAddtime(new Date());
+        record.setRecordTimestamp(System.currentTimeMillis());
         followreadRecordDao.insert(record);
         return R.ok().put("data", record.getId());
     }
@@ -263,6 +268,100 @@ public class FollowReadController {
                 new com.baomidou.mybatisplus.plugins.Page<>(page, limit), ew);
         int total = followreadRecordDao.selectCount(ew);
         return R.ok().put("data", new PageUtils(list, total, limit, page));
+    }
+
+    /** 最新一次跟读成绩 */
+    @RequestMapping("/records/latest")
+    public R latest(@RequestParam Long courseid, HttpServletRequest request) {
+        EntityWrapper<FollowreadRecordEntity> ew = new EntityWrapper<>();
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        if ("student".equals(tableName)) {
+            ew.eq("studentaccount", String.valueOf(request.getSession().getAttribute("username")));
+        }
+        ew.eq("courseid", courseid);
+        ew.orderBy("record_timestamp", false).last("LIMIT 1");
+        List<FollowreadRecordEntity> list = followreadRecordDao.selectList(ew);
+        return R.ok().put("data", list.isEmpty() ? null : list.get(0));
+    }
+
+    /** 最近10次成绩趋势（时间正序） */
+    @RequestMapping("/records/trend")
+    public R trend(@RequestParam Long courseid, HttpServletRequest request) {
+        EntityWrapper<FollowreadRecordEntity> ew = new EntityWrapper<>();
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        if ("student".equals(tableName)) {
+            ew.eq("studentaccount", String.valueOf(request.getSession().getAttribute("username")));
+        }
+        ew.eq("courseid", courseid);
+        ew.orderBy("record_timestamp", true).last("LIMIT 10");
+        List<FollowreadRecordEntity> list = followreadRecordDao.selectList(ew);
+        List<Map<String, Object>> trend = new ArrayList<>();
+        for (FollowreadRecordEntity r : list) {
+            Map<String, Object> p = new LinkedHashMap<>();
+            p.put("score", r.getTotalscore());
+            p.put("timestamp", r.getRecordTimestamp() != null ? r.getRecordTimestamp() : r.getAddtime().getTime());
+            trend.add(p);
+        }
+        return R.ok().put("data", trend);
+    }
+
+    /** 全量学习记录聚合 — 跟读+测验 UNION 合并 */
+    @RequestMapping("/all-learning-records")
+    public R allLearningRecords(HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        String username = String.valueOf(request.getSession().getAttribute("username"));
+
+        List<Map<String, Object>> merged = new ArrayList<>();
+
+        // 1. 跟读记录
+        EntityWrapper<FollowreadRecordEntity> fw = new EntityWrapper<>();
+        if ("student".equals(tableName)) fw.eq("studentaccount", username);
+        fw.orderBy("record_timestamp", false);
+        List<FollowreadRecordEntity> followList = followreadRecordDao.selectList(fw);
+        for (FollowreadRecordEntity r : followList) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("type", "follow");
+            m.put("score", r.getTotalscore());
+            m.put("timestamp", r.getRecordTimestamp() != null ? r.getRecordTimestamp() :
+                    (r.getAddtime() != null ? r.getAddtime().getTime() : 0L));
+            m.put("courseTitle", r.getCoursetitle());
+            m.put("courseId", r.getCourseid());
+            m.put("detail", r.getReportjson());
+            merged.add(m);
+        }
+
+        // 2. 测验记录
+        EntityWrapper<QuizRecordEntity> qw = new EntityWrapper<>();
+        if ("student".equals(tableName)) qw.eq("studentaccount", username);
+        qw.orderBy("addtime", false);
+        List<QuizRecordEntity> quizList = quizRecordDao.selectList(qw);
+        for (QuizRecordEntity r : quizList) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("type", "quiz");
+            m.put("score", r.getScore());
+            m.put("timestamp", r.getAddtime() != null ? r.getAddtime().getTime() : 0L);
+            m.put("courseTitle", r.getCoursetitle());
+            m.put("courseId", r.getCourseid());
+            m.put("detail", r.getWrongListJson());
+            m.put("duration", r.getDuration());
+            m.put("correctCount", r.getCorrectCount());
+            m.put("questionsCount", r.getQuestionsCount());
+            merged.add(m);
+        }
+
+        // 按 timestamp 倒序排列
+        merged.sort((a, b) -> Long.compare(
+                (Long) b.getOrDefault("timestamp", 0L),
+                (Long) a.getOrDefault("timestamp", 0L)));
+
+        // 正序副本（给前端画图用）
+        List<Map<String, Object>> asc = new ArrayList<>(merged);
+        java.util.Collections.reverse(asc);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("desc", merged);  // 倒序 — 列表展示
+        result.put("asc", asc);      // 正序 — 折线图
+        return R.ok().put("data", result);
     }
 
     @RequestMapping("/deleteRecord")

@@ -176,7 +176,7 @@ Page({
     var that = this
     var baseURL = wx.getStorageSync('baseURL') || ''
     wx.request({
-      url: baseURL + '/followread/records?courseid=' + this.data.id + '&page=1&limit=10',
+      url: baseURL + '/followread/records?courseid=' + this.data.id + '&page=1&limit=1',
       method: 'GET', header: { Token: wx.getStorageSync('token') },
       success: function(res) {
         var list = (res.data && res.data.data && res.data.data.list) || []
@@ -209,21 +209,22 @@ Page({
   },
 
   loadQuizHistory() {
-    if (!wx.cloud) return
     var that = this
-    wx.cloud.database().collection('quiz_records')
-      .where({ poem_id: this.data.id })
-      .orderBy('timestamp', 'desc').limit(10).get()
-      .then(function(res) {
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/quiz/records?courseid=' + this.data.id + '&limit=1',
+      method: 'GET', header: { Token: wx.getStorageSync('token') },
+      success: function(res) {
+        var list = (res.data && res.data.data && res.data.data.list) || []
         var history = []
-        ;(res.data || []).forEach(function(r) {
-          var t = r.create_time
-          if (typeof t === 'string' && t.length > 10) t = t.substring(0, 16)
-          else if (t instanceof Date) t = t.toLocaleString().substring(0, 16)
-          history.push({ score: r.score, correct: r.score / 100 * r.questions_count, total: r.questions_count, duration: r.duration, time: t || '' })
+        list.forEach(function(r) {
+          var t = r.addtime
+          if (t && t.length > 10) t = t.substring(0, 16)
+          history.push({ score: r.score, correct: r.correctCount, total: r.questionsCount, duration: r.duration, time: t || '' })
         })
         that.setData({ quizHistory: history })
-      }).catch(function() {})
+      }
+    })
   },
 
   startQuiz() {
@@ -232,6 +233,10 @@ Page({
     var content = this.data.detailList.content || ''
     if (!content) { wx.showToast({ title: '缺少古诗内容', icon: 'none' }); return }
     wx.navigateTo({ url: '/pages/quiz/practice?id=' + id + '&title=' + encodeURIComponent(title) + '&content=' + encodeURIComponent(content) })
+  },
+
+  goToCenter() {
+    wx.switchTab({ url: '/pages/center/center' })
   },
 
   startFollowRead() {
