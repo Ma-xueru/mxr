@@ -1,28 +1,29 @@
-	import {
-		createRouter,
-		createWebHashHistory
-	} from 'vue-router'
-	import news from '@/views/news/list'
-	import discussforum from '@/views/discussforum/list'
-	import examquestion from '@/views/exam/examquestion/list'
-	import teacher from '@/views/teacher/list'
-	import student from '@/views/student/list'
-	import exampaper from '@/views/exampaper/list'
-	import mystudent from '@/views/mystudent/list'
-	import admin from '@/views/admin/list'
-	import forum from '@/views/forum/list'
-	import transcript from '@/views/transcript/list'
-	import config from '@/views/config/list'
-	import feedback from '@/views/feedback/list'
-	import exampaperlist from '@/views/exam/exampaperlist/list'
-	import examination from '@/views/exam/exampaperlist/examination'
-	import examrecord from '@/views/exam/examrecord/list'
-	import examfailrecord from '@/views/exam/examfailrecord/list'
-	import teacherRegister from '@/views/teacher/register'
-	import teacherCenter from '@/views/teacher/center'
-	import course from '@/views/course/list'
-	import recitationtask from '@/views/recitationtask/list'
-	import classinfo from '@/views/classinfo/list'
+import {
+	createRouter,
+	createWebHashHistory
+} from 'vue-router'
+import news from '@/views/news/list'
+import discussforum from '@/views/discussforum/list'
+import examquestion from '@/views/exam/examquestion/list'
+import teacher from '@/views/teacher/list'
+import student from '@/views/student/list'
+import exampaper from '@/views/exampaper/list'
+import mystudent from '@/views/mystudent/list'
+import admin from '@/views/admin/list'
+import forum from '@/views/forum/list'
+import transcript from '@/views/transcript/list'
+import config from '@/views/config/list'
+import feedback from '@/views/feedback/list'
+import exampaperlist from '@/views/exam/exampaperlist/list'
+import examination from '@/views/exam/exampaperlist/examination'
+import examrecord from '@/views/exam/examrecord/list'
+import examfailrecord from '@/views/exam/examfailrecord/list'
+import teacherRegister from '@/views/teacher/register'
+import teacherCenter from '@/views/teacher/center'
+import course from '@/views/course/list'
+import recitationtask from '@/views/recitationtask/list'
+import followreadrecord from '@/views/followreadrecord/list'
+import classinfo from '@/views/classinfo/list'
 
 export const routes = [{
 		path: '/login',
@@ -44,7 +45,7 @@ export const routes = [{
 			name: '修改密码',
 			component: () => import('../views/updatepassword.vue')
 		}
-		
+
 		,{
 			path: '/teacherCenter',
 			name: '教师个人中心',
@@ -132,6 +133,11 @@ export const routes = [{
 			path: '/recitationtask',
 			name: '背诵任务',
 			component: recitationtask
+		}
+		,{
+			path: '/followreadrecord',
+			name: '跟读记录',
+			component: followreadrecord
 		}
 		,{
 			path: '/classinfo',

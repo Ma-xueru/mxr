@@ -1,0 +1,46 @@
+<view class="quiz-page">
+  <!-- 加载中 -->
+  <view class="quiz-loading" wx:if="{{loading}}">
+    <text class="quiz-loading-icon">🤖</text>
+    <text class="quiz-loading-text">AI 正在为你出题...</text>
+    <view class="quiz-loading-bar"><view class="quiz-loading-fill"></view></view>
+  </view>
+
+  <!-- 答题中 -->
+  <view class="quiz-body" wx:if="{{!loading && !finished}}">
+    <view class="quiz-header">
+      <view class="quiz-progress-bar"><view class="quiz-progress-fill" style="width:{{(currentIndex/questions.length)*100}}%"></view></view>
+      <view class="quiz-progress-text">{{currentIndex + 1}} / {{questions.length}}</view>
+      <view class="quiz-timer">{{timerDisplay}}</view>
+    </view>
+    <view class="quiz-card">
+      <view class="quiz-question">{{questions[currentIndex].question}}</view>
+      <view class="quiz-options">
+        <view class="quiz-option {{item.status}}" wx:for="{{questions[currentIndex].options}}" wx:key="index" data-index="{{index}}" bindtap="selectOption">{{item}}</view>
+      </view>
+      <view class="quiz-analysis" wx:if="{{showAnalysis}}">
+        <text class="quiz-analysis-label">📖 解析</text>
+        <text class="quiz-analysis-text">{{questions[currentIndex].analysis}}</text>
+      </view>
+    </view>
+    <view class="quiz-next" wx:if="{{answered}}">
+      <button class="quiz-next-btn" bindtap="nextQuestion">
+        {{currentIndex < questions.length - 1 ? '下一题 →' : '查看结果'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 结果弹窗 -->
+  <view class="quiz-overlay" wx:if="{{finished}}">
+    <view class="quiz-result-modal">
+      <text class="quiz-result-emoji">{{score >= 80 ? '🎉' : score >= 60 ? '😊' : '💪'}}</text>
+      <text class="quiz-result-score">{{score}}分</text>
+      <text class="quiz-result-label">答对 {{correctCount}} / {{questions.length}} 题</text>
+      <text class="quiz-result-time">用时 {{timerDisplay}}</text>
+      <view class="quiz-result-actions">
+        <button class="quiz-result-btn retry" bindtap="retryQuiz">再来一次</button>
+        <button class="quiz-result-btn back" bindtap="goBack">返回详情</button>
+      </view>
+    </view>
+  </view>
+</view>

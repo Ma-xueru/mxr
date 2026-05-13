@@ -14,7 +14,8 @@ Page({
     followHistory: [],
     showFollowReport: false,
     followReport: null,
-    imageUrl: '', imageLoading: false, imageError: false
+    imageUrl: '', imageLoading: false, imageError: false,
+    quizHistory: []
   },
 
   async onLoad(options) {
@@ -28,7 +29,7 @@ Page({
 
   async onShow() {
     this.setData({ token: wx.getStorageSync('token') })
-    if (this.data.id) this.loadFollowRead()
+    if (this.data.id) { this.loadFollowRead(); this.loadQuizHistory() }
   },
 
   async loadPoem() {
@@ -83,6 +84,7 @@ Page({
 
     // Load last follow-read
     this.loadFollowRead()
+    this.loadQuizHistory()
     // Load poem image from cloud DB
     this.checkAndLoadImage()
   },
@@ -204,6 +206,32 @@ Page({
 
   closeFollowReport() {
     this.setData({ showFollowReport: false })
+  },
+
+  loadQuizHistory() {
+    if (!wx.cloud) return
+    var that = this
+    wx.cloud.database().collection('quiz_records')
+      .where({ poem_id: this.data.id })
+      .orderBy('timestamp', 'desc').limit(10).get()
+      .then(function(res) {
+        var history = []
+        ;(res.data || []).forEach(function(r) {
+          var t = r.create_time
+          if (typeof t === 'string' && t.length > 10) t = t.substring(0, 16)
+          else if (t instanceof Date) t = t.toLocaleString().substring(0, 16)
+          history.push({ score: r.score, correct: r.score / 100 * r.questions_count, total: r.questions_count, duration: r.duration, time: t || '' })
+        })
+        that.setData({ quizHistory: history })
+      }).catch(function() {})
+  },
+
+  startQuiz() {
+    var id = this.data.id
+    var title = this.data.detailList.coursetitle || this.data.poem.title || ''
+    var content = this.data.detailList.content || ''
+    if (!content) { wx.showToast({ title: '缺少古诗内容', icon: 'none' }); return }
+    wx.navigateTo({ url: '/pages/quiz/practice?id=' + id + '&title=' + encodeURIComponent(title) + '&content=' + encodeURIComponent(content) })
   },
 
   startFollowRead() {

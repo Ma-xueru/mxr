@@ -1,9 +1,5 @@
 package com.cl.utils;
 
-import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;
-import com.volcengine.ark.runtime.model.completion.chat.ChatMessage;
-import com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole;
-import com.volcengine.ark.runtime.service.ArkService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -62,10 +58,10 @@ public class AIRecitationReviewUtil {
         }
 
         String modeLabel = "followread".equals(mode) ? "跟读" : "背诵";
-        System.out.println("[AI评测] 豆包AI：开始" + modeLabel + "评测 - 《" + poemTitle + "》识别文本" + recognizedText.length() + "字");
-        System.out.println("[AI评测] 豆包AI：API_KEY=" + (API_KEY.isEmpty() ? "(空!!!)" : API_KEY.substring(0, Math.min(8, API_KEY.length())) + "...") + " MODEL=" + MODEL);
+        String provider = AIChatUtil.getProvider();
+        System.out.println("[AI评测] provider=" + provider + " model=" + AIChatUtil.getModel());
+        System.out.println("[AI评测] 开始" + modeLabel + "评测 - 《" + poemTitle + "》识别文本" + recognizedText.length() + "字");
 
-        ArkService service = new ArkService(API_KEY);
         try {
             String prompt = "followread".equals(mode)
                     ? buildFollowReadPrompt(expectedText, recognizedText, poemTitle)
@@ -73,33 +69,25 @@ public class AIRecitationReviewUtil {
             String systemRole = "followread".equals(mode)
                     ? "你是语文跟读评审助手。请严格按JSON格式返回评审结果，不要添加任何说明文字。"
                     : "你是古诗背诵评审助手。请严格按JSON格式返回评审结果，不要添加任何说明文字。";
-            List<ChatMessage> messages = new ArrayList<>();
-            messages.add(ChatMessage.builder().role(ChatMessageRole.SYSTEM)
-                    .content(systemRole).build());
-            messages.add(ChatMessage.builder().role(ChatMessageRole.USER).content(prompt).build());
 
-            ChatCompletionRequest req = ChatCompletionRequest.builder()
-                    .model(MODEL).messages(messages).temperature(0.3).build();
-
-            System.out.println("[AI评测] 豆包AI：发送请求...");
-            StringBuilder sb = new StringBuilder();
-            service.createChatCompletion(req).getChoices().forEach(c -> sb.append(c.getMessage().getContent()));
-            String response = sb.toString();
-            System.out.println("[AI评测] 豆包AI：响应长度=" + response.length() + " 内容=" + (response.length() > 200 ? response.substring(0, 200) + "..." : response));
+            String response = AIChatUtil.chat(systemRole, prompt);
+            if (response == null || response.trim().isEmpty()) {
+                System.out.println("[AI评测] 响应为空");
+                return null;
+            }
+            System.out.println("[AI评测] 响应长度=" + response.length() + " 内容=" + (response.length() > 200 ? response.substring(0, 200) + "..." : response));
 
             ReviewResult result = parseResponse(response, poemTitle);
             if (result == null) {
-                System.out.println("[AI评测] 豆包AI：解析响应失败，返回null");
+                System.out.println("[AI评测] 解析响应失败，返回null");
             } else {
-                System.out.println("[AI评测] 豆包AI：解析成功，总分=" + result.getTotalScore());
+                System.out.println("[AI评测] 解析成功，总分=" + result.getTotalScore());
             }
             return result;
         } catch (Exception e) {
-            System.out.println("[AI评测] 豆包AI：异常 - " + e.getClass().getName() + ": " + e.getMessage());
+            System.out.println("[AI评测] 异常 - " + e.getClass().getName() + ": " + e.getMessage());
             e.printStackTrace();
             return null;
-        } finally {
-            service.shutdownExecutor();
         }
     }
 

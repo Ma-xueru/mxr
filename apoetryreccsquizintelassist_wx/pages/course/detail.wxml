@@ -55,6 +55,27 @@
         <text class="fhi-time">{{item.time}}</text>
       </view>
     </view>
+
+    <!-- AI 测验入口 -->
+    <view class="follow-main-card quiz-entry" bindtap="startQuiz">
+      <view class="follow-card-left"><text class="follow-card-icon">📝</text></view>
+      <view class="follow-card-center">
+        <text class="follow-card-title">AI 智能测验</text>
+        <text class="follow-card-desc">AI 出题 · 字词理解 · 诗句赏析</text>
+      </view>
+      <view class="follow-card-right"><text class="follow-card-btn quiz-btn">开始测验 →</text></view>
+    </view>
+    <!-- 测验历史 -->
+    <view class="follow-history" wx:if="{{quizHistory.length > 0}}">
+      <view class="follow-history-title">📝 测验记录</view>
+      <view class="quiz-history-item" wx:for="{{quizHistory}}" wx:key="index">
+        <text class="fhi-score {{item.score>=80?'score-high':item.score>=60?'score-mid':'score-low'}}">{{item.score}}分</text>
+        <view class="quiz-hi-info">
+          <text class="quiz-hi-detail">对{{item.correct}}/{{item.total}}题 · {{item.duration}}秒</text>
+        </view>
+        <text class="fhi-time">{{item.time}}</text>
+      </view>
+    </view>
   </view>
 
   <!-- 报告弹窗 -->

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "openapi": []
+  },
+  "timeout": 30,
+  "env": {
+    "DEEPSEEK_API_KEY": "your-deepseek-api-key",
+    "DEEPSEEK_MODEL": "deepseek-v4-flash"
+  }
+}

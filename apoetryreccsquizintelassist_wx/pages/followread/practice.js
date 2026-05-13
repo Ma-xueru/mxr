@@ -1,5 +1,4 @@
 const baseURL = wx.getStorageSync('baseURL') || ''
-const innerAudio = wx.createInnerAudioContext()
 
 Page({
   data: {
@@ -14,6 +13,7 @@ Page({
     report: null, fullText: ''
   },
   recorder: null, recordTimer: null,
+  _audio: null, _audioTimer: null,
 
   async onLoad(options) {
     const id = options.id
@@ -57,16 +57,42 @@ Page({
 
   playTTS() {
     if (!this.data.currentTtsUrl) return
-    // 先清旧回调再绑新回调，最后才播放 — 防止短音频瞬间播完卡死
-    innerAudio.offEnded(); innerAudio.offError(); innerAudio.offStop()
-    innerAudio.onEnded(() => { this.setData({ playing: false, state: 'played' }) })
-    innerAudio.onError(() => { this.setData({ playing: false, state: 'played' }) })
-    innerAudio.src = this.data.currentTtsUrl
-    innerAudio.play()
-    this.setData({ playing: true })
+    // 如果正在播放，点击按钮 = 停止播放
+    if (this.data.playing) { this._stopAudio(); return }
+    // 销毁旧音频，创建新实例 — 防止旧状态卡死
+    this._stopAudio()
+    var audio = wx.createInnerAudioContext()
+    this._audio = audio
+    audio.src = this.data.currentTtsUrl
+    // 先绑回调，再播放
+    audio.onPlay(() => {
+      this.setData({ playing: true })
+      // 安全超时：30秒后强制重置（防止网络慢等因素导致回调永不触发）
+      clearTimeout(this._audioTimer)
+      this._audioTimer = setTimeout(() => { this._onAudioEnd() }, 30000)
+    })
+    audio.onEnded(() => { this._onAudioEnd() })
+    audio.onStop(() => { this._onAudioEnd() })
+    audio.onError(() => { this._onAudioEnd() })
+    audio.play()
+  },
+
+  _onAudioEnd() {
+    clearTimeout(this._audioTimer)
+    this.setData({ playing: false, state: 'played' })
+    this._stopAudio()
+  },
+
+  _stopAudio() {
+    clearTimeout(this._audioTimer)
+    if (this._audio) {
+      try { this._audio.destroy() } catch(e) {}
+      this._audio = null
+    }
   },
 
   startRecord() {
+    this._stopAudio()
     this._cleanup()
     const rec = wx.getRecorderManager()
     this.recorder = rec
@@ -158,7 +184,7 @@ Page({
             method: 'POST', header: { 'Content-Type': 'application/json', Token: wx.getStorageSync('token') },
             data: JSON.stringify({
               studentaccount: ui.studentaccount || wx.getStorageSync('nickname'),
-              studentname: ui.studentname || '',
+              studentname: ui.studentname || wx.getStorageSync('nickname') || ui.studentaccount || '',
               courseid: this.data.courseId, coursetitle: this.data.poemTitle,
               totalscore: report.overallScore,
               reportjson: JSON.stringify(report),
@@ -191,9 +217,9 @@ Page({
     wx.redirectTo({ url: '/pages/course/detail?id=' + courseId })
   },
 
-  _cleanup() { clearInterval(this.recordTimer); clearTimeout(this._autoPlayTimer); innerAudio.stop() },
+  _cleanup() { clearInterval(this.recordTimer); clearTimeout(this._autoPlayTimer) },
 
-  onUnload() { this._cleanup(); if (this.recorder) try { this.recorder.stop() } catch(e) {}; innerAudio.destroy() }
+  onUnload() { this._cleanup(); this._stopAudio(); if (this.recorder) try { this.recorder.stop() } catch(e) {} }
 })
 
 function fmtTime(sec) {

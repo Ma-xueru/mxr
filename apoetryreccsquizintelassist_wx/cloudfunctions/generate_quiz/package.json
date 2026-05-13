@@ -1,0 +1,9 @@
+{
+  "name": "generate_quiz",
+  "version": "1.0.0",
+  "description": "AI智能出题 — 调用DeepSeek生成古诗测验",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

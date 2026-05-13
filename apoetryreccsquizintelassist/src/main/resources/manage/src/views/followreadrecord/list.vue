@@ -6,7 +6,7 @@
       </div>
       <el-table v-loading="listLoading" border :stripe='false' @selection-change="handleSelectionChange" ref="table" :data="list" @row-click="infoClick">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="studentname" label="学生" width="100"></el-table-column>
+        <el-table-column label="学生" width="100"><template #default="scope">{{scope.row.studentname || scope.row.studentaccount || '-'}}</template></el-table-column>
         <el-table-column prop="coursetitle" label="古诗" width="140"></el-table-column>
         <el-table-column prop="totalscore" label="总分" width="80">
           <template #default="scope"><span :style="{color:scope.row.totalscore>=85?'#4CAF50':scope.row.totalscore>=60?'#FF9800':'#F44336',fontWeight:700}">{{scope.row.totalscore}}</span></template>
@@ -83,7 +83,7 @@ const currentChange = (p) => { pageNum.value = p; getList() }
 const renderRadar = () => {
   nextTick(() => {
     if (!radarChartRef.value || !parsedReport.value || !echarts) return
-    if (!radarChart.value) radarChart.value = echarts.init(radarChartRef.value, 'macarons')
+    if (!radarChart.value) radarChart.value = echarts.init(radarChartRef.value)
     const dims = parsedReport.value.dimensions
     radarChart.value.setOption({
       radar: { center: ['50%','50%'], radius:'65%', indicator: dims.map(d=>({name:`${d.name}\n${d.score}分`,max:100})), axisName:{color:'#5b503f',fontSize:12} },

@@ -89,11 +89,28 @@
 					menuJump: "列表",
 					tableName: "recitationtask",
 				})
+				taskGroup.child.push({
+					appFrontIcon: "cuIcon-group",
+					buttons: ["查看", "删除"],
+					menu: "跟读记录",
+					menuJump: "列表",
+					tableName: "followreadrecord",
+				})
 			}
 		} else {
 			const taskGroup = teacherMenu.backMenu.find(group => group.menu === '成绩信息管理' || group.menu === '学习任务管理')
 			if (taskGroup) {
 				taskGroup.menu = '学习任务管理'
+				const hasFollowread = taskGroup.child.some(c => c.tableName === 'followreadrecord')
+				if (!hasFollowread) {
+					taskGroup.child.push({
+						appFrontIcon: "cuIcon-group",
+						buttons: ["查看", "删除"],
+						menu: "跟读记录",
+						menuJump: "列表",
+						tableName: "followreadrecord",
+					})
+				}
 			}
 		}
 		return menuTree

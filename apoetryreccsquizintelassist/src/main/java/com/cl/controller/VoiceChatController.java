@@ -1,5 +1,6 @@
 package com.cl.controller;
 
+import com.cl.utils.AIChatUtil;
 import com.cl.utils.AIRecitationReviewUtil;
 import com.cl.utils.R;
 import com.cl.utils.VolcengineSpeechUtil;
@@ -23,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VoiceChatController {
 
     // 对话历史（按用户session存储，保留最近10轮）
-    private static final ConcurrentHashMap<String, List<com.volcengine.ark.runtime.model.completion.chat.ChatMessage>> historyMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, List<AIChatUtil.Message>> historyMap = new ConcurrentHashMap<>();
 
     private static final String SYSTEM_PROMPT = "你是一个幽默的百科小老师。回答要生动有趣，可以加入一些有趣的科学事实或历史小故事。逻辑要清晰，可以用'第一、第二'来拆解。如果孩子问古诗，请尝试把诗句描绘成一幅画讲给他们听。字数100-150字。禁止负面暴力成人内容。";
 
@@ -73,40 +74,28 @@ public class VoiceChatController {
                 ? request.getSession().getAttribute("username") : request.getSession().getId());
 
             // 获取或创建历史
-            List<com.volcengine.ark.runtime.model.completion.chat.ChatMessage> msgs = historyMap.get(uid);
+            List<AIChatUtil.Message> msgs = historyMap.get(uid);
             if (msgs == null) {
                 msgs = new ArrayList<>();
-                msgs.add(com.volcengine.ark.runtime.model.completion.chat.ChatMessage.builder()
-                    .role(com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole.SYSTEM)
-                    .content(SYSTEM_PROMPT).build());
+                msgs.add(new AIChatUtil.Message("system", SYSTEM_PROMPT));
                 historyMap.put(uid, msgs);
             }
 
             // 添加用户消息
-            msgs.add(com.volcengine.ark.runtime.model.completion.chat.ChatMessage.builder()
-                .role(com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole.USER)
-                .content(userText).build());
+            msgs.add(new AIChatUtil.Message("user", userText));
 
-            // 保留最近10轮（20条=10问+10答）+1条system
-            while (msgs.size() > 21) msgs.remove(1); // 保留system prompt
+            // 保留最近30轮（60条=30问+30答）+1条system
+            while (msgs.size() > 61) msgs.remove(1);
 
-            com.volcengine.ark.runtime.service.ArkService service =
-                new com.volcengine.ark.runtime.service.ArkService(AIRecitationReviewUtil.getApiKey());
-
-            com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest req =
-                com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest.builder()
-                .model(AIRecitationReviewUtil.getModel()).messages(new ArrayList<>(msgs)).temperature(0.7)
-                .maxTokens(300).build();
-
-            StringBuilder sb = new StringBuilder();
-            service.createChatCompletion(req).getChoices().forEach(c -> sb.append(c.getMessage().getContent()));
-            String reply = sb.toString().trim();
-            service.shutdownExecutor();
+            // 统一AI调用 — 自动根据 asr.properties 的 ai.provider 选择豆包或DeepSeek
+            AIChatUtil.ChatResult result = AIChatUtil.chatWithMessages(
+                    new ArrayList<>(msgs), 0.7, 300);
+            String reply = result != null && result.getContent() != null
+                    ? result.getContent().trim()
+                    : "哎呀，我的小脑袋卡住了～再问我一次吧！";
 
             // 保存AI回复到历史
-            msgs.add(com.volcengine.ark.runtime.model.completion.chat.ChatMessage.builder()
-                .role(com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole.ASSISTANT)
-                .content(reply).build());
+            msgs.add(new AIChatUtil.Message("assistant", reply));
 
             return reply;
         } catch (Exception e) {
@@ -204,6 +193,67 @@ public class VoiceChatController {
             e.printStackTrace();
             return R.error("生成失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * AI 智能出题 — 根据古诗内容生成5道单选题
+     */
+    @com.cl.annotation.IgnoreAuth
+    @RequestMapping("/generateQuiz")
+    public R generateQuiz(@RequestParam String poemTitle, @RequestParam String poemContent) {
+        if (!StringUtils.hasText(poemContent)) return R.error("缺少古诗内容");
+        try {
+            String content = poemContent.length() > 400 ? poemContent.substring(0, 397) + "..." : poemContent;
+
+            String systemPrompt = "你是一名资深小学语文老师。请针对提供的古诗，生成5道单选题。考查维度：字词解释(2题)、诗句理解(2题)、情感/背景(1题)。每题4个选项。必须严格只返回JSON数组，严禁任何说明文字或Markdown标记。格式：[{\"question\":\"题?\",\"options\":[\"A选项\",\"B选项\",\"C选项\",\"D选项\"],\"answer\":0,\"analysis\":\"解析\"}]";
+
+            String userPrompt = "古诗标题：《" + poemTitle + "》\n古诗原文：\n" + content;
+
+            // 用 chatWithMessages 手动传参，确保足够的 max_tokens 出5道完整题
+            List<AIChatUtil.Message> msgs = new ArrayList<>();
+            msgs.add(new AIChatUtil.Message("system", systemPrompt));
+            msgs.add(new AIChatUtil.Message("user", userPrompt));
+            AIChatUtil.ChatResult cr = AIChatUtil.chatWithMessages(msgs, 0.7, 3000);
+            String resp = cr != null ? cr.getContent() : null;
+            if (resp == null || resp.trim().isEmpty()) return R.error("AI未返回结果");
+
+            System.out.println("[出题] 原始响应(" + resp.length() + "): " + resp.substring(0, Math.min(500, resp.length())));
+
+            // 清洗JSON
+            String json = cleanQuizJSON(resp);
+            System.out.println("[出题] 清洗后(" + json.length() + "): " + json.substring(0, Math.min(500, json.length())));
+
+            // 尝试解析，失败则尝试修复尾逗号等问题
+            org.json.JSONArray arr;
+            try {
+                arr = new org.json.JSONArray(json);
+            } catch (Exception parseErr) {
+                // 尝试修复常见问题：尾逗号、不完整结尾
+                String fixed = json.replaceAll(",\\s*]", "]").replaceAll(",\\s*}", "}");
+                // 确保以 ] 结尾
+                if (!fixed.trim().endsWith("]")) {
+                    int lastBrace = fixed.lastIndexOf('}');
+                    if (lastBrace > 0) fixed = fixed.substring(0, lastBrace + 1) + "]";
+                }
+                System.out.println("[出题] 修复后: " + fixed.substring(0, Math.min(500, fixed.length())));
+                arr = new org.json.JSONArray(fixed);
+            }
+            return R.ok().put("data", arr.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return R.error("出题失败: " + e.getMessage());
+        }
+    }
+
+    private String cleanQuizJSON(String str) {
+        String s = str.trim();
+        // 去掉 ```json ... ``` 包裹
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("```(?:json)?\\s*([\\s\\S]*?)```").matcher(s);
+        if (m.find()) s = m.group(1).trim();
+        int start = s.indexOf('[');
+        int end = s.lastIndexOf(']');
+        if (start >= 0 && end > start) s = s.substring(start, end + 1);
+        return s;
     }
 
     private String getAudioDir() { File d = new File("file"); d.mkdirs(); return d.getAbsolutePath(); }

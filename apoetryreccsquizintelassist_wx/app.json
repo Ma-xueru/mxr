@@ -3,6 +3,7 @@
     "pages": [
         "pages/index/index",
         "pages/followread/practice",
+        "pages/quiz/practice",
         "pages/login/login",
         "pages/forget/forget",
         "pages/student/register",
