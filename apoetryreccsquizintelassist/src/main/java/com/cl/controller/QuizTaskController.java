@@ -272,15 +272,34 @@ public class QuizTaskController {
         record.setAddtime(new Date());
         studentQuizRecordDao.insert(record);
 
-        // 标记任务完成
+        // 标记任务完成 + 同步AI报告到任务记录（供详情页雷达图展示）
         RecitationtaskEntity task = recitationtaskDao.selectById(taskId);
-        if (task != null) { task.setCompletionstatus("已完成"); recitationtaskDao.updateById(task); }
+        if (task != null) { task.setCompletionstatus("已完成"); task.setAiscorecomment(aiReport); task.setKaoshichengji(score); recitationtaskDao.updateById(task); }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("score", score); result.put("correctCount", correct);
         result.put("totalQuestions", total); result.put("wrongList", wrongList);
         result.put("aiReport", aiReport);
         return R.ok().put("data", result);
+    }
+
+    /** 教师端 — 查看某任务下所有学生的测验结果 */
+    @RequestMapping("/teacher-results")
+    public R teacherResults(@RequestParam Long taskId) {
+        EntityWrapper<StudentQuizRecordEntity> ew = new EntityWrapper<>();
+        ew.eq("task_id", taskId).orderBy("addtime", false);
+        List<StudentQuizRecordEntity> list = studentQuizRecordDao.selectList(ew);
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (StudentQuizRecordEntity r : list) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", r.getId()); m.put("studentname", r.getStudentname());
+            m.put("studentaccount", r.getStudentaccount());
+            m.put("score", r.getScore()); m.put("correctCount", r.getCorrectCount());
+            m.put("totalQuestions", r.getTotalQuestions()); m.put("aiReport", r.getAiReport());
+            m.put("addtime", r.getAddtime());
+            results.add(m);
+        }
+        return R.ok().put("data", results);
     }
 
     private String cleanJson(String resp) {

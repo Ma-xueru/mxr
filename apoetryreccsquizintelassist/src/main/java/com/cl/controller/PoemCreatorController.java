@@ -3,6 +3,7 @@ package com.cl.controller;
 import com.cl.annotation.IgnoreAuth;
 import com.cl.utils.AIChatUtil;
 import com.cl.utils.R;
+import com.cl.utils.VolcengineSpeechUtil;
 import com.cl.utils.VolcengineTtsUtil;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -18,21 +19,88 @@ import java.util.*;
 @RequestMapping("/poem-creator")
 public class PoemCreatorController {
 
-    // ========== 图片识别 (Volcengine Vision) ==========
+    // ========== 统一多模态处理（图片/语音/文字 → 豆包多模态模型 → 诗） ==========
+    @IgnoreAuth
+    @RequestMapping("/process")
+    public R process(@RequestParam(value="image", required=false) MultipartFile image,
+                     @RequestParam(value="audio", required=false) MultipartFile audio,
+                     @RequestParam(value="text", required=false) String text) {
+        try {
+            org.json.JSONArray contentArr = new org.json.JSONArray();
+
+            if (image != null && !image.isEmpty()) {
+                byte[] bytes = image.getBytes();
+                String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                contentArr.put(new org.json.JSONObject()
+                    .put("type", "image_url")
+                    .put("image_url", new org.json.JSONObject().put("url", "data:image/jpeg;base64," + base64)));
+            }
+            if (audio != null && !audio.isEmpty()) {
+                byte[] bytes = audio.getBytes();
+                String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                contentArr.put(new org.json.JSONObject()
+                    .put("type", "input_audio")
+                    .put("input_audio", new org.json.JSONObject()
+                        .put("data", base64).put("format", "aac")));
+            }
+
+            String userPrompt = "请根据我提供的场景，发挥你的诗词才华，为小学生创作一首五言或七言诗。\n" +
+                "要求：1.语言通俗优美，不要生僻字 2.必须包含诗名、作者（AI小诗人）、正文\n" +
+                "3.提供一段'诗人老师说'用大白话解释诗意 4.标明[诗名][正文][诗人老师说]各部分。";
+            if (text != null && !text.trim().isEmpty()) userPrompt = "场景关键词：" + text + "。" + userPrompt;
+            contentArr.put(new org.json.JSONObject().put("type", "text").put("text", userPrompt));
+
+            AIChatUtil.ChatResult cr = callMultimodalAPI(contentArr);
+            String poem = cr != null && cr.getContent() != null ? cr.getContent().trim() : "";
+            if (poem.isEmpty()) {
+                if (image != null) return R.error("图片识别失败，请重试");
+                if (audio != null) return R.error("语音识别失败，请重试");
+                return R.error("AI作诗失败");
+            }
+            System.out.println("[诗词小诗人] 多模态创作完成");
+            return R.ok().put("data", poem);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return R.error("处理失败: " + e.getMessage());
+        }
+    }
+
+    private AIChatUtil.ChatResult callMultimodalAPI(org.json.JSONArray contentArr) throws Exception {
+        String body = new org.json.JSONObject()
+            .put("model", "doubao-seed-2-0-lite-260215")
+            .put("messages", new org.json.JSONArray().put(
+                new org.json.JSONObject().put("role", "user").put("content", contentArr)))
+            .put("max_tokens", 800).put("thinking", new org.json.JSONObject().put("type", "disabled")).toString();
+
+        java.net.URL url = new java.net.URL("https://ark.cn-beijing.volces.com/api/v3/chat/completions");
+        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + getArkKey());
+        conn.setConnectTimeout(30000); conn.setReadTimeout(90000);
+        conn.setDoOutput(true);
+        conn.getOutputStream().write(body.getBytes("UTF-8"));
+
+        int code = conn.getResponseCode();
+        java.io.InputStream is = code == 200 ? conn.getInputStream() : conn.getErrorStream();
+        String resp = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A").next();
+        System.out.println("[诗词小诗人] Multimodal HTTP " + code + ": " + resp.substring(0, Math.min(300, resp.length())));
+        if (code != 200) return null;
+
+        org.json.JSONObject json = new org.json.JSONObject(resp);
+        String content = json.getJSONArray("choices").getJSONObject(0)
+            .getJSONObject("message").optString("content", "");
+        return new AIChatUtil.ChatResult(content);
+    }
+
+    // ========== 图片识别 (保留兼容) ==========
     @IgnoreAuth
     @RequestMapping("/vision")
     public R vision(@RequestParam("image") MultipartFile image) {
         if (image == null || image.isEmpty()) return R.error("请上传图片");
         try {
-            // 转 Base64
             byte[] bytes = image.getBytes();
             String base64 = java.util.Base64.getEncoder().encodeToString(bytes);
-
-            // 调用豆包 Vision 模型识别图片
-            List<AIChatUtil.Message> msgs = new ArrayList<>();
-            msgs.add(new AIChatUtil.Message("user", "请用简洁的中文描述这张图片的场景元素（如：春天、柳树、燕子、湖水等），只返回描述，不超过50字。"));
-            // 用 DeepSeek 做图片理解（通过 base64 image 或直接请求描述）
-            // DeepSeek V4 支持图片理解，用 OpenAI 兼容格式
             AIChatUtil.ChatResult cr = callVisionAPI(base64);
             String desc = cr != null && cr.getContent() != null ? cr.getContent().trim() : "";
             if (desc.isEmpty()) desc = "一幅美丽的自然风景画";
@@ -46,38 +114,64 @@ public class PoemCreatorController {
     }
 
     private AIChatUtil.ChatResult callVisionAPI(String base64) throws Exception {
-        // 使用 DeepSeek 的 vision 能力(OpenAI 兼容格式)
+        // 火山豆包多模态模型，使用标准 chat/completions 端点
         String body = new org.json.JSONObject()
-            .put("model", AIChatUtil.getModel())
+            .put("model", "doubao-seed-2-0-lite-260215")
             .put("messages", new org.json.JSONArray().put(
                 new org.json.JSONObject()
                     .put("role", "user")
                     .put("content", new org.json.JSONArray()
-                        .put(new org.json.JSONObject().put("type", "text").put("text", "请用简洁的中文描述这张图片的场景元素（如：春天、柳树、燕子、湖水等），只返回描述，不超过50字。"))
                         .put(new org.json.JSONObject().put("type", "image_url").put("image_url",
                             new org.json.JSONObject().put("url", "data:image/jpeg;base64," + base64)))
+                        .put(new org.json.JSONObject().put("type", "text").put("text",
+                            "请用简洁的中文描述这张图片的场景元素，不超过50字。"))
                     )
             ))
-            .put("max_tokens", 200).put("stream", false).toString();
+            .put("max_tokens", 300).put("thinking", new org.json.JSONObject().put("type", "disabled")).toString();
 
-        URL url = new URL("https://api.deepseek.com/chat/completions");
+        URL url = new URL("https://ark.cn-beijing.volces.com/api/v3/chat/completions");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Authorization", "Bearer " + getDeepSeekKey());
-        conn.setConnectTimeout(30000); conn.setReadTimeout(60000);
+        conn.setRequestProperty("Authorization", "Bearer " + getArkKey());
+        conn.setConnectTimeout(30000); conn.setReadTimeout(90000);
         conn.setDoOutput(true);
         conn.getOutputStream().write(body.getBytes("UTF-8"));
 
         int code = conn.getResponseCode();
         InputStream is = code == 200 ? conn.getInputStream() : conn.getErrorStream();
         String resp = new Scanner(is, "UTF-8").useDelimiter("\\A").next();
+        System.out.println("[诗词小诗人] Vision HTTP " + code + ": " + resp.substring(0, Math.min(500, resp.length())));
         if (code != 200) return null;
 
         org.json.JSONObject json = new org.json.JSONObject(resp);
-        String content = json.getJSONArray("choices").getJSONObject(0)
-            .getJSONObject("message").optString("content", "");
+        String content = "";
+        if (json.has("choices")) {
+            org.json.JSONObject msg = json.getJSONArray("choices").getJSONObject(0).getJSONObject("message");
+            content = msg.optString("content", "");
+            System.out.println("[诗词小诗人] Vision content(" + content.length() + "): " + content.substring(0, Math.min(200, content.length())));
+        } else if (json.has("output")) {
+            org.json.JSONArray output = json.getJSONArray("output");
+            for (int i = 0; i < output.length(); i++) {
+                org.json.JSONObject item = output.getJSONObject(i);
+                if (item.has("content")) {
+                    org.json.JSONArray ca = item.getJSONArray("content");
+                    for (int j = 0; j < ca.length(); j++) {
+                        if (ca.getJSONObject(j).has("text")) content += ca.getJSONObject(j).optString("text", "");
+                    }
+                }
+            }
+        }
+        if (content.isEmpty()) System.out.println("[诗词小诗人] Vision: NO content found!");
         return new AIChatUtil.ChatResult(content);
+    }
+
+    private String getArkKey() {
+        try {
+            java.util.Properties p = new java.util.Properties();
+            p.load(getClass().getClassLoader().getResourceAsStream("asr.properties"));
+            return p.getProperty("ark.api.key", "");
+        } catch (Exception e) { return ""; }
     }
 
     private String getDeepSeekKey() {
@@ -166,5 +260,25 @@ public class PoemCreatorController {
             if (path == null) return R.error("TTS合成失败");
             return R.ok().put("data", "/file/" + new java.io.File(path).getName());
         } catch (Exception e) { return R.error("TTS错误: " + e.getMessage()); }
+    }
+
+    // ========== 纯语音识别 ==========
+    @IgnoreAuth
+    @RequestMapping("/speech")
+    public R speech(@RequestParam("audio") MultipartFile audio) {
+        if (audio == null || audio.isEmpty()) return R.error("请说话");
+        try {
+            String fn = "poem_voice_" + System.currentTimeMillis() + ".aac";
+            java.io.File dir = new java.io.File("file");
+            dir.mkdirs();
+            java.io.File af = new java.io.File(dir, fn);
+            audio.transferTo(af);
+            String text = VolcengineSpeechUtil.speechToText(af);
+            af.delete();
+            if (text == null || text.trim().isEmpty()) return R.error("没听清，请再说一次");
+            return R.ok().put("data", text.trim());
+        } catch (Exception e) {
+            return R.error("识别失败: " + e.getMessage());
+        }
     }
 }

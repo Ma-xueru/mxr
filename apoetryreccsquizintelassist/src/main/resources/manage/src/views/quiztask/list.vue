@@ -4,7 +4,7 @@
 			<div class="overview_panel" v-if="btnAuth('quiztask','查看')">
 				<div class="overview_header">
 					<div class="overview_title">{{ sessionTable === 'teacher' ? '我所带班级完成情况' : '班级完成情况' }}</div>
-					<div class="overview_desc">按老师当前可查看的AI测验任务自动汇总，方便快速了解各班完成进度。</div>
+					<div class="overview_desc">按老师当前可查看的背诵任务自动汇总，方便快速了解各班完成进度。</div>
 				</div>
 				<div class="overview_cards">
 					<div class="overview_card">
@@ -21,7 +21,7 @@
 					</div>
 					<div class="overview_card blue">
 						<div class="overview_value">{{ overviewStats.uploaded }}</div>
-						<div class="overview_label">已完成测验</div>
+						<div class="overview_label">已上传音频</div>
 					</div>
 				</div>
 				<div class="overview_table_wrap" v-if="classOverview.length">
@@ -31,7 +31,7 @@
 						<el-table-column prop="total" label="任务数" width="90"></el-table-column>
 						<el-table-column prop="completed" label="已完成" width="90"></el-table-column>
 						<el-table-column prop="pending" label="待完成" width="90"></el-table-column>
-						<el-table-column prop="uploaded" label="已交作答" width="100"></el-table-column>
+						<el-table-column prop="uploaded" label="已交音频" width="100"></el-table-column>
 						<el-table-column label="完成率" width="140">
 							<template #default="scope">
 								<div class="progress_cell">
@@ -45,11 +45,11 @@
 					</el-table>
 				</div>
 				<div class="overview_empty" v-else>
-					当前还没有可统计的班级任务，老师创建测验作业后这里会自动显示完成情况。
+					当前还没有可统计的班级任务，老师创建背诵作业后这里会自动显示完成情况。
 				</div>
 				<div class="student_progress_block">
 					<div class="subsection_title">每个学生的任务进度</div>
-					<div class="subsection_desc">老师可以直接查看每位学生的任务总量、完成数量、作答提交情况和当前完成率。</div>
+					<div class="subsection_desc">老师可以直接查看每位学生的任务总量、完成数量、音频提交情况和当前完成率。</div>
 					<div class="chart_grid" v-if="studentOverview.length || classOverview.length">
 						<div class="chart_card">
 							<div class="chart_title">学生完成率柱状图</div>
@@ -72,7 +72,7 @@
 							<el-table-column prop="total" label="总任务数" width="90"></el-table-column>
 							<el-table-column prop="completed" label="已完成" width="90"></el-table-column>
 							<el-table-column prop="pending" label="待完成" width="90"></el-table-column>
-							<el-table-column prop="uploaded" label="已交作答" width="100"></el-table-column>
+							<el-table-column prop="uploaded" label="已交音频" width="100"></el-table-column>
 							<el-table-column prop="scored" label="已评分" width="90"></el-table-column>
 							<el-table-column label="进度" min-width="180">
 								<template #default="scope">
@@ -128,9 +128,9 @@
 				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="studentname" label="学生姓名"><template #default="scope">{{scope.row.studentname}}</template></el-table-column>
 				<el-table-column :resizable='true' align="left" header-align="left" prop="coursetitles" label="指定古诗" min-width="220"><template #default="scope">{{scope.row.coursetitles || '未指定'}}</template></el-table-column>
 				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="tasktitle" label="任务标题"><template #default="scope">{{scope.row.tasktitle}}</template></el-table-column>
-				<el-table-column :resizable='true' align="left" header-align="left" prop="completionremark" label="测验作答"><template #default="scope">{{scope.row.completionremark ? '已上传' : '未完成'}}</template></el-table-column>
+				<el-table-column :resizable='true' align="left" header-align="left" prop="recitationaudio" label="背诵音频"><template #default="scope">{{scope.row.recitationaudio ? '已上传' : '未上传'}}</template></el-table-column>
 				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="completionstatus" label="完成状态"><template #default="scope">{{scope.row.completionstatus}}</template></el-table-column>
-				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="kaoshichengji" label="测验得分"><template #default="scope">{{scope.row.kaoshichengji || '待评分'}}<el-tag v-if="scope.row.aiscorecomment && scope.row.aiscorecomment.startsWith('{')" size="small" type="success" effect="plain" style="margin-left:6px">AI</el-tag></template></el-table-column>
+				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="kaoshichengji" label="背诵得分"><template #default="scope">{{scope.row.kaoshichengji || '待评分'}}<el-tag v-if="scope.row.aiscorecomment && scope.row.aiscorecomment.startsWith('{')" size="small" type="success" effect="plain" style="margin-left:6px">AI</el-tag></template></el-table-column>
 				<el-table-column :resizable='true' align="left" header-align="left" prop="recognizedtext" label="识别文本" min-width="220"><template #default="scope">{{scope.row.recognizedtext || '未识别'}}</template></el-table-column>
 				<el-table-column :resizable='true' :sortable='true' align="left" header-align="left" prop="deadline" label="截止日期"><template #default="scope">{{scope.row.deadline}}</template></el-table-column>
 				<el-table-column label="操作" width="320" :resizable='true' :sortable='true' align="left" header-align="left">
@@ -138,7 +138,7 @@
 						<el-button type="info" v-if="btnAuth('quiztask','查看')" @click="infoClick(scope.row.id)">详情</el-button>
 						<el-button
 							type="success"
-							v-if="sessionTable === 'teacher' && btnAuth('quiztask','修改') && scope.row.completionremark"
+							v-if="sessionTable === 'teacher' && btnAuth('quiztask','修改') && scope.row.recitationaudio"
 							@click="reviewClick(scope.row.id)"
 						>
 							批改
@@ -206,7 +206,7 @@ const buildClassOverview = (tasks) => {
 		classMap[classname].total += 1
 		if (item.completionstatus === '已完成') classMap[classname].completed += 1
 		else classMap[classname].pending += 1
-		if (item.completionremark) classMap[classname].uploaded += 1
+		if (item.recitationaudio) classMap[classname].uploaded += 1
 		if (item.studentaccount) classMap[classname].studentSet[item.studentaccount] = true
 	})
 	const rows = Object.values(classMap).map(item => ({
@@ -246,7 +246,7 @@ const buildStudentOverview = (tasks) => {
 		studentStats[key].total += 1
 		if (item.completionstatus === '已完成') studentStats[key].completed += 1
 		else studentStats[key].pending += 1
-		if (item.completionremark) studentStats[key].uploaded += 1
+		if (item.recitationaudio) studentStats[key].uploaded += 1
 		if (item.kaoshichengji !== null && item.kaoshichengji !== undefined && item.kaoshichengji !== '') {
 			studentStats[key].scored += 1
 		}
@@ -385,8 +385,8 @@ const getList = () => {
 	listLoading.value = true
 	let params = JSON.parse(JSON.stringify(listQuery.value))
 	params.sort = 'id'; params.order = 'desc'
-	params.tasktitle = searchQuery.value.tasktitle ? searchQuery.value.tasktitle : '测验：'
 	if(searchQuery.value.studentaccount) params.studentaccount = searchQuery.value.studentaccount
+	if(searchQuery.value.tasktitle) params.tasktitle = '%' + searchQuery.value.tasktitle + '%'
 	context?.$http({ url: `${tableName}/page`, method: 'get', params }).then(res => {
 		listLoading.value = false
 		list.value = res.data.data.list

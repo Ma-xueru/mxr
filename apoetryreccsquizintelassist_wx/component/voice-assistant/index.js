@@ -18,16 +18,14 @@ Component({
       this.data._tx = e.touches[0].clientX
       this.data._ty = e.touches[0].clientY
       this.data._moved = false
-      var s = this.data.state
-      if (s === 'idle') {
-        this.startRecord()
-      }
     },
 
     onTouchEnd() {
-      if (this.data._moved) return // 拖动操作，不触发录音
+      if (this.data._moved) return // 拖动操作
       var s = this.data.state
-      if (s === 'recording') {
+      if (s === 'idle') {
+        this.startRecord()
+      } else if (s === 'recording') {
         this.stopRecord()
       } else if (s === 'speaking') {
         this.stopSpeak()

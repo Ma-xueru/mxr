@@ -22,12 +22,10 @@
   </scroll-view>
 
   <view class="pc-input-bar">
-    <view class="pc-input-actions">
-      <button class="pc-action-btn" bindtap="takePhoto">📷</button>
-      <button class="pc-action-btn" bindtap="startVoice" wx:if="{{!recording}}">🎤</button>
-      <button class="pc-action-btn recording" bindtap="stopVoice" wx:if="{{recording}}">⏹</button>
-    </view>
-    <input class="pc-input" placeholder="输入风景关键词..." value="{{inputText}}" bindinput="onInput" confirm-type="send" bindconfirm="sendText" maxlength="100" />
-    <button class="pc-send-btn" bindtap="sendText" disabled="{{!inputText || waiting}}">发送</button>
+    <view class="pc-cam-btn" bindtap="takePhoto">📷</view>
+    <input class="pc-input" placeholder="输入关键词..." value="{{inputText}}" bindinput="onInput" confirm-type="send" bindconfirm="sendText" maxlength="200" />
+    <view class="pc-mic-btn" wx:if="{{!inputText && !recording}}" bindtap="startVoice">🎤</view>
+    <view class="pc-mic-btn recording" wx:if="{{recording}}" bindtap="stopVoice">⏹</view>
+    <view class="pc-send-btn" wx:if="{{inputText}}" bindtap="sendText">✈️</view>
   </view>
 </view>

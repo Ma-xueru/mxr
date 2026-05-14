@@ -29,23 +29,13 @@ Page({
         var path = res.tempFiles[0].tempFilePath
         var msgs = that.data.messages
         msgs.push({ from: 'user', text: path, type: 'image' })
-        msgs.push({ from: 'ai', text: '小诗人正在观察画面...', loading: true })
+        msgs.push({ from: 'ai', text: '小诗人正在研墨构思...', loading: true })
         that.setData({ messages: msgs, waiting: true })
-        wx.uploadFile({
-          url: baseURL + '/poem-creator/vision', filePath: path, name: 'image',
-          success(uploadRes) {
-            var data = JSON.parse(uploadRes.data)
-            var desc = (data.data) || '美丽风景'
-            that.data.messages.pop()
-            that._startCompose(desc, 'text')
-          },
-          fail() { that._showError() }
-        })
+        that._uploadAndCompose('image', path)
       }
     })
   },
 
-  // ===== 语音输入 =====
   startVoice() {
     var that = this
     recorder = wx.getRecorderManager()
@@ -54,20 +44,44 @@ Page({
       that.setData({ recording: false })
       if (!res.tempFilePath) return
       that.setData({ waiting: true })
-      // 先用 ASR 转文字（简化：传音频到后端做语音识别）
+      var msgs = that.data.messages
+      msgs.push({ from: 'ai', text: '🎧 正在识别语音...', loading: true })
+      that.setData({ messages: msgs })
       wx.uploadFile({
         url: baseURL + '/voice/chat', filePath: res.tempFilePath, name: 'audio',
+        header: { Token: wx.getStorageSync('token') },
         success(upRes) {
+          that.data.messages.pop()
+          that.setData({ messages: that.data.messages, waiting: false })
           var data = JSON.parse(upRes.data)
-          var recognized = (data.data && data.data.recognized) || ''
-          if (recognized) that._startCompose(recognized, 'text')
-          else { that.setData({ waiting: false }); wx.showToast({ title: '没听清', icon: 'none' }) }
+          var text = (data.data && data.data.recognized) || ''
+          if (text) {
+            that.setData({ inputText: text })
+            wx.showToast({ title: '识别成功', icon: 'success', duration: 1000 })
+          } else { wx.showToast({ title: '没听清，请重试', icon: 'none' }) }
         },
-        fail() { that._showError() }
+        fail() { that.data.messages.pop(); that.setData({ messages: that.data.messages, waiting: false }); wx.showToast({ title: '网络错误', icon: 'none' }) }
       })
     })
     recorder.onError(() => { that.setData({ recording: false }) })
     recorder.start({ duration: 15000, sampleRate: 16000, numberOfChannels: 1, encodeBitRate: 48000, format: 'aac' })
+  },
+
+  _uploadAndCompose(type, filePath) {
+    var that = this
+    var formKey = type === 'image' ? 'image' : 'audio'
+    wx.uploadFile({
+      url: baseURL + '/poem-creator/process', filePath: filePath, name: formKey,
+      timeout: 90000,
+      success(res) {
+        that.data.messages.pop()
+        var data = JSON.parse(res.data)
+        var poem = (data.data) || ''
+        if (poem) that._showPoem(poem)
+        else { that.setData({ waiting: false }); wx.showToast({ title: data.msg || '生成失败', icon: 'none' }) }
+      },
+      fail() { that._showError() }
+    })
   },
 
   stopVoice() { if (recorder) { recorder.stop(); recorder = null } },
@@ -81,13 +95,12 @@ Page({
     this.setData({ messages: msgs, inputText: '', waiting: true })
 
     wx.request({
-      url: baseURL + '/poem-creator/compose?scene=' + encodeURIComponent(scene),
+      url: baseURL + '/poem-creator/process?text=' + encodeURIComponent(scene),
       method: 'GET', timeout: 60000,
       success(res) {
         that.data.messages.pop()
         var poem = (res.data && res.data.data) || '作诗失败，请重试'
         that.setData({ messages: that.data.messages, waiting: false })
-        // 显示诗 + 自动请求 TTS
         that._showPoem(poem)
       },
       fail() { that._showError() }
@@ -121,7 +134,9 @@ Page({
   playTTS(e) {
     var url = e.currentTarget.dataset.url
     if (!url) return
+    if (this._ttsAudio) { try { this._ttsAudio.destroy() } catch(ex) {} }
     var audio = wx.createInnerAudioContext()
+    this._ttsAudio = audio
     audio.src = url; audio.autoplay = true
     audio.onError(() => { wx.showToast({ title: '播放失败', icon: 'none' }) })
   },

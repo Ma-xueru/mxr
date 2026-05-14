@@ -3,8 +3,8 @@
 		<el-dialog v-model="formVisible" :title="formTitle" width="80%" destroy-on-close :fullscreen='false' class="task_dialog">
 			<div class="dialog_intro">
 				<div class="intro_badge">{{ type === 'info' ? '任务详情' : (type === 'review' ? '作业批改' : (type === 'edit' ? '任务编辑' : '任务发布')) }}</div>
-				<div class="intro_title">{{ form.tasktitle || '让AI测验任务更清晰、更好完成' }}</div>
-				<div class="intro_desc">{{ isReviewMode ? '这里专门用于老师批改测验作业，只保留作答、得分和评语等必要信息。' : '把学生、任务要求、时间节点和完成情况放在同一张卡片里，老师查看和维护都会更顺手。' }}</div>
+				<div class="intro_title">{{ form.tasktitle || '让背诵任务更清晰、更好完成' }}</div>
+				<div class="intro_desc">{{ isReviewMode ? '这里专门用于老师批改背诵作业，只保留音频、得分和评语等必要信息。' : '把学生、任务要求、时间节点和完成情况放在同一张卡片里，老师查看和维护都会更顺手。' }}</div>
 			</div>
 			<el-form class="formModel_form" ref="formRef" :model="form" label-width="$template2.back.add.form.base.labelWidth" :rules="rules">
 				<div class="form_section review_section" v-if="isReviewMode">
@@ -46,13 +46,13 @@
 							</el-form-item>
 						</el-col>
 						<el-col :span="24">
-							<el-form-item label="测验作答">
-								<div class="audio_panel" v-if="form.completionremark">
-									<el-button class="audio_btn" type="primary" plain @click="previewAudio(form.completionremark)">查看作答</el-button>
-									<el-button class="audio_btn" type="success" plain @click="downloadAudio(form.completionremark)">查看详情</el-button>
-									<div class="audio_name">{{ getFileName(form.completionremark) }}</div>
+							<el-form-item label="背诵音频">
+								<div class="audio_panel" v-if="form.recitationaudio">
+									<el-button class="audio_btn" type="primary" plain @click="previewAudio(form.recitationaudio)">试听音频</el-button>
+									<el-button class="audio_btn" type="success" plain @click="downloadAudio(form.recitationaudio)">下载音频</el-button>
+									<div class="audio_name">{{ getFileName(form.recitationaudio) }}</div>
 								</div>
-								<div v-else class="audio_empty">学生暂未完成测验作答</div>
+								<div v-else class="audio_empty">学生暂未上传背诵音频</div>
 							</el-form-item>
 						</el-col>
 						<el-col :span="24">
@@ -91,7 +91,7 @@
 							</el-form-item>
 						</el-col>
 						<el-col :span="12">
-							<el-form-item label="测验得分" prop="kaoshichengji">
+							<el-form-item label="背诵得分" prop="kaoshichengji">
 								<el-input class="list_inp" v-model.number="form.kaoshichengji" placeholder="请输入评分" />
 							</el-form-item>
 						</el-col>
@@ -210,8 +210,8 @@
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
-						<el-form-item label="测验得分" prop="kaoshichengji">
-							<el-input class="list_inp" v-model.number="form.kaoshichengji" placeholder="测验得分" type="text" :readonly="disabledForm.kaoshichengji?true:false" />
+						<el-form-item label="背诵得分" prop="kaoshichengji">
+							<el-input class="list_inp" v-model.number="form.kaoshichengji" placeholder="背诵得分" type="text" :readonly="disabledForm.kaoshichengji?true:false" />
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
@@ -240,13 +240,13 @@
 						</el-form-item>
 					</el-col>
 					<el-col :span="24">
-						<el-form-item label="测验作答">
-							<div class="audio_panel" v-if="form.completionremark">
-								<el-button class="audio_btn" type="primary" plain @click="previewAudio(form.completionremark)">查看作答</el-button>
-								<el-button class="audio_btn" type="success" plain @click="downloadAudio(form.completionremark)">查看详情</el-button>
-								<div class="audio_name">{{ getFileName(form.completionremark) }}</div>
+						<el-form-item label="背诵音频">
+							<div class="audio_panel" v-if="form.recitationaudio">
+								<el-button class="audio_btn" type="primary" plain @click="previewAudio(form.recitationaudio)">试听音频</el-button>
+								<el-button class="audio_btn" type="success" plain @click="downloadAudio(form.recitationaudio)">下载音频</el-button>
+								<div class="audio_name">{{ getFileName(form.recitationaudio) }}</div>
 							</div>
-							<div v-else class="audio_empty">学生暂未完成测验作答</div>
+							<div v-else class="audio_empty">学生暂未上传背诵音频</div>
 						</el-form-item>
 					</el-col>
 					<el-col :span="24">
@@ -390,7 +390,7 @@ const renderRadarChart = () => {
 			},
 			series: [{
 				type: 'radar',
-				data: [{ value: dims.map(d => d.score), name: '测验评分', areaStyle: { color: 'rgba(109, 190, 114, 0.2)' }, lineStyle: { color: '#6fc47d', width: 2 }, itemStyle: { color: '#6fc47d' } }]
+				data: [{ value: dims.map(d => d.score), name: '背诵评分', areaStyle: { color: 'rgba(109, 190, 114, 0.2)' }, lineStyle: { color: '#6fc47d', width: 2 }, itemStyle: { color: '#6fc47d' } }]
 			}]
 		})
 		window.addEventListener('resize', resizeChart)
@@ -409,7 +409,7 @@ onBeforeUnmount(() => {
 })
 
 const resetForm = () => {
-	form.value = { studentaccount:'', studentname:'', courseids:'', coursetitles:'', tasktitle:'', taskcontent:'', deadline:'', completionstatus:'待完成', completionremark:'', completionremark:'', completiontime:'', kaoshichengji:'', recognizedtext:'', aiscorecomment:'', teachercomment:'', teacheraccount:'', teachername:'', releasetime:'' }
+	form.value = { studentaccount:'', studentname:'', courseids:'', coursetitles:'', tasktitle:'', taskcontent:'', deadline:'', completionstatus:'待完成', completionremark:'', recitationaudio:'', completiontime:'', kaoshichengji:'', recognizedtext:'', aiscorecomment:'', teachercomment:'', teacheraccount:'', teachername:'', releasetime:'' }
 	disabledForm.value = { studentaccount:false, studentname:false, tasktitle:false, taskcontent:false, deadline:false, completionstatus:false, completionremark:false, completiontime:false, kaoshichengji:false, recognizedtext:true, aiscorecomment:true, teachercomment:false, teacheraccount:false, teachername:false, releasetime:false }
 	selectedCourseTitles.value = []
 	currentStudentGrade.value = ''
@@ -538,13 +538,13 @@ const courseSelectChange = (ids) => {
     form.value.coursetitles = titles.join('、')
     selectedCourseTitles.value = titles
     // auto-fill task title
-    if (!form.value.tasktitle || form.value.tasktitle.startsWith('测验')) {
-        if (titles.length === 1) form.value.tasktitle = '测验《' + titles[0].replace(/[《》]/g, '') + '》'
-        else if (titles.length > 1) form.value.tasktitle = '测验' + titles.length + '首古诗'
+    if (!form.value.tasktitle || form.value.tasktitle.startsWith('背诵')) {
+        if (titles.length === 1) form.value.tasktitle = '背诵《' + titles[0].replace(/[《》]/g, '') + '》'
+        else if (titles.length > 1) form.value.tasktitle = '背诵' + titles.length + '首古诗'
     }
     // auto-fill task content
-    if (titles.length && (!form.value.taskcontent || form.value.taskcontent.startsWith('请完成以下古诗测验：'))) {
-        form.value.taskcontent = '请完成以下古诗测验：' + titles.join('、') + '。'
+    if (titles.length && (!form.value.taskcontent || form.value.taskcontent.startsWith('请完成以下古诗背诵：'))) {
+        form.value.taskcontent = '请完成以下古诗背诵：' + titles.join('、') + '。'
     }
 }
 
@@ -556,13 +556,13 @@ const coursetitlesInput = (value) => {
 	selectedCourseTitles.value = titles
 	form.value.courseids = ''
 	form.value.coursetitles = titles.join('、')
-	if (!form.value.tasktitle || form.value.tasktitle.startsWith('测验《') || form.value.tasktitle.includes('等')) {
-		if (titles.length === 1) form.value.tasktitle = `测验《${titles[0].replace(/[《》]/g, '')}》`
-		else if (titles.length > 1) form.value.tasktitle = `测验${titles.length}首古诗`
+	if (!form.value.tasktitle || form.value.tasktitle.startsWith('背诵《') || form.value.tasktitle.includes('等')) {
+		if (titles.length === 1) form.value.tasktitle = `背诵《${titles[0].replace(/[《》]/g, '')}》`
+		else if (titles.length > 1) form.value.tasktitle = `背诵${titles.length}首古诗`
 	}
 	if (titles.length) {
-		const selectedText = `请完成以下古诗测验：${titles.join('、')}。`
-		if (!form.value.taskcontent || form.value.taskcontent.startsWith('请完成以下古诗测验：')) form.value.taskcontent = selectedText
+		const selectedText = `请完成以下古诗背诵：${titles.join('、')}。`
+		if (!form.value.taskcontent || form.value.taskcontent.startsWith('请完成以下古诗背诵：')) form.value.taskcontent = selectedText
 	}
 }
 const init = (formId=null, formType='add') => {
@@ -646,7 +646,7 @@ const save = () => {
 				context?.$http({ url: `${tableName}/batchAssign`, method: 'post', data: batchPayload }).then((res)=>{
 					const count = res.data.data || 0
 					emit('formModelChange')
-					context?.$toolUtil.message(`已成功发布 ${count} 条测验作业`,'success',()=>{ formVisible.value = false })
+					context?.$toolUtil.message(`已成功发布 ${count} 条背诵作业`,'success',()=>{ formVisible.value = false })
 				})
 				return
 			}
