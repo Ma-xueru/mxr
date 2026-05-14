@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.cl.annotation.IgnoreAuth;
 import com.cl.dao.*;
 import com.cl.entity.*;
+import com.cl.service.CourseService;
 import com.cl.utils.AIChatUtil;
 import com.cl.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ public class QuizTaskController {
     @Autowired private RecitationtaskDao recitationtaskDao;
     @Autowired private QuizQuestionDao quizQuestionDao;
     @Autowired private StudentQuizRecordDao studentQuizRecordDao;
+    @Autowired private CourseService courseService;
 
     /** 测验任务列表（仅task_type=2） */
     @RequestMapping("/page")
@@ -40,9 +42,71 @@ public class QuizTaskController {
     }
 
     /** save/update/delete 委托给 recitationtask */
-    @RequestMapping("/save") public R save(@RequestBody RecitationtaskEntity e) { e.setTaskType(2); e.setId(System.currentTimeMillis()); e.setReleasetime(new Date()); if (e.getTasktitle() != null && !e.getTasktitle().startsWith("测验：")) e.setTasktitle("测验：" + e.getTasktitle()); recitationtaskDao.insert(e); return R.ok(); }
+    @RequestMapping("/save") public R save(@RequestBody RecitationtaskEntity e) {
+        e.setTaskType(2); e.setId(System.currentTimeMillis()); e.setReleasetime(new Date());
+        if (e.getTasktitle() != null && !e.getTasktitle().startsWith("测验：")) e.setTasktitle("测验：" + e.getTasktitle());
+        recitationtaskDao.insert(e);
+
+        // 触发AI出题
+        String courseIds = e.getCourseids();
+        String courseTitles = e.getCoursetitles();
+        if (StringUtils.hasText(courseIds) && StringUtils.hasText(courseTitles)) {
+            try {
+                Long cid = Long.valueOf(courseIds.split(",")[0].trim());
+                CourseEntity course = courseService.selectById(cid);
+                if (course != null && StringUtils.hasText(course.getContent())) {
+                    generateQuestions(e.getId(), cid, course.getCoursetitle(), course.getContent());
+                }
+            } catch (Exception ex) { System.out.println("[测验] AI出题失败: " + ex.getMessage()); }
+        }
+        return R.ok();
+    }
+
+    private void generateQuestions(Long taskId, Long courseId, String title, String content) {
+        String prompt = "针对古诗《" + title + "》出5道单选题。原文：" + content +
+            "\n涵盖：字词释义、意境理解、作者情感、格律常识、文学常识。返回JSON：[{\"question\":\"题?\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":0,\"analysis\":\"解析\"}]。只返回JSON。";
+        List<AIChatUtil.Message> msgs = new ArrayList<>();
+        msgs.add(new AIChatUtil.Message("system", "你是特级语文老师，严格按JSON返回5道单选题。"));
+        msgs.add(new AIChatUtil.Message("user", prompt));
+        AIChatUtil.ChatResult cr = AIChatUtil.chatWithMessages(msgs, 0.5, 2000);
+        String resp = cr != null ? cr.getContent() : null;
+        if (resp == null || resp.isEmpty()) return;
+        String json = resp.trim();
+        int s = json.indexOf('['), e = json.lastIndexOf(']');
+        if (s >= 0 && e > s) json = json.substring(s, e + 1);
+        try {
+            org.json.JSONArray arr = new org.json.JSONArray(json);
+            for (int i = 0; i < arr.length(); i++) {
+                org.json.JSONObject q = arr.getJSONObject(i);
+                QuizQuestionEntity qe = new QuizQuestionEntity();
+                qe.setTaskId(taskId); qe.setCourseId(courseId);
+                qe.setQuestion(q.optString("question"));
+                qe.setOptionsJson(q.optJSONArray("options").toString());
+                qe.setAnswer(q.optInt("answer"));
+                qe.setAnalysis(q.optString("analysis"));
+                qe.setSortOrder(i + 1);
+                quizQuestionDao.insert(qe);
+            }
+            System.out.println("[测验] AI出题成功 taskId=" + taskId + " 题数=" + arr.length());
+        } catch (Exception ex) { System.out.println("[测验] AI出题解析失败: " + ex.getMessage()); }
+    }
     @RequestMapping("/update") public R update(@RequestBody RecitationtaskEntity e) { recitationtaskDao.updateById(e); return R.ok(); }
     @RequestMapping("/delete") public R delete(@RequestBody Long[] ids) { recitationtaskDao.deleteBatchIds(java.util.Arrays.asList(ids)); return R.ok(); }
+
+    /** 获取已完成的测验结果（雷达图+AI报告） */
+    @RequestMapping("/result")
+    public R result(@RequestParam Long taskId, HttpServletRequest req) {
+        String username = String.valueOf(req.getSession().getAttribute("username"));
+        EntityWrapper<StudentQuizRecordEntity> ew = new EntityWrapper<>();
+        ew.eq("task_id", taskId).eq("studentaccount", username).orderBy("addtime", false).last("LIMIT 1");
+        List<StudentQuizRecordEntity> list = studentQuizRecordDao.selectList(ew);
+        if (list.isEmpty()) return R.error("暂无结果");
+        StudentQuizRecordEntity r = list.get(0);
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("score", r.getScore()); m.put("correctCount", r.getCorrectCount());
+        m.put("totalQuestions", r.getTotalQuestions()); m.put("aiReport", r.getAiReport());
+        return R.ok().put("data", m);
+    }
 
     /** 教师发布AI测验 — AI预生成5道题 */
     @RequestMapping("/publish")
@@ -98,18 +162,27 @@ public class QuizTaskController {
     }
 
     /** 学生端 — 获取待完成的测验 */
-    @IgnoreAuth @RequestMapping("/student-pending")
+    @RequestMapping("/student-pending")
     public R studentPending(HttpServletRequest req) {
         String username = String.valueOf(req.getSession().getAttribute("username"));
         EntityWrapper<RecitationtaskEntity> ew = new EntityWrapper<>();
-        ew.like("tasktitle", "测验：").eq("completionstatus", "1").like("studentaccount", username);
+        ew.like("tasktitle", "测验：").like("studentaccount", username);
         List<RecitationtaskEntity> list = recitationtaskDao.selectList(ew);
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (RecitationtaskEntity t : list) {
             Map<String, Object> m = new LinkedHashMap<>();
+            String cids = t.getCourseids();
+            Long cid = 0L;
+            if (StringUtils.hasText(cids)) { try { cid = Long.valueOf(cids.split(",")[0].trim()); } catch(Exception ex) {} }
             m.put("taskId", t.getId()); m.put("courseTitle", t.getCoursetitles());
-            m.put("taskTitle", t.getTasktitle());
+            m.put("courseId", cid); m.put("taskTitle", t.getTasktitle());
+            m.put("status", "已完成".equals(t.getCompletionstatus()) ? "completed" : "pending");
+            // 查最新得分
+            EntityWrapper<StudentQuizRecordEntity> srw = new EntityWrapper<>();
+            srw.eq("task_id", t.getId()).eq("studentaccount", username).orderBy("addtime", false).last("LIMIT 1");
+            List<StudentQuizRecordEntity> srs = studentQuizRecordDao.selectList(srw);
+            m.put("latestScore", srs.isEmpty() ? null : srs.get(0).getScore());
             // 查询题目
             EntityWrapper<QuizQuestionEntity> qw = new EntityWrapper<>();
             qw.eq("task_id", t.getId()).orderBy("sort_order");
@@ -135,7 +208,8 @@ public class QuizTaskController {
         Long taskId = Long.valueOf(String.valueOf(body.getOrDefault("taskId", "0")));
         String studentaccount = String.valueOf(body.getOrDefault("studentaccount", ""));
         String studentname = String.valueOf(body.getOrDefault("studentname", ""));
-        Long courseId = Long.valueOf(String.valueOf(body.getOrDefault("courseId", "0")));
+        Long courseId = 0L;
+        try { courseId = Long.valueOf(String.valueOf(body.getOrDefault("courseId", "0"))); } catch(Exception e) {}
         String courseTitle = String.valueOf(body.getOrDefault("courseTitle", ""));
         List<Map<String, Object>> answers = (List<Map<String, Object>>) body.getOrDefault("answers", new ArrayList<>());
 
@@ -200,7 +274,7 @@ public class QuizTaskController {
 
         // 标记任务完成
         RecitationtaskEntity task = recitationtaskDao.selectById(taskId);
-        if (task != null) { task.setCompletionstatus("2"); recitationtaskDao.updateById(task); }
+        if (task != null) { task.setCompletionstatus("已完成"); recitationtaskDao.updateById(task); }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("score", score); result.put("correctCount", correct);

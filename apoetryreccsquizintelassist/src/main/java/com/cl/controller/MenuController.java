@@ -98,7 +98,7 @@ public class MenuController {
                         if (!hasQuiz) {
                             com.alibaba.fastjson.JSONObject item = new com.alibaba.fastjson.JSONObject();
                             item.put("appFrontIcon", "cuIcon-edit");
-                            item.put("buttons", java.util.Arrays.asList("查看","新增"));
+                            item.put("buttons", java.util.Arrays.asList("新增","查看","修改","删除"));
                             item.put("menu", "测验管理");
                             item.put("menuJump", "列表");
                             item.put("tableName", "quiztask");

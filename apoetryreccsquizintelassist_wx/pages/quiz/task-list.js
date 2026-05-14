@@ -20,7 +20,8 @@ Page({
     var item = this.data.list[e.currentTarget.dataset.index]
     getApp().globalData._taskQuiz = {
       taskId: item.taskId, courseTitle: item.courseTitle,
-      courseId: item.courseId || '', questions: item.questions
+      courseId: item.courseId || '', questions: item.questions,
+      status: item.status
     }
     wx.navigateTo({ url: '/pages/quiz/task-exam' })
   }

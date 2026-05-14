@@ -9,6 +9,7 @@
       <text class="tl-card-title">{{item.taskTitle}}</text>
       <text class="tl-card-desc">{{item.courseTitle}} · {{item.questions.length}}道题</text>
     </view>
-    <text class="tl-card-arrow">→</text>
+    <view class="tl-tag {{item.status === 'completed' ? 'done' : 'pending'}}">{{item.status === 'completed' ? '已完成 ' + (item.latestScore || '') + '分' : '未完成'}}</view>
+    <text class="tl-card-arrow" wx:if="{{item.status !== 'completed'}}">→</text>
   </view>
 </view>

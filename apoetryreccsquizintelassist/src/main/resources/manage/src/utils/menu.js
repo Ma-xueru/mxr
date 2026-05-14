@@ -394,7 +394,7 @@ const menu = {
                 },
                 {
                   appFrontIcon: "cuIcon-edit",
-                  buttons: ["查看", "新增"],
+                  buttons: ["新增", "查看", "修改", "删除"],
                   menu: "测验管理",
                   menuJump: "列表",
                   tableName: "quiztask",

@@ -9,3 +9,6 @@
 .tl-card-title { font-size: 30rpx; font-weight: 700; color: #3d3532; display: block; }
 .tl-card-desc { font-size: 24rpx; color: #999; margin-top: 4rpx; display: block; }
 .tl-card-arrow { font-size: 32rpx; color: #ccc; }
+.tl-tag { padding: 4rpx 16rpx; border-radius: 8rpx; font-size: 22rpx; font-weight: 600; flex-shrink: 0; }
+.tl-tag.done { background: #e8f5e9; color: #2e7d32; }
+.tl-tag.pending { background: #fff3e0; color: #e65100; }

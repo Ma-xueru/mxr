@@ -17,7 +17,7 @@
       <view class="te-options">
         <view class="te-opt" wx:for="{{questions[currentIndex].options}}" wx:for-index="i" wx:key="i" data-index="{{i}}" bindtap="selectOption">
           <text class="te-opt-letter">{{['A','B','C','D'][i]}}</text>
-          <text>{{opt}}</text>
+          <text>{{item}}</text>
         </view>
       </view>
     </view>
@@ -30,9 +30,14 @@
       <text class="te-result-score">{{score}}分</text>
       <text class="te-result-label">答对 {{correctCount}} / {{totalQuestions}} 题</text>
     </view>
-    <!-- AI 报告 -->
+    <!-- 雷达图 -->
+    <view class="te-radar-wrap" wx:if="{{aiReport && aiReport.dimensions}}">
+      <view class="te-report-title">📊 能力雷达图</view>
+      <canvas type="2d" id="radarCanvas" class="te-radar-canvas"></canvas>
+    </view>
+    <!-- AI 详细报告 -->
     <view class="te-report" wx:if="{{aiReport}}">
-      <view class="te-report-title">📊 AI 多维评估</view>
+      <view class="te-report-title">🤖 AI 多维度评估</view>
       <view class="te-dim-card" wx:for="{{aiReport.dimensions}}" wx:key="name">
         <view class="te-dim-header">
           <text class="te-dim-name">{{item.name}}</text>
@@ -48,7 +53,7 @@
     </view>
     <view class="te-result-actions">
       <button class="te-btn" bindtap="viewWrongbook">查看错题解析</button>
-      <button class="te-btn outline" bindtap="goBack">返回首页</button>
+      <button class="te-btn outline" bindtap="goBack">返回</button>
     </view>
   </view>
 </view>
