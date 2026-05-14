@@ -129,7 +129,7 @@
                 "pagePath": "pages/teacher/list",
                 "iconPath": "/static/tabs/3/service.png",
                 "selectedIconPath": "/static/tabs/3/service_act.png",
-                "text": "教师预约"
+                "text": "AI名师"
             },
             {
                 "pagePath": "pages/center/center",

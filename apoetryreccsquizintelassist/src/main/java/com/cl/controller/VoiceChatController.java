@@ -6,6 +6,7 @@ import com.cl.utils.R;
 import com.cl.utils.VolcengineSpeechUtil;
 import com.cl.utils.VolcengineTtsUtil;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +23,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @RestController
 @RequestMapping("/voice")
 public class VoiceChatController {
+
+    // 教师选择接口
+    @RequestMapping("/teacher/select")
+    public R selectTeacher(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        String username = String.valueOf(request.getSession().getAttribute("username"));
+        String modelKey = String.valueOf(body.getOrDefault("modelKey", ""));
+        String systemPrompt = String.valueOf(body.getOrDefault("systemPrompt", ""));
+        if ("null".equals(username) || !org.springframework.util.StringUtils.hasText(modelKey)) return R.error("参数错误");
+        AIChatUtil.setUserTeacher(username, modelKey, systemPrompt);
+        return R.ok().put("data", "已切换至 " + modelKey);
+    }
 
     // 对话历史（按用户session存储，保留最近10轮）
     private static final ConcurrentHashMap<String, List<AIChatUtil.Message>> historyMap = new ConcurrentHashMap<>();

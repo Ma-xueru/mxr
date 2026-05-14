@@ -74,7 +74,7 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
         	request.getSession().setAttribute("userId", tokenEntity.getUserid());
         	request.getSession().setAttribute("role", tokenEntity.getRole());
         	request.getSession().setAttribute("tableName", tokenEntity.getTablename());
-        	request.getSession().setAttribute("username", tokenEntity.getUsername());
+        	request.getSession().setAttribute("username", tokenEntity.getUsername());com.cl.utils.AIChatUtil.setCurrentUser(tokenEntity.getUsername());
         	return true;
         }
         

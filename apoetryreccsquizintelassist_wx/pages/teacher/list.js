@@ -68,6 +68,13 @@ Page({
     this.setData({ selectedId: id, currentTeacher: teacher })
     wx.setStorageSync('selectedTeacherId', id)
     wx.setStorageSync('selectedTeacher', teacher)
-    wx.showToast({ title: teacher.name + '：你好呀！接下来的学习由我来陪你哦！', icon: 'none', duration: 2000 })
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/voice/teacher/select', method: 'POST',
+      header: { 'Content-Type': 'application/json', Token: wx.getStorageSync('token') },
+      data: JSON.stringify({ modelKey: teacher.modelKey, systemPrompt: teacher.systemPrompt }),
+      success: function() { wx.showToast({ title: teacher.name + '：你好呀！接下来的学习由我来陪你哦！', icon: 'none', duration: 2000 }) },
+      fail: function() { wx.showToast({ title: '切换失败', icon: 'none' }) }
+    })
   }
 })

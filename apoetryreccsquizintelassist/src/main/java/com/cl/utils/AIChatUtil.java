@@ -76,6 +76,17 @@ public class AIChatUtil {
     public static String getProvider() { return MODEL_KEY; }
     public static String getModel() { return MODEL_NAME; }
 
+    // ========== 教师模式切换（按用户session） ==========
+    private static final Map<String, String[]> USER_TEACHER = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final ThreadLocal<String> CURRENT_USER = new ThreadLocal<>();
+
+    public static void setUserTeacher(String userId, String modelKey, String systemPrompt) {
+        USER_TEACHER.put(userId, new String[]{modelKey, systemPrompt});
+        System.out.println("[AIChatUtil] 用户" + userId + " 切换教师: " + modelKey);
+    }
+    public static void setCurrentUser(String userId) { CURRENT_USER.set(userId); }
+    public static void clearCurrentUser() { CURRENT_USER.remove(); }
+
     // ---------- 简单消息结构 ----------
     public static class Message {
         private String role; private String content;
@@ -104,8 +115,29 @@ public class AIChatUtil {
     }
 
     public static ChatResult chatWithMessages(List<Message> messages, double temperature, int maxTokens) {
-        String label = "[" + MODEL_KEY + "] ";
-        System.out.println(label + "请求 model=" + MODEL_NAME + " msgs=" + messages.size());
+        // 检查教师模式覆盖
+        String userId = CURRENT_USER.get();
+        String[] override = userId != null ? USER_TEACHER.get(userId) : null;
+        String useKey = override != null ? override[0] : MODEL_KEY;
+        String overridePrompt = override != null ? override[1] : null;
+
+        String label = "[" + useKey + "] ";
+        System.out.println(label + "请求 msgs=" + messages.size());
+
+        // 如果有教师系统提示词，替换或插入
+        if (overridePrompt != null && !messages.isEmpty() && "system".equals(messages.get(0).getRole())) {
+            messages.set(0, new Message("system", overridePrompt));
+        }
+
+        // 使用对应模型配置
+        String url, modelName, auth;
+        if (override != null) {
+            ModelConfig mc = loadModelConfigByKey(useKey);
+            url = mc.url; modelName = mc.model; auth = mc.auth;
+        } else {
+            url = API_URL; modelName = MODEL_NAME; auth = AUTH_HEADER;
+        }
+        System.out.println(label + "model=" + modelName);
 
         try {
             JSONArray msgsArr = new JSONArray();
@@ -114,23 +146,21 @@ public class AIChatUtil {
             }
 
             JSONObject body = new JSONObject();
-            body.put("model", MODEL_NAME);
+            body.put("model", modelName);
             body.put("messages", msgsArr);
             body.put("temperature", temperature);
             body.put("max_tokens", maxTokens);
             body.put("stream", false);
 
-            // MiMo 使用 max_completion_tokens 和 api-key 头
-            if ("mimo".equals(MODEL_KEY)) {
+            if ("mimo".equals(useKey)) {
                 body.remove("max_tokens");
                 body.put("max_completion_tokens", maxTokens);
             }
-            // DeepSeek 关闭思考加速
-            if ("deepseek".equals(MODEL_KEY)) {
+            if ("deepseek".equals(useKey)) {
                 body.put("thinking", new JSONObject().put("type", "disabled"));
             }
 
-            String resp = httpPost(API_URL, body.toString());
+            String resp = httpPostWithAuth(url, body.toString(), useKey, auth);
             if (resp == null) { System.out.println(label + "无响应"); return null; }
 
             JSONObject json = new JSONObject(resp);
@@ -154,19 +184,35 @@ public class AIChatUtil {
         }
     }
 
+    // ========== 模型配置查询 ==========
+
+    static class ModelConfig { String url, model, auth; ModelConfig(String u, String m, String a) { url=u; model=m; auth=a; } }
+
+    private static ModelConfig loadModelConfigByKey(String key) {
+        java.util.Properties p = new java.util.Properties();
+        try { p.load(AIChatUtil.class.getClassLoader().getResourceAsStream("asr.properties")); } catch (Exception e) {}
+        switch (key) {
+            case "doubao": return new ModelConfig("https://ark.cn-beijing.volces.com/api/v3/chat/completions", p.getProperty("ark.model","doubao-seed-1-8-251228"), "Bearer "+p.getProperty("ark.api.key",""));
+            case "zhipu": return new ModelConfig("https://open.bigmodel.cn/api/paas/v4/chat/completions", p.getProperty("ai.zhipu.model","glm-4.7"), "Bearer "+p.getProperty("ai.zhipu.api_key",""));
+            case "qwen": return new ModelConfig("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", p.getProperty("ai.qwen.model","qwen-plus"), "Bearer "+p.getProperty("ai.qwen.api_key",""));
+            case "mimo": return new ModelConfig("https://api.xiaomimimo.com/v1/chat/completions", p.getProperty("ai.mimo.model","mimo-v2.5-pro"), p.getProperty("ai.mimo.api_key",""));
+            case "hunyuan": return new ModelConfig("https://tokenhub.tencentmaas.com/v1/chat/completions", p.getProperty("ai.hunyuan.model","hy3-preview"), "Bearer "+p.getProperty("ai.hunyuan.api_key",""));
+            default: return new ModelConfig("https://api.deepseek.com/chat/completions", p.getProperty("ai.deepseek.model","deepseek-v4-flash"), "Bearer "+p.getProperty("ai.deepseek.api_key",""));
+        }
+    }
+
     // ========== HTTP 工具 ==========
 
-    private static String httpPost(String urlStr, String body) {
+    private static String httpPostWithAuth(String urlStr, String body, String modelKey, String authHeader) {
         try {
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            // MiMo 用 api-key 头，其余用 Authorization: Bearer
-            if ("mimo".equals(MODEL_KEY)) {
-                conn.setRequestProperty("api-key", AUTH_HEADER);
+            if ("mimo".equals(modelKey)) {
+                conn.setRequestProperty("api-key", authHeader);
             } else {
-                conn.setRequestProperty("Authorization", AUTH_HEADER);
+                conn.setRequestProperty("Authorization", authHeader);
             }
             conn.setConnectTimeout(30000); conn.setReadTimeout(120000);
             conn.setDoOutput(true);
