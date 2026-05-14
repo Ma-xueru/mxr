@@ -1,78 +1,28 @@
-<view class="goodsClassify-container">
-    <!-- 顶部装饰条 -->
-    <view class="top-decoration"></view>
+<view class="tc-container">
+  <view class="tc-header">
+    <text class="tc-title">🤖 我的 AI 名师团</text>
+    <text class="tc-subtitle">选择一位老师，开启个性化学习之旅</text>
+  </view>
 
-    <view class="content">
-        <view class="list-box">
-            <!-- 页面标题 -->
-            <view class="page-title">
-                <text class="title-text">教师列表</text>
-                <view class="title-underline"></view>
-            </view>
-
-            <view class="search">
-                <view class="search-inp-box">
-                    <text class="iconfont icon-sousuo1"></text>
-                    <input class="search-input" model:value="{{teacheraccount}}" type="text" placeholder="教师账号" />
-                </view>
-                <view class="searchBtn" bind:tap="search">搜索</view>
-            </view>
-
-            <!-- 列表 -->
-            <view class="categoryFlag-box">
-                <view class="goodsList-box">
-                    <!-- 无数据状态 -->
-                    <view wx:if="{{goodsListData.length === 0}}" class="nodata">
-                        <view class="nodata-icon">
-                            <text class="iconfont icon-wushuju"></text>
-                        </view>
-                        <text class="nodata-text">暂无教师数据</text>
-                    </view>
-
-                    <!-- 教师卡片 -->
-                    <view class="goods-item" bind:tap="detailBtn" data-item="{{item}}" wx:for="{{goodsListData}}" wx:key="index">
-                        <view class="card-decoration"></view>
-                        <image class="goods-img" bind:tap="detailBtn" data-item="{{item}}" src="{{baseURL+item.zhaopian}}" mode="aspectFill" />
-                        <view class="goods-info">
-                            <view class="goods-title" bind:tap="detailBtn" data-tableName="teacher" data-id="{{item.id}}">
-                                {{item.teachername}}
-                            </view>
-                            <view class="goods-contact" bind:tap="detailBtn" data-tableName="teacher" data-id="{{item.id}}">
-                                <text class="iconfont icon-phone"></text>
-                                {{item.lianxidianhua}}
-                            </view>
-                            <view class="reserve-count">可约人数：{{item.reservecount || 0}}</view>
-                        </view>
-
-                        <view class="operate-box">
-                            <view catchtap="reserveBtn" data-item="{{item}}" class="reserve-box">
-                                <text class="reserve-text">预约</text>
-                            </view>
-                            <view bind:tap="editBtn" class="edit-box" wx:if="{{editAuth}}">
-                                <text class="iconfont icon-xiugai3 edit-icons"></text>
-                                <text data-id="{{item.id}}" class="edit-text">修改</text>
-                            </view>
-                            <view wx:if="{{delAuth}}" class="delete-box">
-                                <text class="iconfont icon-shanchu4 del-icons"></text>
-                                <text data-id="{{item.id}}" bind:tap="deleteBtn" class="del-text">删除</text>
-                            </view>
-                        </view>
-                    </view>
-                </view>
-
-                <!-- 新增按钮 -->
-                <button class="add-btn" wx:if="{{addAuth}}" bind:tap="addTap">
-                    <text class="iconfont icon-add"></text>
-                </button>
-            </view>
-
-            <!-- 回到顶部按钮 -->
-            <view wx:if="{{showToTopButton}}" class="to-top-btn" bind:tap="backToTop">
-                <view class="iconfont icon-arrowup">top</view>
-            </view>
+  <view class="tc-list">
+    <view class="tc-card {{selectedId === item._id ? 'selected' : ''}}" wx:for="{{teachers}}" wx:key="_id" bindtap="selectTeacher" data-id="{{item._id}}" data-index="{{index}}">
+      <view class="tc-card-glow" wx:if="{{selectedId === item._id}}"></view>
+      <view class="tc-selected-badge" wx:if="{{selectedId === item._id}}">正在教学</view>
+      <image class="tc-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+      <view class="tc-info">
+        <text class="tc-name">{{item.name}}</text>
+        <text class="tc-personality">{{item.personality}}</text>
+        <view class="tc-tags">
+          <text class="tc-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
         </view>
+      </view>
+      <view class="tc-select-btn {{selectedId === item._id ? 'active' : ''}}" catchtap="selectTeacher" data-id="{{item._id}}" data-index="{{index}}">
+        {{selectedId === item._id ? '✓ 已选中' : '就选他/她教我'}}
+      </view>
     </view>
+  </view>
 
-<voice-assistant />
+  <view class="tc-current" wx:if="{{currentTeacher}}">
+    <text>当前教师：{{currentTeacher.name}} · {{currentTeacher.modelKey}}</text>
+  </view>
 </view>
-

@@ -1,447 +1,73 @@
-const {
-deleteData,
-page,
-list,
-newsData,
-option,
-} = require("../../api/index.js")
-const utils = require("../../utils/index.js")
 Page({
-/**
-* 页面的初始数据
-*/
-data: {
+  data: {
+    teachers: [], selectedId: '', currentTeacher: null
+  },
 
-    
+  onLoad() { this.loadTeachers() },
+  onShow() { this.loadTeachers() },
 
-    questList: [],
-    pageNum: 1,
-    pageSize: 10,
-    total: 0,
-    flag: true, // 防抖开关 防止用户不停的下拉
-
-
-showToTopButton: true,
-onPageScrollTop: 0, // 存储滚动距离的变量
-
-goodsListData: [],
-activeIndex: 0,
-allData: [],
-deleteShow: false,
-className:"",
-name:"",
-addAuth:"",
-delAuth: "",
-editAuth:"" ,
-userid:"",
-baseURL: wx.getStorageSync('baseURL') + "/",
-isAuthStatus:false
-},
-
-/**
-* 生命周期函数--监听页面加载
-*/
-async onLoad(options) {
-    this.setData({
-        isAuthStatus: wx.getStorageSync('isAuth')
-    })
-if(options?.userid) {
-this.setData({
-    userid:options.userid
-})
-
-}
-const currentPageUrl = this.getCurrentPageUrl();
-if(getApp().globalData.name!=null){
-this.setData({
-    name: getApp().globalData.name
-})
-getApp().globalData.name=null
-this.searhandler()
-}else{
-this.getData()
-}
-
-
-
-},
-onShow() {
- if (getApp().globalData.name == null) {
- this.setData({
-     name: null
- })
-this.setData({
- isAuthStatus: wx.getStorageSync('isAuth')
-})
-  this.getData()
-
- }
-
- const currentPageUrl = this.getCurrentPageUrl();
- if(getApp().globalData.name){
- this.setData({
-     name: getApp().globalData.name
- })
- getApp().globalData.name=null
- this.searhandler()
- }else{
- this.getData()
- }
-
-
-},
-/**
-* 生命周期函数--监听页面初次渲染完成
-*/
-onPageShow() {
-// 页面显示时执行的操作
-},
-
-
-
-screenReset(){
-    let obj={}
-
-    this.setData(obj)
-
-},
-
-
-
-
-
-async   search(){
-const nowTable=wx.getStorageSync('nowTable')
-let searchForm = {
-page: this.data.pageNum,
-limit: this.data.pageSize
-}
-
-if(this.data.isAuthStatus) {
-        const account = getApp().globalData.userInfo[nowTable + 'account'];
-        if(account){
-            searchForm[nowTable + 'account']=wx.getStorageSync('nickname')
-        }
+  loadTeachers() {
+    var that = this
+    var selectedId = wx.getStorageSync('selectedTeacherId') || ''
+    if (!wx.cloud) {
+      // 兜底：本地数据
+      this.setData({ teachers: this._getDefaultTeachers(), selectedId: selectedId })
+      return
     }
-    
-if(this.data.teacheraccount){
-    searchForm['teacheraccount'] = '%' + this.data.teacheraccount + '%'
-}
-
-
-let res = {};
-if(this.data.userid) {
-res = await page(`teacher`, searchForm);
-} else {
-res = await list(`teacher`, searchForm);
-}
-
-
-let goodsListData
-// 如果是第一页数据置空
- if ( this.data.pageNum == 1) {
-     goodsListData = []
- };
-    goodsListData=res.data.list.map(item=>{
-item.zhaopian = item.zhaopian.split(",")[0];
-        return item
+    wx.cloud.database().collection('ai_teachers').get().then(function(res) {
+      var list = (res.data || []).map(function(t) {
+        t.tags = that._getTags(t.modelKey)
+        // 云存储URL转换
+        if (t.avatarUrl && t.avatarUrl.indexOf('cloud://') === 0) {
+          wx.cloud.getTempFileURL({ fileList: [t.avatarUrl] }).then(function(urlRes) {
+            if (urlRes.fileList && urlRes.fileList[0]) t.avatarUrl = urlRes.fileList[0].tempFileURL
+            that.setData({ teachers: list })
+          })
+        }
+        return t
+      })
+      that.setData({ teachers: list, selectedId: selectedId })
+      if (selectedId) {
+        var found = list.find(function(t) { return t._id === selectedId }) || list[0]
+        that._applyTeacher(found)
+      }
+    }).catch(function() {
+      that.setData({ teachers: that._getDefaultTeachers(), selectedId: selectedId })
     })
+  },
 
+  _getDefaultTeachers() {
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    return [
+      { _id:'1', name:'墨墨老师', personality:'优雅、感性、擅长留白', modelKey:'deepseek', avatarUrl: baseURL + '/file/poem_img_1778767526732.png', tags:['意境推敲','唯美意象','诗意生活'] },
+      { _id:'2', name:'豆豆助教', personality:'活泼、急性子、爱用Emoji', modelKey:'doubao', avatarUrl: baseURL + '/file/poem_img_1778767555610.png', tags:['快问快答','打油诗','趣味互动'] },
+      { _id:'3', name:'元气夫子', personality:'慈祥、博学、爱讲故事', modelKey:'hunyuan', avatarUrl: baseURL + '/file/poem_img_1778767583895.png', tags:['历史典故','睡前故事','稳重工整'] },
+      { _id:'4', name:'智多星老师', personality:'严谨、好奇、爱提问', modelKey:'zhipu', avatarUrl: baseURL + '/file/poem_img_1778767610463.png', tags:['逻辑推理','字词解谜','分步解析'] },
+      { _id:'5', name:'海螺姐姐', personality:'温柔、治愈、擅长朗诵', modelKey:'mimo', avatarUrl: baseURL + '/file/poem_img_1778767641804.png', tags:['韵律朗读','儿歌创作','温柔鼓励'] },
+      { _id:'6', name:'问问博士', personality:'专业、全能、爱用对比', modelKey:'qwen', avatarUrl: baseURL + '/file/poem_img_1778767668564.png', tags:['科学关联','百科知识','对比学习'] }
+    ]
+  },
 
-this.setData({
-goodsListData,
-popopShow:false
-})
-
-},
-
-// 搜索
-
-
-
-
-
-
-
-
-/**
-* 生命周期函数--监听页面显示
-*/
-getCurrentPageUrl() {
-const pages = getCurrentPages();
-const currentPage = pages[pages.length - 1];
-const currentPageUrl = `/${currentPage.route}`;
-return currentPageUrl;
-},
-    async  handleTabClick(e) {
-        let params={
-        }
-        const nowTable=  wx.getStorageSync('nowTable')
-if(this.data.isAuthStatus) {
-const account = getApp().globalData.userInfo[nowTable + 'account'];
-if(account){
-    params[nowTable + 'account']=wx.getStorageSync('nickname')
-}
-}
-
-this.setData({
-activeIndex: index,
-});
-},
-    async searhandler(){
-        let token = wx.getStorageSync('token')
-        if (!token) {
-            return
-        }
-let targetName="teachername"
-        const allData=this.data.allData
-
-        let goodsListData
-
-        if(this.data.name==''){
-            goodsListData=allData
-        }else{
-            goodsListData = allData.filter(item => item[targetName].includes(this.data.name));
-
-        }
-        this.setData({
-            goodsListData
-        })
-
-
-
-    },
-addTap() {
-getApp().globalData.detailId=null
-wx.navigateTo({
-url: `/pages/teacher/update-and-add`
-})
-},
-searchListHandler(e) {
-this.setData({
-goodsListData: e.detail.data
-})
-},
-onPageScroll(e) {
-if (e.scrollTop >= 225) {
-this.setData({
-    showToTopButton: true
-});
-}
-
-},
-backToTop() {
-wx.pageScrollTo({
-scrollTop: 0, // 返回顶部的位置
-duration: 1000, // 滚动动画的时长，单位为 ms
-});
-// 返回顶部时隐藏按钮
-
-},
-
-deleteBtn(e) {
-wx.showModal({
-title: '提示',
-content: '确认删除？',
-complete: async (res) => {
-    if (res.cancel) {}
-    if (res.confirm) {
-        const id = e.currentTarget.dataset.id;
-        const res = await deleteData("teacher",[id])
-        console.log(res);
-        if (res.code == 0) {
-            this.getData()
-        }
+  _getTags(modelKey) {
+    var map = {
+      deepseek: ['意境推敲','唯美意象','诗意生活'],
+      doubao: ['快问快答','打油诗','趣味互动'],
+      hunyuan: ['历史典故','睡前故事','稳重工整'],
+      zhipu: ['逻辑推理','字词解谜','分步解析'],
+      mimo: ['韵律朗读','儿歌创作','温柔鼓励'],
+      qwen: ['科学关联','百科知识','对比学习']
     }
-}
-})
-},
+    return map[modelKey] || ['AI教学']
+  },
 
-editBtn(e) {
-const id = e.currentTarget.dataset.id;
-getApp().globalData.detailId=id
-wx.navigateTo({
-url: `/pages/teacher/update-and-add?id=${id}&isAuth=${this.data.isAuthStatus}`
-})
-},
-reserveBtn(e) {
-const item = e.currentTarget.dataset.item;
-if (!wx.getStorageSync('token')) {
-    wx.showToast({
-        title: '请先登录后再预约',
-        icon: 'none'
-    })
-    return
-}
-if (wx.getStorageSync('nowTable') !== 'student') {
-    wx.showToast({
-        title: '请使用学生账号预约',
-        icon: 'none'
-    })
-    return
-}
-getApp().globalData.detailId = item?.id
-getApp().globalData.detailList = item
-wx.setStorageSync('crossTable','teacher');
-wx.setStorageSync('crossObj', item);
-wx.setStorageSync('statusColumnName', '');
-wx.setStorageSync('tips', '');
-wx.setStorageSync('statusColumnValue', '');
-wx.navigateTo({
-    url: `/pages/coursereserve/update-and-add?cross=true`
-})
-},
-async detailBtn(e) {
-const item = e.currentTarget.dataset.item;
-getApp().globalData.detailId = item?.id
-getApp().globalData.detailList =item
-wx.navigateTo({
-    url: `/pages/teacher/detail?isAuth=${this.data.isAuthStatus}`
-})
-
-},
-async getData() {
-    const obj={
-        page: this.data.pageNum,
-        limit: this.data.pageSize,
-            }
-    const nowTable=wx.getStorageSync('nowTable')
-const userId=       getApp().globalData.userInfo.id
-        let isAuthObj={}
-if(this.data.isAuthStatus){
-isAuthObj['addAuth']   = utils.isAuth("teacher", "新增")
-isAuthObj['delAuth']  = utils.isAuth("teacher", "删除")
-isAuthObj['editAuth']   =utils.isAuth("teacher", "修改")
-
-const account = getApp().globalData.userInfo[nowTable + 'account'];
-if(account){
-obj[nowTable + 'account']=wx.getStorageSync('nickname')
-}
-
-}else{
-isAuthObj['addAuth']   = utils.isAuthFront("teacher", "新增")
-isAuthObj['delAuth']  = utils.isAuthFront("teacher", "删除")
-isAuthObj['editAuth']   =utils.isAuthFront("teacher", "修改")
-}
-//前后台权限判断
-this.setData(isAuthObj)
-
-
-
-
-
-
-
-
-
-
-
-let resList
-var that = this
-obj['page']=this.data.pageNum;
-obj['limit']=this.data.pageSize
-    if(this.data.userid){
-        resList = await page("teacher",obj)
-    }else{
-         resList= await list("teacher",obj)
-    }
-
-    if(resList.code==0){
-        let mylist = this.data.questList
-        //先处理成你想要的数据 下面再去赋值
-
-let    goodsListData =  resList.data.list?.filter(item =>
-item?.sfsh?item.sfsh === "是":item)
-.map(item => {
-item.zhaopian? item.zhaopian = item.zhaopian.split(",")[0].replace('upload','flie'):""
-return item;
-});
-        if (that.data.pageNum == 1) {
-            mylist = []
-        }
-
-        // 新旧数据合并到一起
-        mylist = Object.assign(mylist, goodsListData)
-        if (mylist.length < resList.total ){
-            that.setData({
-                pageNum: that.data.pageNum + 1,
-                flag:true
-            })
-        } else {
-            that.setData({
-                flag:false
-            })
-        }
-        that.setData({
-            goodsListData: mylist,
-            questList: mylist,
-            total: resList.total,
-            allData: mylist
-        })
-        
-    }
-
-
-
-
-
-
-// 商品名称
-if (getApp().globalData.name != null) {
-this.setData({
-goodsListData: getApp().globalData.goodsList,
-})
-getApp().globalData.name = null
-console.log('页面重新加载');
-}
-
-},
-
-// 滚动到底触发的方法
-
-/**
-* 生命周期函数--监听页面隐藏
-*/
-onHide() {
-    wx.removeStorageSync('isAuth');
-},
-
-/**
-* 生命周期函数--监听页面卸载
-*/
-onUnload() {
-
-},
-
-/**
-* 页面相关事件处理函数--监听用户下拉动作
-*/
-onPullDownRefresh() {
-
-},
-
-
-
-onReachBottom() {
-if (this.data.flag) {
-this.setData({
-    flag: false
-})
-this.getData(); // 疯狂的请求的方法
-}
-console.log('触发');
-},
-
-
-
-
-/**
-* 页面上拉触底事件的处理函数
-*/
-/**
-* 用户点击右上角分享
-*/
-onShareAppMessage() {
-
-}
+  selectTeacher(e) {
+    var id = e.currentTarget.dataset.id
+    var idx = e.currentTarget.dataset.index
+    var teacher = this.data.teachers[idx]
+    if (!teacher) return
+    this.setData({ selectedId: id, currentTeacher: teacher })
+    wx.setStorageSync('selectedTeacherId', id)
+    wx.setStorageSync('selectedTeacher', teacher)
+    wx.showToast({ title: teacher.name + '：你好呀！接下来的学习由我来陪你哦！', icon: 'none', duration: 2000 })
+  }
 })

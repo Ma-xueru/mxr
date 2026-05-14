@@ -9,43 +9,76 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * 统一AI对话工具 — 支持豆包(Doubao)和DeepSeek，通过 asr.properties 切换
+ * 统一AI对话工具 — 支持 DeepSeek/豆包/智谱/千问/MiMo 一键切换
  *
- * 配置项 (asr.properties):
- *   ai.provider=doubao          # doubao 或 deepseek
- *   ai.deepseek.api_key=sk-xxx
- *   ai.deepseek.model=deepseek-v4-pro
- *   ai.deepseek.base_url=https://api.deepseek.com
+ * asr.properties 配置:
+ *   ai.global.model=deepseek    # deepseek/doubao/zhipu/qwen/mimo
  */
 public class AIChatUtil {
 
-    private static String PROVIDER;
-    private static String DOUBAO_API_KEY;
-    private static String DOUBAO_MODEL;
-    private static String DEEPSEEK_API_KEY;
-    private static String DEEPSEEK_MODEL;
-    private static String DEEPSEEK_BASE_URL;
+    private static String MODEL_KEY;
+    // 模型配置
+    private static String API_URL;
+    private static String API_KEY;
+    private static String MODEL_NAME;
+    private static String AUTH_HEADER; // "Authorization: Bearer xxx" or "api-key: xxx"
 
     static {
         try {
-            java.util.Properties props = new java.util.Properties();
-            props.load(AIChatUtil.class.getClassLoader().getResourceAsStream("asr.properties"));
-            PROVIDER = props.getProperty("ai.provider", "doubao").trim().toLowerCase();
-            DOUBAO_API_KEY = props.getProperty("ark.api.key", "");
-            DOUBAO_MODEL = props.getProperty("ark.model", "doubao-seed-1-8-251228");
-            DEEPSEEK_API_KEY = props.getProperty("ai.deepseek.api_key", "");
-            DEEPSEEK_MODEL = props.getProperty("ai.deepseek.model", "deepseek-v4-pro");
-            DEEPSEEK_BASE_URL = props.getProperty("ai.deepseek.base_url", "https://api.deepseek.com");
+            java.util.Properties p = new java.util.Properties();
+            p.load(AIChatUtil.class.getClassLoader().getResourceAsStream("asr.properties"));
+            MODEL_KEY = p.getProperty("ai.global.model", "deepseek").trim().toLowerCase();
+            loadModelConfig(p);
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    public static String getProvider() { return PROVIDER; }
-    public static String getModel() { return "deepseek".equals(PROVIDER) ? DEEPSEEK_MODEL : DOUBAO_MODEL; }
+    private static void loadModelConfig(java.util.Properties p) {
+        switch (MODEL_KEY) {
+            case "doubao":
+                API_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+                API_KEY = p.getProperty("ark.api.key", "");
+                MODEL_NAME = p.getProperty("ark.model", "doubao-seed-1-8-251228");
+                AUTH_HEADER = "Bearer " + API_KEY;
+                break;
+            case "zhipu":
+                API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+                API_KEY = p.getProperty("ai.zhipu.api_key", "");
+                MODEL_NAME = p.getProperty("ai.zhipu.model", "glm-4.7");
+                AUTH_HEADER = "Bearer " + API_KEY;
+                break;
+            case "qwen":
+                API_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+                API_KEY = p.getProperty("ai.qwen.api_key", "");
+                MODEL_NAME = p.getProperty("ai.qwen.model", "qwen-plus");
+                AUTH_HEADER = "Bearer " + API_KEY;
+                break;
+            case "mimo":
+                API_URL = "https://api.xiaomimimo.com/v1/chat/completions";
+                API_KEY = p.getProperty("ai.mimo.api_key", "");
+                MODEL_NAME = p.getProperty("ai.mimo.model", "mimo-v2.5-pro");
+                AUTH_HEADER = API_KEY;
+                break;
+            case "hunyuan":
+                API_URL = "https://tokenhub.tencentmaas.com/v1/chat/completions";
+                API_KEY = p.getProperty("ai.hunyuan.api_key", "");
+                MODEL_NAME = p.getProperty("ai.hunyuan.model", "hy3-preview");
+                AUTH_HEADER = "Bearer " + API_KEY;
+                break;
+            default: // deepseek
+                API_URL = "https://api.deepseek.com/chat/completions";
+                API_KEY = p.getProperty("ai.deepseek.api_key", "");
+                MODEL_NAME = p.getProperty("ai.deepseek.model", "deepseek-v4-flash");
+                AUTH_HEADER = "Bearer " + API_KEY;
+        }
+        System.out.println("[AIChatUtil] 全局模型: " + MODEL_KEY + " -> " + MODEL_NAME + " url=" + API_URL);
+    }
+
+    public static String getProvider() { return MODEL_KEY; }
+    public static String getModel() { return MODEL_NAME; }
 
     // ---------- 简单消息结构 ----------
     public static class Message {
-        private String role;
-        private String content;
+        private String role; private String content;
         public Message(String role, String content) { this.role = role; this.content = content; }
         public String getRole() { return role; }
         public String getContent() { return content; }
@@ -53,8 +86,7 @@ public class AIChatUtil {
 
     // ---------- 聊天结果 ----------
     public static class ChatResult {
-        private String content;
-        private String thinking; // DeepSeek 思考链
+        private String content; private String thinking;
         public ChatResult(String content) { this.content = content; }
         public ChatResult(String content, String thinking) { this.content = content; this.thinking = thinking; }
         public String getContent() { return content; }
@@ -63,7 +95,6 @@ public class AIChatUtil {
 
     // ========== 公开 API ==========
 
-    /** 单轮对话 */
     public static String chat(String systemPrompt, String userMessage) {
         List<Message> msgs = new ArrayList<>();
         msgs.add(new Message("system", systemPrompt));
@@ -72,20 +103,9 @@ public class AIChatUtil {
         return r != null ? r.getContent() : "";
     }
 
-    /** 多轮对话 (带历史) */
     public static ChatResult chatWithMessages(List<Message> messages, double temperature, int maxTokens) {
-        if ("deepseek".equals(PROVIDER)) {
-            return chatDeepSeek(messages, temperature, maxTokens);
-        } else {
-            return chatDoubao(messages, temperature, maxTokens);
-        }
-    }
-
-    // ========== DeepSeek (OpenAI 兼容 HTTP) ==========
-
-    private static ChatResult chatDeepSeek(List<Message> messages, double temperature, int maxTokens) {
-        String label = "[DeepSeek] ";
-        System.out.println(label + "请求 model=" + DEEPSEEK_MODEL + " msgs=" + messages.size());
+        String label = "[" + MODEL_KEY + "] ";
+        System.out.println(label + "请求 model=" + MODEL_NAME + " msgs=" + messages.size());
 
         try {
             JSONArray msgsArr = new JSONArray();
@@ -94,16 +114,24 @@ public class AIChatUtil {
             }
 
             JSONObject body = new JSONObject();
-            body.put("model", DEEPSEEK_MODEL);
+            body.put("model", MODEL_NAME);
             body.put("messages", msgsArr);
             body.put("temperature", temperature);
             body.put("max_tokens", maxTokens);
             body.put("stream", false);
-            body.put("thinking", new JSONObject().put("type", "disabled"));
 
-            String resp = httpPost(DEEPSEEK_BASE_URL + "/chat/completions",
-                    "Bearer " + DEEPSEEK_API_KEY, body.toString());
-            if (resp == null) return null;
+            // MiMo 使用 max_completion_tokens 和 api-key 头
+            if ("mimo".equals(MODEL_KEY)) {
+                body.remove("max_tokens");
+                body.put("max_completion_tokens", maxTokens);
+            }
+            // DeepSeek 关闭思考加速
+            if ("deepseek".equals(MODEL_KEY)) {
+                body.put("thinking", new JSONObject().put("type", "disabled"));
+            }
+
+            String resp = httpPost(API_URL, body.toString());
+            if (resp == null) { System.out.println(label + "无响应"); return null; }
 
             JSONObject json = new JSONObject(resp);
             JSONArray choices = json.optJSONArray("choices");
@@ -112,16 +140,12 @@ public class AIChatUtil {
                 return null;
             }
 
-            JSONObject choice = choices.getJSONObject(0);
-            JSONObject msg = choice.optJSONObject("message");
-            if (msg == null) {
-                System.out.println(label + "无message: " + resp.substring(0, Math.min(200, resp.length())));
-                return null;
-            }
+            JSONObject msg = choices.getJSONObject(0).optJSONObject("message");
+            if (msg == null) { System.out.println(label + "无message"); return null; }
 
             String content = msg.optString("content", "");
             String thinking = msg.optString("reasoning_content", "");
-            System.out.println(label + "完成 content=" + (content.length()) + "chars thinking=" + (thinking.length()) + "chars");
+            System.out.println(label + "完成 content=" + content.length() + "chars");
             return new ChatResult(content, thinking);
         } catch (Exception e) {
             System.out.println(label + "异常: " + e.getMessage());
@@ -130,70 +154,32 @@ public class AIChatUtil {
         }
     }
 
-    // ========== Doubao (Ark SDK) ==========
-
-    private static ChatResult chatDoubao(List<Message> messages, double temperature, int maxTokens) {
-        String label = "[Doubao] ";
-        System.out.println(label + "请求 model=" + DOUBAO_MODEL + " msgs=" + messages.size());
-
-        com.volcengine.ark.runtime.service.ArkService service =
-                new com.volcengine.ark.runtime.service.ArkService(DOUBAO_API_KEY);
-        try {
-            List<com.volcengine.ark.runtime.model.completion.chat.ChatMessage> arkMsgs = new ArrayList<>();
-            for (Message m : messages) {
-                com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole role;
-                switch (m.getRole()) {
-                    case "system": role = com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole.SYSTEM; break;
-                    case "assistant": role = com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole.ASSISTANT; break;
-                    default: role = com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole.USER;
-                }
-                arkMsgs.add(com.volcengine.ark.runtime.model.completion.chat.ChatMessage.builder()
-                        .role(role).content(m.getContent()).build());
-            }
-
-            com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest req =
-                    com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest.builder()
-                            .model(DOUBAO_MODEL).messages(arkMsgs)
-                            .temperature(temperature).maxTokens(maxTokens).build();
-
-            StringBuilder sb = new StringBuilder();
-            service.createChatCompletion(req).getChoices()
-                    .forEach(c -> sb.append(c.getMessage().getContent()));
-            System.out.println(label + "完成 content=" + sb.length() + "chars");
-            return new ChatResult(sb.toString().trim());
-        } catch (Exception e) {
-            System.out.println(label + "异常: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        } finally {
-            service.shutdownExecutor();
-        }
-    }
-
     // ========== HTTP 工具 ==========
 
-    private static String httpPost(String urlStr, String authHeader, String body) {
+    private static String httpPost(String urlStr, String body) {
         try {
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Authorization", authHeader);
-            conn.setConnectTimeout(30000);
-            conn.setReadTimeout(120000);
+            // MiMo 用 api-key 头，其余用 Authorization: Bearer
+            if ("mimo".equals(MODEL_KEY)) {
+                conn.setRequestProperty("api-key", AUTH_HEADER);
+            } else {
+                conn.setRequestProperty("Authorization", AUTH_HEADER);
+            }
+            conn.setConnectTimeout(30000); conn.setReadTimeout(120000);
             conn.setDoOutput(true);
 
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-            conn.getOutputStream().write(bytes);
-            conn.getOutputStream().close();
+            conn.getOutputStream().write(bytes); conn.getOutputStream().close();
 
             int code = conn.getResponseCode();
             InputStream is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
             if (is == null) return null;
 
             Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");
-            String resp = s.hasNext() ? s.next() : "";
-            s.close();
+            String resp = s.hasNext() ? s.next() : ""; s.close();
 
             if (code != 200) {
                 System.out.println("[AI] HTTP " + code + ": " + resp.substring(0, Math.min(300, resp.length())));

@@ -182,6 +182,143 @@ public class PoemCreatorController {
         } catch (Exception e) { return ""; }
     }
 
+    // ========== AI 作诗 (智谱 GLM) ==========
+    @IgnoreAuth
+    @RequestMapping("/zhipu")
+    public R zhipu(@RequestParam String text) {
+        if (!StringUtils.hasText(text)) return R.error("请输入内容");
+        try {
+            String prompt = "你是充满童趣的AI小诗人，专门为小学生创作古诗。请用通俗优美的语言创作诗。\n"
+                + "场景：" + text + "\n格式：[诗名]\n[作者]AI小诗人\n[正文]\n[诗人老师说]（大白话解释）";
+
+            org.json.JSONArray msgs = new org.json.JSONArray();
+            msgs.put(new org.json.JSONObject().put("role", "system").put("content", "你是AI小诗人。"));
+            msgs.put(new org.json.JSONObject().put("role", "user").put("content", prompt));
+
+            String body = new org.json.JSONObject()
+                .put("model", "glm-4.7").put("messages", msgs)
+                .put("max_tokens", 800).put("temperature", 0.8).toString();
+
+            java.net.URL url = new java.net.URL("https://open.bigmodel.cn/api/paas/v4/chat/completions");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer 2d31b79946b14428b20dce74a540648b.KTjlLqBE3x65RTiu");
+            conn.setConnectTimeout(30000); conn.setReadTimeout(90000);
+            conn.setDoOutput(true);
+            conn.getOutputStream().write(body.getBytes("UTF-8"));
+
+            int code = conn.getResponseCode();
+            java.io.InputStream is = code == 200 ? conn.getInputStream() : conn.getErrorStream();
+            String resp = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A").next();
+            System.out.println("[智谱] HTTP " + code + ": " + resp.substring(0, Math.min(200, resp.length())));
+            if (code != 200) return R.error("智谱API失败");
+
+            org.json.JSONObject json = new org.json.JSONObject(resp);
+            String poem = json.getJSONArray("choices").getJSONObject(0)
+                .getJSONObject("message").optString("content", "");
+            return R.ok().put("data", poem);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return R.error("智谱错误: " + e.getMessage());
+        }
+    }
+
+    // ========== AI 作诗 (全局模型) ==========
+    @IgnoreAuth @RequestMapping("/generate")
+    public R generate(@RequestParam String text) {
+        if (!StringUtils.hasText(text)) return R.error("请输入内容");
+        String prompt = "你是AI小诗人，专门为小学生创作古诗。请用通俗优美的语言创作。\n场景：" + text
+            + "\n格式：[诗名]\n[作者]AI小诗人\n[正文]\n[诗人老师说]（大白话解释）";
+        String poem = AIChatUtil.chat("你是AI小诗人。", prompt);
+        if (poem == null || poem.isEmpty()) return R.error("AI作诗失败");
+        return R.ok().put("data", poem);
+    }
+
+    // ========== AI 作诗 (阿里千问) ==========
+    @IgnoreAuth
+    @RequestMapping("/qwen")
+    public R qwen(@RequestParam String text) {
+        if (!StringUtils.hasText(text)) return R.error("请输入内容");
+        try {
+            String prompt = "你是充满童趣的AI小诗人，专门为小学生创作古诗。请用通俗优美的语言创作诗。\n"
+                + "场景：" + text + "\n格式：[诗名]\n[作者]AI小诗人\n[正文]\n[诗人老师说]（大白话解释）";
+
+            org.json.JSONArray msgs = new org.json.JSONArray();
+            msgs.put(new org.json.JSONObject().put("role", "system").put("content", "你是AI小诗人。"));
+            msgs.put(new org.json.JSONObject().put("role", "user").put("content", prompt));
+
+            String body = new org.json.JSONObject()
+                .put("model", "qwen-plus").put("messages", msgs)
+                .put("max_tokens", 800).put("temperature", 0.8).toString();
+
+            java.net.URL url = new java.net.URL("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer sk-8b86c54172ee4f7891ae823cf94c4e45");
+            conn.setConnectTimeout(30000); conn.setReadTimeout(90000);
+            conn.setDoOutput(true);
+            conn.getOutputStream().write(body.getBytes("UTF-8"));
+
+            int code = conn.getResponseCode();
+            java.io.InputStream is = code == 200 ? conn.getInputStream() : conn.getErrorStream();
+            String resp = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A").next();
+            System.out.println("[千问] HTTP " + code + ": " + resp.substring(0, Math.min(200, resp.length())));
+            if (code != 200) return R.error("千问API失败");
+
+            org.json.JSONObject json = new org.json.JSONObject(resp);
+            String poem = json.getJSONArray("choices").getJSONObject(0)
+                .getJSONObject("message").optString("content", "");
+            return R.ok().put("data", poem);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return R.error("千问错误: " + e.getMessage());
+        }
+    }
+
+    // ========== AI 作诗 (小米 MiMo) ==========
+    @IgnoreAuth
+    @RequestMapping("/mimo")
+    public R mimo(@RequestParam String text) {
+        if (!StringUtils.hasText(text)) return R.error("请输入内容");
+        try {
+            String prompt = "你是充满童趣的AI小诗人，专门为小学生创作古诗。请用通俗优美的语言创作诗。\n"
+                + "场景：" + text + "\n格式：[诗名]\n[作者]AI小诗人\n[正文]\n[诗人老师说]（大白话解释）";
+
+            org.json.JSONArray msgs = new org.json.JSONArray();
+            msgs.put(new org.json.JSONObject().put("role", "system").put("content", "你是AI小诗人。"));
+            msgs.put(new org.json.JSONObject().put("role", "user").put("content", prompt));
+
+            String body = new org.json.JSONObject()
+                .put("model", "mimo-v2.5-pro").put("messages", msgs)
+                .put("max_completion_tokens", 800).put("temperature", 1.0).toString();
+
+            java.net.URL url = new java.net.URL("https://api.xiaomimimo.com/v1/chat/completions");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("api-key", "sk-cnvdpympfmemjcr4e3ufrt46kczv7ugrfmno5gdlgt2g8lkc");
+            conn.setConnectTimeout(30000); conn.setReadTimeout(90000);
+            conn.setDoOutput(true);
+            conn.getOutputStream().write(body.getBytes("UTF-8"));
+
+            int code = conn.getResponseCode();
+            java.io.InputStream is = code == 200 ? conn.getInputStream() : conn.getErrorStream();
+            String resp = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A").next();
+            System.out.println("[MiMo] HTTP " + code + ": " + resp.substring(0, Math.min(200, resp.length())));
+            if (code != 200) return R.error("MiMo API失败");
+
+            org.json.JSONObject json = new org.json.JSONObject(resp);
+            String poem = json.getJSONArray("choices").getJSONObject(0)
+                .getJSONObject("message").optString("content", "");
+            return R.ok().put("data", poem);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return R.error("MiMo错误: " + e.getMessage());
+        }
+    }
+
     // ========== AI 作诗 (DeepSeek Reasoning) ==========
     @IgnoreAuth
     @RequestMapping("/compose")
