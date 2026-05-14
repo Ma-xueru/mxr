@@ -517,3 +517,6 @@ page {
 /* 教师测验卡片 */
 .quiz-task-card { background: linear-gradient(135deg, #4A148C, #7B1FA2) !important; box-shadow: 0 12rpx 36rpx rgba(74,20,140,.3) !important; }
 .quiz-task-badge { background: rgba(255,255,255,.18) !important; }
+
+.poem-creator-card { background: linear-gradient(135deg, #4FC3F7, #29B6F6) !important; box-shadow: 0 12rpx 36rpx rgba(41,182,246,.3) !important; }
+.poem-creator-badge { background: rgba(255,255,255,.2) !important; }

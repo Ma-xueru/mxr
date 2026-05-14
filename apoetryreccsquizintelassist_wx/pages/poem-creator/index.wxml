@@ -1,0 +1,33 @@
+<view class="pc-page">
+  <view class="pc-header">
+    <text class="pc-title">🌸 AI 诗词小诗人</text>
+    <text class="pc-subtitle">拍景生诗，出口成章</text>
+  </view>
+
+  <scroll-view class="pc-chat" scroll-y scroll-into-view="chat-end" scroll-with-animation>
+    <view class="pc-msg" wx:for="{{messages}}" wx:key="index">
+      <view wx:if="{{item.from === 'ai'}}" class="pc-bubble ai">
+        <text wx:if="{{item.loading}}" class="pc-loading-text">{{item.text}}</text>
+        <view wx:else class="pc-poem-block">
+          <text class="pc-poem-text">{{item.text}}</text>
+          <button wx:if="{{item.ttsUrl}}" class="pc-tts-btn" bindtap="playTTS" data-url="{{item.ttsUrl}}">🔊 朗读</button>
+        </view>
+      </view>
+      <view wx:if="{{item.from === 'user'}}" class="pc-bubble user">
+        <text wx:if="{{item.type === 'text'}}">{{item.text}}</text>
+        <image wx:if="{{item.type === 'image'}}" src="{{item.text}}" mode="aspectFill" class="pc-msg-img" />
+      </view>
+    </view>
+    <view id="chat-end"></view>
+  </scroll-view>
+
+  <view class="pc-input-bar">
+    <view class="pc-input-actions">
+      <button class="pc-action-btn" bindtap="takePhoto">📷</button>
+      <button class="pc-action-btn" bindtap="startVoice" wx:if="{{!recording}}">🎤</button>
+      <button class="pc-action-btn recording" bindtap="stopVoice" wx:if="{{recording}}">⏹</button>
+    </view>
+    <input class="pc-input" placeholder="输入风景关键词..." value="{{inputText}}" bindinput="onInput" confirm-type="send" bindconfirm="sendText" maxlength="100" />
+    <button class="pc-send-btn" bindtap="sendText" disabled="{{!inputText || waiting}}">发送</button>
+  </view>
+</view>

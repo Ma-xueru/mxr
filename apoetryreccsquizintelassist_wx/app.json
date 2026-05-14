@@ -7,6 +7,7 @@
         "pages/quiz/wrongbook",
         "pages/quiz/task-list",
         "pages/quiz/task-exam",
+        "pages/poem-creator/index",
         "pages/center/report",
         "pages/game/feihualing",
         "pages/login/login",

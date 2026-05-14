@@ -389,8 +389,8 @@ const getList = () => {
 	if(searchQuery.value.tasktitle) params.tasktitle = '%' + searchQuery.value.tasktitle + '%'
 	context?.$http({ url: `${tableName}/page`, method: 'get', params }).then(res => {
 		listLoading.value = false
-		list.value = res.data.data.list
-		total.value = Number(res.data.data.total)
+		list.value = (res.data.data.list || []).filter(item => !item.tasktitle || !item.tasktitle.startsWith('测验：'))
+		total.value = list.value.length
 	})
 }
 const searchClick = async () => { listQuery.value.page = 1; getList(); await getOverviewData() }

@@ -124,7 +124,11 @@ const {
   goRecite() {
       wx.navigateTo({ url: '/pages/recitationtask/list' })
   },
-  goTaskQuiz() {
+  
+	goPoemCreator() {
+		wx.navigateTo({ url: '/pages/poem-creator/index' })
+	},
+	goTaskQuiz() {
 		wx.navigateTo({ url: '/pages/quiz/task-list' })
 	},
 
