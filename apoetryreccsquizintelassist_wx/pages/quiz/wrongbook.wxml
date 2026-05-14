@@ -9,21 +9,21 @@
     <button class="wb-empty-btn" bindtap="goQuiz">去测验</button>
   </view>
 
-  <view class="wb-list" wx:for="{{list}}" wx:key="index">
+  <view class="wb-list" wx:for="{{list}}" wx:for-item="row" wx:key="index">
     <view class="wb-card">
-      <view class="wb-poem-tag">{{item.poemTitle}}</view>
-      <view class="wb-question">{{item.question}}</view>
+      <view class="wb-poem-tag">{{row.poemTitle}}</view>
+      <view class="wb-question">{{row.question}}</view>
       <view class="wb-options">
-        <view class="wb-opt {{item.answer === i ? 'wb-right' : (item.selected === i ? 'wb-wrong' : '')}}" wx:for="{{item.options}}" wx:for-index="i" wx:key="i">
+        <view class="wb-opt {{row.answer === i ? 'wb-right' : (row.selected === i ? 'wb-wrong' : '')}}" wx:for="{{row.options}}" wx:for-index="i" wx:for-item="opt" wx:key="i">
           <text class="wb-opt-letter">{{['A','B','C','D'][i]}}.</text>
           <text>{{opt}}</text>
-          <text class="wb-opt-tag" wx:if="{{item.answer === i}}">✓ 正确</text>
-          <text class="wb-opt-tag wrong" wx:if="{{item.selected === i && item.selected !== item.answer}}">✗ 你的选择</text>
+          <text class="wb-opt-tag" wx:if="{{outer.answer === i}}">✓ 正确</text>
+          <text class="wb-opt-tag wrong" wx:if="{{outer.selected === i && outer.selected !== outer.answer}}">✗ 你的选择</text>
         </view>
       </view>
-      <view class="wb-analysis" wx:if="{{item.analysis}}">
+      <view class="wb-analysis" wx:if="{{row.analysis}}">
         <text class="wb-analysis-label">📖 解析</text>
-        <text class="wb-analysis-text">{{item.analysis}}</text>
+        <text class="wb-analysis-text">{{row.analysis}}</text>
       </view>
     </view>
   </view>

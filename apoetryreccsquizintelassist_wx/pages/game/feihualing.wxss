@@ -1,10 +1,17 @@
 .fh-page { display: flex; flex-direction: column; height: 100vh; background: linear-gradient(180deg, #f5f0e8 0%, #ede4d3 100%); }
 
 /* 头部 */
-.fh-header { padding: 20rpx 30rpx; text-align: center; background: linear-gradient(135deg, #4A148C, #7B1FA2); color: #fff; }
-.fh-keyword-badge { display: inline-block; padding: 8rpx 28rpx; background: rgba(255,255,255,.2); border-radius: 24rpx; font-size: 32rpx; font-weight: 700; }
-.fh-round-badge { font-size: 22rpx; color: rgba(255,255,255,.7); margin-top: 6rpx; }
-.fh-header-hint { font-size: 24rpx; color: rgba(255,255,255,.65); margin-top: 8rpx; }
+.fh-header { padding: 16rpx 24rpx 12rpx; background: linear-gradient(135deg, #4A148C, #7B1FA2); color: #fff; }
+.fh-top-row { display: flex; align-items: center; justify-content: space-between; }
+.fh-lives { display: flex; gap: 4rpx; }
+.fh-heart { font-size: 32rpx; transition: all .3s; }
+.fh-heart.off { opacity: .2; filter: grayscale(1); }
+.fh-keyword-badge { padding: 6rpx 22rpx; background: rgba(255,255,255,.2); border-radius: 20rpx; font-size: 28rpx; font-weight: 700; }
+.fh-timer { text-align: center; }
+.fh-timer-ring { width: 60rpx; height: 60rpx; line-height: 60rpx; border-radius: 50%; border: 3rpx solid rgba(255,255,255,.5); font-size: 24rpx; font-weight: 800; font-family: monospace; display: flex; align-items: center; justify-content: center; }
+.fh-timer.urgent .fh-timer-ring { border-color: #ef5350; color: #ef5350; animation: pulse 0.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+.fh-round-badge { font-size: 22rpx; color: rgba(255,255,255,.7); margin-top: 8rpx; text-align: center; }
 
 /* 对话区 */
 .fh-chat { flex: 1; padding: 24rpx 24rpx 0; overflow-y: auto; }

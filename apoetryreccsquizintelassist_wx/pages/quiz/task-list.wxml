@@ -1,0 +1,14 @@
+<view class="tl-page">
+  <view class="tl-empty" wx:if="{{list.length===0 && !loading}}">
+    <text class="tl-empty-icon">📋</text>
+    <text class="tl-empty-text">暂无待完成的测验</text>
+  </view>
+  <view class="tl-card" wx:for="{{list}}" wx:key="taskId" bindtap="startExam" data-index="{{index}}">
+    <view class="tl-card-icon">📝</view>
+    <view class="tl-card-info">
+      <text class="tl-card-title">{{item.taskTitle}}</text>
+      <text class="tl-card-desc">{{item.courseTitle}} · {{item.questions.length}}道题</text>
+    </view>
+    <text class="tl-card-arrow">→</text>
+  </view>
+</view>

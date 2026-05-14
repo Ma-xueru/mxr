@@ -2,10 +2,12 @@ var keywords = ['月','花','风','云','山','水','春','秋','日','雨','雪
 Page({
   data: {
     keyword: '', messages: [], inputText: '', waiting: false,
-    roundCount: 1, scrollToId: '', score: 0, combo: 0, maxCombo: 0,
-    showResult: false, resultRank: 0, resultTitle: ''
+    roundCount: 1, scrollToId: '', score: 0, combo: 0,
+    lives: 3, timerSeconds: 30, timerDisplay: '30',
+    showResult: false, resultData: null,
+    inputWarning: ''
   },
-  _scoreAnimTimer: null,
+  _timer: null, _animTimer: null,
 
   onLoad() { this.resetGame() },
 
@@ -13,23 +15,70 @@ Page({
     var kw = keywords[Math.floor(Math.random() * keywords.length)]
     var baseURL = wx.getStorageSync('baseURL') || ''
     wx.request({ url: baseURL + '/game/reset?sessionId=default', method: 'GET', header: { Token: wx.getStorageSync('token') } })
+    wx.request({ url: baseURL + '/game/init?keyword=' + kw + '&sessionId=default', method: 'GET', header: { Token: wx.getStorageSync('token') } })
+    this._stopTimer()
     this.setData({
       keyword: kw, messages: [
-        { from: 'ai', text: '飞花令开始！关键字是「' + kw + '」，请说出含此字的古诗词句～', source: '', comment: '', typing: false }
-      ], waiting: false, inputText: '',
-      score: 0, combo: 0, maxCombo: 0, showResult: false, roundCount: 1
+        { from: 'ai', text: '飞花令开始！关键字是「' + kw + '」，请说出含此字的古诗词句～\n你有 ❤️❤️❤️ 三次机会', source: '', comment: '', typing: false }
+      ], waiting: false, inputText: '', score: 0, combo: 0,
+      lives: 3, showResult: false, resultData: null, roundCount: 1,
+      timerSeconds: 30, timerDisplay: '30'
+    })
+    this._startTimer()
+  },
+
+  _startTimer() {
+    var that = this
+    this._stopTimer()
+    this.setData({ timerSeconds: 30, timerDisplay: '30' })
+    this._timer = setInterval(function() {
+      var t = that.data.timerSeconds - 1
+      if (t <= 0) { that._onTimeout(); return }
+      that.setData({ timerSeconds: t, timerDisplay: t < 10 ? '0' + t : String(t) })
+    }, 1000)
+  },
+
+  _stopTimer() { if (this._timer) { clearInterval(this._timer); this._timer = null } },
+
+  _onTimeout() {
+    this._stopTimer()
+    var that = this
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({ url: baseURL + '/game/timeout?sessionId=default', method: 'GET', header: { Token: wx.getStorageSync('token') },
+      success: function(res) {
+        var data = (res.data && res.data.data) || {}
+        var msgs = that.data.messages
+        msgs.push({ from: 'ai', text: '⏰ 超时！' + (data.reason || ''), source: '', comment: '', typing: false })
+        if (data.aiPoem) msgs.push({ from: 'ai', text: data.aiPoem, source: data.source || '', comment: '', typing: false })
+        that.setData({ messages: msgs, lives: data.lives || 0, score: data.score || 0 })
+        if (data.gameOver) { that._showSettlement() }
+        else { that.setData({ combo: 0 }); that._startTimer() }
+      },
+      fail: function() { that._startTimer() }
     })
   },
 
-  onInput(e) { this.setData({ inputText: e.detail.value }) },
+  onInput(e) {
+    var val = e.detail.value
+    this.setData({ inputText: val, inputWarning: '' })
+  },
 
   sendPoem() {
     var text = this.data.inputText.trim()
     if (!text || this.data.waiting) return
+
+    // 非中文拦截
+    if (!/[一-龥]/.test(text)) {
+      this.setData({ inputWarning: '请输入中文古诗词句', inputText: '' })
+      wx.showToast({ title: '请输入中文诗句', icon: 'none', duration: 1500 })
+      return
+    }
+
+    this._stopTimer()
     var msgs = this.data.messages
     msgs.push({ from: 'user', text: text, valid: true, reason: '' })
     msgs.push({ from: 'ai', text: '', source: '', comment: '', typing: true })
-    this.setData({ messages: msgs, inputText: '', waiting: true, scrollToId: 'chat-bottom' })
+    this.setData({ messages: msgs, inputText: '', inputWarning: '', waiting: true, scrollToId: 'chat-bottom' })
 
     var that = this
     var baseURL = wx.getStorageSync('baseURL') || ''
@@ -41,57 +90,38 @@ Page({
       success: function(res) {
         var data = (res.data && res.data.data) || {}
         var msgs = that.data.messages; msgs.pop()
-        if (!data.userValid) {
+        if (!data.isValid) {
           msgs[msgs.length-1].valid = false
-          msgs[msgs.length-1].reason = data.reason || '不含关键字'
+          msgs[msgs.length-1].reason = data.reason || '无效输入'
         }
-        msgs.push({
-          from: 'ai', typing: false,
-          text: data.aiPoem || 'AI休息中，经典名句顶上～',
-          source: data.source || '', comment: data.aiComment || ''
-        })
-        var combo = data.combo || 0, maxCombo = Math.max(that.data.maxCombo, combo)
+        msgs.push({ from: 'ai', typing: false, text: data.aiPoem || 'AI休息中～', source: data.source || '', comment: data.aiComment || '' })
         that.setData({
-          messages: msgs, waiting: false,
-          roundCount: (data.roundCount || that.data.roundCount) + 1,
-          score: data.score || that.data.score, combo: combo, maxCombo: maxCombo,
-          scrollToId: 'chat-bottom'
+          messages: msgs, waiting: false, lives: data.lives || 0,
+          roundCount: (data.roundCount || 0) + 1, score: data.score || 0,
+          combo: data.combo || 0, scrollToId: 'chat-bottom'
         })
+        if (data.gameOver) { that._showSettlement() }
+        else { that._startTimer() }
       },
       fail: function() {
         var msgs = that.data.messages; msgs.pop()
         msgs.push({ from: 'ai', text: '网络好像不太好，再试一次吧～', source: '', comment: '', typing: false })
-        that.setData({ messages: msgs, waiting: false })
+        that.setData({ messages: msgs, waiting: false }); that._startTimer()
       }
     })
   },
 
-  exitGame() {
-    if (this.data.score > 0) {
-      this._saveAndShowResult()
-    } else {
-      wx.navigateBack()
-    }
-  },
-
-  _saveAndShowResult() {
+  _showSettlement() {
+    this._stopTimer()
     var that = this
     var baseURL = wx.getStorageSync('baseURL') || ''
-    // 保存成绩
     wx.request({
-      url: baseURL + '/game/saveRecord', method: 'GET',
-      data: { sessionId: 'default', score: this.data.score, rounds: this.data.roundCount - 1, maxCombo: this.data.maxCombo, keyword: this.data.keyword },
-      header: { Token: wx.getStorageSync('token') }
-    })
-    // 查询排名
-    wx.request({
-      url: baseURL + '/game/rank?score=' + this.data.score, method: 'GET',
+      url: baseURL + '/game/settlement?sessionId=default', method: 'GET',
       header: { Token: wx.getStorageSync('token') },
       success: function(res) {
-        var pct = (res.data && res.data.data && res.data.data.percentage) || 50
-        var title = that.data.score < 30 ? '诗词书童' : that.data.score < 80 ? '翰林学士' : '一代诗宗'
-        that.setData({ showResult: true, resultRank: pct, resultTitle: title })
-        that._animateScore(that.data.score)
+        var data = (res.data && res.data.data) || {}
+        that.setData({ showResult: true, resultData: data })
+        that._animateScore(data.score || 0)
       }
     })
   },
@@ -99,15 +129,21 @@ Page({
   _animateScore(target) {
     var that = this
     var current = 0, step = Math.max(1, Math.floor(target / 30))
-    clearInterval(this._scoreAnimTimer)
-    this._scoreAnimTimer = setInterval(function() {
+    clearInterval(this._animTimer)
+    this._animTimer = setInterval(function() {
       current += step
-      if (current >= target) { current = target; clearInterval(that._scoreAnimTimer) }
-      that.setData({ score: current })
+      if (current >= target) { current = target; clearInterval(that._animTimer) }
+      var d = that.data.resultData || {}
+      d.score = current; that.setData({ resultData: d })
     }, 50)
   },
 
   closeResult() { wx.navigateBack() },
 
-  onUnload() { clearInterval(this._scoreAnimTimer) }
+  exitGame() {
+    if (this.data.score > 0 && !this.data.showResult) { this._showSettlement() }
+    else { wx.navigateBack() }
+  },
+
+  onUnload() { this._stopTimer(); clearInterval(this._animTimer) }
 })

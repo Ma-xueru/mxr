@@ -32,6 +32,9 @@ public class InterceptorConfig extends WebMvcConfigurationSupport{
         .addResourceLocations("classpath:/static/")
         .addResourceLocations("classpath:/")
         .addResourceLocations("classpath:/public/");
+		// 直接读源码目录 dist，npm build 完无需重启
+		registry.addResourceHandler("/manage/dist/**")
+        .addResourceLocations("file:src/main/resources/manage/dist/");
 		super.addResourceHandlers(registry);
     }
 }

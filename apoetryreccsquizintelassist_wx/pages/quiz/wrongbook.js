@@ -8,7 +8,7 @@ Page({
     var that = this
     var baseURL = wx.getStorageSync('baseURL') || ''
     wx.request({
-      url: baseURL + '/quiz/wrongbook',
+      url: baseURL + '/game/wrongbook',
       method: 'GET', header: { Token: wx.getStorageSync('token') },
       success: function(res) {
         that.setData({ list: (res.data && res.data.data) || [], loading: false })

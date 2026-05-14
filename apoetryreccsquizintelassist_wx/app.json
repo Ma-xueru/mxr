@@ -5,6 +5,8 @@
         "pages/followread/practice",
         "pages/quiz/practice",
         "pages/quiz/wrongbook",
+        "pages/quiz/task-list",
+        "pages/quiz/task-exam",
         "pages/center/report",
         "pages/game/feihualing",
         "pages/login/login",

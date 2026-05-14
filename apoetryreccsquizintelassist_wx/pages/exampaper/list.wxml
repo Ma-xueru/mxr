@@ -35,51 +35,32 @@
     </view>
   </view>
 
-  <view class="search">
-    <input class="search-input" model:value="{{name}}" type="text" placeholder="搜索测验...">
-    <text class="iconfont icon-sousuo4 icons"></text>
-    </input>
-    <view class="searchBtn" bind:tap="searhandler">搜索</view>
-  </view>
-
-  <view class="content">
-    <view class="title">智能推荐测验</view>
-    <view class="list">
-      <view class="list-item" wx:for="{{currentList}}" wx:key="{{index}}">
-        <view class="item-badge" wx:if="{{item.weight > 80}}">建议复习</view>
-        <view class="item-badge green" wx:elif="{{item.weight < 30 && item.latestScore >= 90}}">已掌握</view>
-        <view class="left">
-          <view class="iconfont icon-book1 char-item">{{item.name[0] || ''}}</view>
-          <view class="iconfont icon-book1 char-item">{{item.name[1] || ''}}</view>
-          <view class="iconfont icon-book1 char-item">{{item.name[2] || ''}}</view>
-          <view class="iconfont icon-book1 char-item">{{item.name[3] || ''}}</view>
-        </view>
-        <view class="right">
-          <view>{{item.name}}</view>
-          <view class="item-meta">
-            <text class="iconfont icon-clock"></text>限时:{{item.time}}分钟
-            <text class="item-score" wx:if="{{item.latestScore !== undefined}}">最高:{{item.latestScore}}分</text>
-          </view>
-          <!-- 进度环 -->
-          <view class="progress-ring" wx:if="{{item.latestScore !== undefined}}">
-            <view class="ring-bg"><view class="ring-fill" style="width:{{item.latestScore}}%"></view></view>
-            <text class="ring-text">{{item.latestScore}}%</text>
-          </view>
-          <view>
-            <button bindtap="examTap" data-id="{{item.id}}">开始测验</button>
-          </view>
-        </view>
-      </view>
-      <view class="nodata" wx:if="{{currentList.length === 0}}">
-        <text class="iconfont icon-book1 nodata-icon"></text>
-        <view>~没有找到相关古诗词学习~</view>
-      </view>
+  <!-- AI 智能训练入口 -->
+  <view class="ai-train-cards">
+    <view class="train-card" bindtap="startHistoryReview">
+      <view class="train-card-icon">📖</view>
+      <view class="train-card-title">温故而知新</view>
+      <view class="train-card-desc">基于近14天学习足迹，AI 实时组卷</view>
+      <view class="train-card-btn">开始训练 →</view>
+    </view>
+    <view class="train-card analogy" bindtap="startAnalogy">
+      <view class="train-card-icon">💡</view>
+      <view class="train-card-title">举一反三</view>
+      <view class="train-card-desc">针对薄弱标签，AI 匹配同类题目</view>
+      <view class="train-card-btn">开始训练 →</view>
     </view>
   </view>
 
-  <view class="to-top-btn" bindtap="backToTop">
-    <view class="iconfont icon-arrowup">top</view>
+  <!-- AI 出题加载蒙层 -->
+  <view class="ai-loading-overlay" wx:if="{{aiLoading}}">
+    <view class="ai-loading-modal">
+      <text class="ai-loading-icon">🤖</text>
+      <text class="ai-loading-title">AI 导师正在出题中...</text>
+      <text class="ai-loading-hint">{{aiLoadingHint}}</text>
+      <view class="ai-loading-bar"><view class="ai-loading-fill"></view></view>
+    </view>
   </view>
+
 
 <voice-assistant />
 </view>

@@ -1,0 +1,54 @@
+<view class="te-page">
+  <!-- 加载中 -->
+  <view class="te-loading" wx:if="{{loading}}">
+    <text class="te-loading-icon">📝</text>
+    <text class="te-loading-text">加载测验中...</text>
+  </view>
+
+  <!-- 答题中 -->
+  <view class="te-body" wx:if="{{!loading && !finished}}">
+    <view class="te-header">
+      <text class="te-course-title">{{courseTitle}}</text>
+      <view class="te-progress-bar"><view class="te-progress-fill" style="width:{{(currentIndex/questions.length)*100}}%"></view></view>
+      <text class="te-progress-text">{{currentIndex + 1}} / {{questions.length}}</text>
+    </view>
+    <view class="te-card">
+      <view class="te-question">{{questions[currentIndex].question}}</view>
+      <view class="te-options">
+        <view class="te-opt" wx:for="{{questions[currentIndex].options}}" wx:for-index="i" wx:key="i" data-index="{{i}}" bindtap="selectOption">
+          <text class="te-opt-letter">{{['A','B','C','D'][i]}}</text>
+          <text>{{opt}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 结果页 -->
+  <view class="te-result" wx:if="{{finished}}">
+    <view class="te-result-score-wrap">
+      <text class="te-result-emoji">{{score>=80?'🎉':score>=60?'😊':'💪'}}</text>
+      <text class="te-result-score">{{score}}分</text>
+      <text class="te-result-label">答对 {{correctCount}} / {{totalQuestions}} 题</text>
+    </view>
+    <!-- AI 报告 -->
+    <view class="te-report" wx:if="{{aiReport}}">
+      <view class="te-report-title">📊 AI 多维评估</view>
+      <view class="te-dim-card" wx:for="{{aiReport.dimensions}}" wx:key="name">
+        <view class="te-dim-header">
+          <text class="te-dim-name">{{item.name}}</text>
+          <text class="te-dim-score">{{item.score}}分</text>
+        </view>
+        <view class="te-dim-bar"><view class="te-dim-fill" style="width:{{item.score}}%;background:{{item.score>=85?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}"></view></view>
+        <text class="te-dim-comment">{{item.comment}}</text>
+      </view>
+      <view class="te-overall" wx:if="{{aiReport.overallComment}}">
+        <text class="te-overall-label">📝 总评</text>
+        <text class="te-overall-text">{{aiReport.overallComment}}</text>
+      </view>
+    </view>
+    <view class="te-result-actions">
+      <button class="te-btn" bindtap="viewWrongbook">查看错题解析</button>
+      <button class="te-btn outline" bindtap="goBack">返回首页</button>
+    </view>
+  </view>
+</view>

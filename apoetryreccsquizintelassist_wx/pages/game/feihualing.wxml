@@ -1,12 +1,21 @@
 <view class="fh-page">
-  <!-- 顶栏: 关键字 -->
+  <!-- 顶栏 -->
   <view class="fh-header">
-    <view class="fh-keyword-badge">🔑 关键字：{{keyword}}</view>
-    <view class="fh-round-badge">第 {{roundCount}} 轮 · {{score}}分</view>
-    <view class="fh-header-hint">说出含「{{keyword}}」字的古诗词句{{combo >= 3 ? '  🔥' + combo + '连击' : ''}}</view>
+    <view class="fh-top-row">
+      <view class="fh-lives">
+        <text class="fh-heart {{lives >= 1 ? 'on' : 'off'}}">❤️</text>
+        <text class="fh-heart {{lives >= 2 ? 'on' : 'off'}}">❤️</text>
+        <text class="fh-heart {{lives >= 3 ? 'on' : 'off'}}">❤️</text>
+      </view>
+      <view class="fh-keyword-badge">🔑 {{keyword}}</view>
+      <view class="fh-timer {{timerSeconds <= 10 ? 'urgent' : ''}}">
+        <view class="fh-timer-ring">{{timerDisplay}}</view>
+      </view>
+    </view>
+    <view class="fh-round-badge">第 {{roundCount}} 轮 · {{score}}分{{combo >= 3 ? '  🔥' + combo + '连击' : ''}}</view>
   </view>
 
-  <!-- 对话区域 -->
+  <!-- 对话区 -->
   <scroll-view class="fh-chat" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation>
     <view class="fh-msg" wx:for="{{messages}}" wx:key="index" id="msg-{{index}}">
       <view wx:if="{{item.from === 'user'}}" class="fh-bubble user">
@@ -28,38 +37,28 @@
   <!-- 输入区 -->
   <view class="fh-input-bar">
     <input class="fh-input" placeholder="输入含「{{keyword}}」字的诗句..." value="{{inputText}}" bindinput="onInput" confirm-type="send" bindconfirm="sendPoem" maxlength="100" />
-    <button class="fh-send-btn" bindtap="sendPoem" disabled="{{!inputText || waiting}}">发送</button>
+    <button class="fh-send-btn" bindtap="sendPoem" disabled="{{!inputText || waiting}}">{{waiting ? '...' : '发送'}}</button>
   </view>
   <view class="fh-actions">
-    <button class="fh-action-btn" bindtap="resetGame">🔄 换关键字</button>
     <button class="fh-action-btn exit" bindtap="exitGame">退出</button>
   </view>
 
   <!-- 结算弹窗 -->
   <view class="fh-result-overlay" wx:if="{{showResult}}">
     <view class="fh-result-modal">
-      <text class="fh-result-icon">{{score >= 60 ? '🏆' : score >= 30 ? '📜' : '🌱'}}</text>
+      <text class="fh-result-icon">{{resultData.score >= 60 ? '🏆' : resultData.score >= 30 ? '📜' : '💪'}}</text>
       <text class="fh-result-title">对战结束</text>
       <view class="fh-result-score-wrap">
-        <text class="fh-result-score">{{score}}</text>
+        <text class="fh-result-score">{{resultData.score}}</text>
         <text class="fh-result-score-label">总得分</text>
       </view>
       <view class="fh-result-row">
-        <view class="fh-result-stat">
-          <text class="fh-stat-val">{{roundCount - 1}}</text>
-          <text class="fh-stat-lbl">总轮数</text>
-        </view>
-        <view class="fh-result-stat">
-          <text class="fh-stat-val">{{maxCombo}}</text>
-          <text class="fh-stat-lbl">最高连击</text>
-        </view>
-        <view class="fh-result-stat highlight">
-          <text class="fh-stat-val grade">{{resultRank}}%</text>
-          <text class="fh-stat-lbl">击败全站</text>
-        </view>
+        <view class="fh-result-stat"><text class="fh-stat-val">{{resultData.rounds}}</text><text class="fh-stat-lbl">总轮数</text></view>
+        <view class="fh-result-stat"><text class="fh-stat-val">{{resultData.maxCombo}}</text><text class="fh-stat-lbl">最高连击</text></view>
+        <view class="fh-result-stat highlight"><text class="fh-stat-val grade">{{resultData.rankPct}}%</text><text class="fh-stat-lbl">击败全站</text></view>
       </view>
-      <view class="fh-result-title-badge {{score >= 60 ? 'gold' : score >= 30 ? 'silver' : 'bronze'}}">
-        <text>{{resultTitle}}</text>
+      <view class="fh-result-title-badge {{resultData.score >= 60 ? 'gold' : resultData.score >= 30 ? 'silver' : 'bronze'}}">
+        <text>{{resultData.title}}</text>
       </view>
       <button class="fh-result-close-btn" bindtap="closeResult">返回</button>
     </view>

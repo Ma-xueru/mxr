@@ -125,6 +125,41 @@ Page({
         })
     },
 
+    startHistoryReview() {
+        var that = this
+        this.setData({ aiLoading: true, aiLoadingHint: '正在分析近14天学习足迹...' })
+        wx.request({
+            url: (wx.getStorageSync('baseURL') || '') + '/game/history-review', method: 'GET',
+            header: { Token: wx.getStorageSync('token') },
+            timeout: 45000,
+            success: function(res) { that._onQuizReady(res) },
+            fail: function() { that.setData({ aiLoading: false }); wx.showToast({ title: '出题超时，请重试', icon: 'none' }) }
+        })
+    },
+
+    startAnalogy() {
+        var that = this
+        this.setData({ aiLoading: true, aiLoadingHint: '正在提取薄弱标签并匹配同类题目...' })
+        wx.request({
+            url: (wx.getStorageSync('baseURL') || '') + '/game/analogy-training', method: 'GET',
+            header: { Token: wx.getStorageSync('token') },
+            timeout: 45000,
+            success: function(res) { that._onQuizReady(res) },
+            fail: function() { that.setData({ aiLoading: false }); wx.showToast({ title: '出题超时，请重试', icon: 'none' }) }
+        })
+    },
+
+    _onQuizReady(res) {
+        this.setData({ aiLoading: false })
+        if (res.data.code === 0 && res.data.data) {
+            var questions = JSON.parse(res.data.data)
+            getApp().globalData._aiQuestions = questions
+            wx.navigateTo({ url: '/pages/quiz/practice?id=ai&title=' + encodeURIComponent('AI智能出题') + '&content=ai' })
+        } else {
+            wx.showToast({ title: res.data.msg || '出题失败', icon: 'none' })
+        }
+    },
+
     toFeiHuaLing() { wx.navigateTo({ url: '/pages/game/feihualing' }) },
 
     searhandler() {

@@ -99,8 +99,7 @@ public class AIChatUtil {
             body.put("temperature", temperature);
             body.put("max_tokens", maxTokens);
             body.put("stream", false);
-            // DeepSeek V4 思考模式（可选，通过 thinking.enabled 控制）
-            // body.put("thinking", new JSONObject().put("type", "enabled"));
+            body.put("thinking", new JSONObject().put("type", "disabled"));
 
             String resp = httpPost(DEEPSEEK_BASE_URL + "/chat/completions",
                     "Bearer " + DEEPSEEK_API_KEY, body.toString());

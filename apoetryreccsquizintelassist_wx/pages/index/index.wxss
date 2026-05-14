@@ -513,3 +513,7 @@ page {
 /* 错题本入口卡片 */
 .wrongbook-card { background: linear-gradient(135deg, #5D4037, #795548, #8D6E63) !important; box-shadow: 0 12rpx 36rpx rgba(93,64,55,.3) !important; }
 .wrongbook-badge { background: rgba(255,255,255,.18) !important; }
+
+/* 教师测验卡片 */
+.quiz-task-card { background: linear-gradient(135deg, #4A148C, #7B1FA2) !important; box-shadow: 0 12rpx 36rpx rgba(74,20,140,.3) !important; }
+.quiz-task-badge { background: rgba(255,255,255,.18) !important; }

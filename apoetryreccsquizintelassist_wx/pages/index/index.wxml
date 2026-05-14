@@ -48,6 +48,23 @@
           </view>
         </view>
 
+        <!-- 教师发布的测验 -->
+        <view class="recite-hero" wx:if="{{isStudent}}">
+          <view class="recite-card student quiz-task-card" bindtap="goTaskQuiz">
+            <view class="recite-badge quiz-task-badge">📝 教师测验</view>
+            <view class="recite-main">
+              <text class="recite-icon">📋</text>
+              <view class="recite-text">
+                <text class="recite-title">教师发布的测验</text>
+                <text class="recite-sub">AI出题，自动评分，多维报告</text>
+              </view>
+            </view>
+            <view class="recite-btn-row">
+              <text class="recite-arrow">→</text>
+            </view>
+          </view>
+        </view>
+
         <!-- 错题本入口 -->
         <view class="recite-hero" wx:if="{{isStudent}}">
           <view class="recite-card student wrongbook-card" bindtap="goWrongbook">

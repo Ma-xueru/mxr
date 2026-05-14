@@ -1,8 +1,12 @@
 package com.cl.controller;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.cl.annotation.IgnoreAuth;
+import com.cl.dao.FollowreadRecordDao;
 import com.cl.dao.QuizRecordDao;
+import com.cl.entity.FollowreadRecordEntity;
 import com.cl.entity.QuizRecordEntity;
+import com.cl.utils.AIChatUtil;
 import com.cl.utils.PageUtils;
 import com.cl.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +22,8 @@ public class QuizController {
 
     @Autowired
     private QuizRecordDao quizRecordDao;
+    @Autowired
+    private FollowreadRecordDao followreadRecordDao;
 
     /** 保存测验记录 */
     @RequestMapping("/saveRecord")
@@ -60,6 +66,7 @@ public class QuizController {
     }
 
     /** 错题本 — 返回所有错题（按学生过滤） */
+    @IgnoreAuth
     @RequestMapping("/wrongbook")
     public R wrongbook(HttpServletRequest request) {
         EntityWrapper<QuizRecordEntity> ew = new EntityWrapper<>();
@@ -198,6 +205,141 @@ public class QuizController {
         if (q.contains("诗人") || q.contains("作者") || q.contains("背景") || q.contains("常识")) return "文学常识";
         if (q.contains("对仗") || q.contains("平仄") || q.contains("押韵") || q.contains("格律")) return "格律对仗";
         return "字词释义"; // default
+    }
+
+    /** 温故知新 — 聚合近14天跟读+测验记录，由 AI 生成复习题 */
+    @IgnoreAuth
+    @SuppressWarnings("unchecked")
+    @RequestMapping("/history-review")
+    public R historyReview(HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        String username = String.valueOf(request.getSession().getAttribute("username"));
+        long fourteenDaysAgo = System.currentTimeMillis() - 14 * 86400000L;
+
+        // 聚合跟读记录
+        EntityWrapper<FollowreadRecordEntity> fw = new EntityWrapper<>();
+        if ("student".equals(tableName)) fw.eq("studentaccount", username);
+        fw.ge("addtime", new java.util.Date(fourteenDaysAgo));
+        List<FollowreadRecordEntity> followList = followreadRecordDao.selectList(fw);
+
+        // 聚合测验记录
+        EntityWrapper<QuizRecordEntity> qw = new EntityWrapper<>();
+        if ("student".equals(tableName)) qw.eq("studentaccount", username);
+        qw.ge("addtime", new java.util.Date(fourteenDaysAgo));
+        List<QuizRecordEntity> quizList = quizRecordDao.selectList(qw);
+
+        // 按 poemId 去重聚合
+        Map<Long, Map<String, Object>> poemMap = new LinkedHashMap<>();
+        for (FollowreadRecordEntity r : followList) {
+            poemMap.computeIfAbsent(r.getCourseid(), k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("courseId", k); m.put("courseTitle", r.getCoursetitle());
+                m.put("types", new ArrayList<String>());
+                return m;
+            });
+            ((List<String>) poemMap.get(r.getCourseid()).get("types")).add("recitation");
+        }
+        for (QuizRecordEntity r : quizList) {
+            poemMap.computeIfAbsent(r.getCourseid(), k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("courseId", k); m.put("courseTitle", r.getCoursetitle());
+                m.put("types", new ArrayList<String>());
+                return m;
+            });
+            String type = r.getScore() != null && r.getScore() < 80 ? "comprehension" : "quiz";
+            ((List<String>) poemMap.get(r.getCourseid()).get("types")).add(type);
+        }
+
+        if (poemMap.isEmpty()) return R.ok().put("data", new org.json.JSONArray().toString());
+
+        // 构建 AI prompt 出题
+        StringBuilder ctx = new StringBuilder();
+        for (Map<String, Object> pm : poemMap.values()) {
+            ctx.append("《").append(pm.get("courseTitle")).append("》维度：").append(pm.get("types")).append("；");
+        }
+
+        String prompt = "根据学生近14天学习记录出10道题：\n" + ctx + "\n\n规则：\n" +
+            "1. 标recitation的诗必须出读音/断句题\n2. 标comprehension的出意境理解题\n" +
+            "3. 返回JSON数组：[{\"question\":\"题?\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":0,\"analysis\":\"解析\",\"knowledge_tag\":\"标签\"}]。只返回JSON。";
+
+        List<AIChatUtil.Message> msgs = new ArrayList<>();
+        msgs.add(new AIChatUtil.Message("system", "你是古诗词教学专家，严格按JSON返回5道题。"));
+        msgs.add(new AIChatUtil.Message("user", prompt));
+        AIChatUtil.ChatResult cr = AIChatUtil.chatWithMessages(msgs, 0.5, 3500);
+        String resp = cr != null ? cr.getContent() : null;
+        System.out.println("[温故知新] AI(" + (resp != null ? resp.length() : 0) + ")");
+
+        if (resp == null || resp.isEmpty()) return R.error("AI未返回题目");
+        return R.ok().put("data", cleanQuizJson(resp));
+    }
+
+    /** 举一反三 — 从错题标签提取薄弱点，AI 匹配同类诗词出题 */
+    @IgnoreAuth
+    @RequestMapping("/analogy-training")
+    public R analogyTraining(HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        String username = String.valueOf(request.getSession().getAttribute("username"));
+
+        EntityWrapper<QuizRecordEntity> qw = new EntityWrapper<>();
+        if ("student".equals(tableName)) qw.eq("studentaccount", username);
+        qw.isNotNull("wrong_list_json").ne("wrong_list_json", "[]").orderBy("addtime", false).last("LIMIT 5");
+        List<QuizRecordEntity> quizList = quizRecordDao.selectList(qw);
+
+        if (quizList.isEmpty()) return R.error("暂无错题记录");
+
+        // 提取错题标签
+        Set<String> tags = new LinkedHashSet<>();
+        Set<String> wrongPoemTitles = new LinkedHashSet<>();
+        for (QuizRecordEntity r : quizList) {
+            try {
+                org.json.JSONArray arr = new org.json.JSONArray(r.getWrongListJson());
+                for (int i = 0; i < arr.length(); i++) {
+                    org.json.JSONObject w = arr.getJSONObject(i);
+                    String q = w.optString("question", "");
+                    String tag = inferTag(q);
+                    if (!tag.isEmpty()) tags.add(tag);
+                }
+            } catch (Exception e) {}
+            if (r.getCoursetitle() != null) wrongPoemTitles.add(r.getCoursetitle());
+        }
+
+        if (tags.isEmpty()) return R.error("无法识别薄弱标签");
+
+        String tagList = String.join(",", tags);
+        String forbiddenList = String.join(",", wrongPoemTitles);
+
+        String prompt = "薄弱标签：" + tagList + "。\n严禁出现这些诗：" + forbiddenList + "。\n" +
+            "请选取2-3首包含这些标签但不在禁止列表中的古诗，出10道对比选择题。\n" +
+            "返回JSON：[{\"question\":\"题?\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":0,\"analysis\":\"解析\",\"knowledge_tag\":\"标签\"}]。只返回JSON。";
+
+        List<AIChatUtil.Message> msgs = new ArrayList<>();
+        msgs.add(new AIChatUtil.Message("system", "你是古诗词教学专家，擅长类比出题，严格按JSON返回5道题。"));
+        msgs.add(new AIChatUtil.Message("user", prompt));
+        AIChatUtil.ChatResult cr = AIChatUtil.chatWithMessages(msgs, 0.5, 3500);
+        String resp = cr != null ? cr.getContent() : null;
+        System.out.println("[举一反三] AI(" + (resp != null ? resp.length() : 0) + ")");
+
+        if (resp == null || resp.isEmpty()) return R.error("AI未返回题目");
+        return R.ok().put("data", cleanQuizJson(resp));
+    }
+
+    private String inferTag(String q) {
+        if (q.contains("月") || q.contains("花") || q.contains("鸟")) return "意象：自然";
+        if (q.contains("意思") || q.contains("解释")) return "字词释义";
+        if (q.contains("情感") || q.contains("意境")) return "意境感悟";
+        if (q.contains("诗人") || q.contains("背景")) return "文学常识";
+        if (q.contains("对仗") || q.contains("平仄")) return "格律对仗";
+        if (q.contains("读音") || q.contains("断句")) return "诵读节奏";
+        return "";
+    }
+
+    private String cleanQuizJson(String resp) {
+        String s = resp.trim();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("```(?:json)?\\s*([\\s\\S]*?)```").matcher(s);
+        if (m.find()) s = m.group(1).trim();
+        int start = s.indexOf('['), end = s.lastIndexOf(']');
+        if (start >= 0 && end > start) s = s.substring(start, end + 1);
+        return s;
     }
 
     @RequestMapping("/deleteRecord")

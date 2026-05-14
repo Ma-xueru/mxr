@@ -23,6 +23,7 @@ import teacherCenter from '@/views/teacher/center'
 import course from '@/views/course/list'
 import recitationtask from '@/views/recitationtask/list'
 import followreadrecord from '@/views/followreadrecord/list'
+	import quiztask from '@/views/quiztask/list'
 import classinfo from '@/views/classinfo/list'
 
 export const routes = [{
@@ -139,6 +140,11 @@ export const routes = [{
 			name: '跟读记录',
 			component: followreadrecord
 		}
+			,{
+				path: '/quiztask',
+				name: '测验管理',
+				component: quiztask
+			}
 		,{
 			path: '/classinfo',
 			name: '班级管理',

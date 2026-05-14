@@ -13,6 +13,16 @@ Page({
     const id = options.id
     const title = decodeURIComponent(options.title || '')
     const content = decodeURIComponent(options.content || '')
+    if (id === 'ai') {
+      // AI 预生成题目，直接从 globalData 取
+      var qs = getApp().globalData._aiQuestions
+      getApp().globalData._aiQuestions = null
+      if (!qs || !qs.length) { wx.showToast({ title: '题目丢失', icon: 'none' }); return }
+      var questions = qs.map(function(q) { q.status = ''; return q })
+      this.setData({ poemId: 'ai', poemTitle: title, poemContent: content, questions: questions, loading: false })
+      this.startTimer()
+      return
+    }
     if (!id || !content) {
       wx.showToast({ title: '参数缺失', icon: 'none' })
       return
@@ -95,7 +105,7 @@ Page({
     const score = Math.round((correctCount / questions.length) * 100)
     this.setData({ finished: true, totalDuration, timerDisplay: fmtTime(totalDuration), score, correctCount })
 
-    // 保存到后端 MySQL
+    // 保存到后端 MySQL（AI出题也保存）
     var ui = getApp().globalData.userInfo || {}
     var baseURL = wx.getStorageSync('baseURL') || ''
     wx.request({
@@ -105,7 +115,7 @@ Page({
       data: JSON.stringify({
         studentaccount: ui.studentaccount || wx.getStorageSync('nickname'),
         studentname: ui.studentname || wx.getStorageSync('nickname') || '',
-        courseid: this.data.poemId,
+        courseid: this.data.poemId === 'ai' ? 0 : this.data.poemId,
         coursetitle: this.data.poemTitle,
         score: score,
         duration: totalDuration,

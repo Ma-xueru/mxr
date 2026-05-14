@@ -54,6 +54,63 @@ public class MenuController {
     @Autowired
     private MenuService menuService;
 
+    /** 确保跟读记录和测验管理菜单项存在 */
+    private void ensureExtraMenus(PageUtils page) {
+        if (page == null || page.getList() == null) return;
+        for (Object row : page.getList()) {
+            if (row instanceof MenuEntity) {
+                MenuEntity<?> menuEntity = (MenuEntity<?>) row;
+                menuEntity.setMenujson(ensureExtraMenuJson(menuEntity.getMenujson()));
+            }
+        }
+    }
+
+    private String ensureExtraMenuJson(String menuJson) {
+        if (StringUtils.isBlank(menuJson)) return menuJson;
+        try {
+            com.alibaba.fastjson.JSONArray roles = com.alibaba.fastjson.JSON.parseArray(menuJson);
+            for (int i = 0; i < roles.size(); i++) {
+                com.alibaba.fastjson.JSONObject role = roles.getJSONObject(i);
+                com.alibaba.fastjson.JSONArray backMenu = role.getJSONArray("backMenu");
+                if (backMenu == null) continue;
+                for (int j = 0; j < backMenu.size(); j++) {
+                    com.alibaba.fastjson.JSONObject group = backMenu.getJSONObject(j);
+                    String name = group.getString("menu");
+                    if ("学习任务管理".equals(name) || "成绩信息管理".equals(name)) {
+                        group.put("menu", "学习任务管理");
+                        com.alibaba.fastjson.JSONArray child = group.getJSONArray("child");
+                        if (child == null) continue;
+                        boolean hasFollow = false, hasQuiz = false;
+                        for (int k = 0; k < child.size(); k++) {
+                            String tn = child.getJSONObject(k).getString("tableName");
+                            if ("followreadrecord".equals(tn)) hasFollow = true;
+                            if ("quiztask".equals(tn)) hasQuiz = true;
+                        }
+                        if (!hasFollow) {
+                            com.alibaba.fastjson.JSONObject item = new com.alibaba.fastjson.JSONObject();
+                            item.put("appFrontIcon", "cuIcon-group");
+                            item.put("buttons", java.util.Arrays.asList("查看","删除"));
+                            item.put("menu", "跟读记录");
+                            item.put("menuJump", "列表");
+                            item.put("tableName", "followreadrecord");
+                            child.add(item);
+                        }
+                        if (!hasQuiz) {
+                            com.alibaba.fastjson.JSONObject item = new com.alibaba.fastjson.JSONObject();
+                            item.put("appFrontIcon", "cuIcon-edit");
+                            item.put("buttons", java.util.Arrays.asList("查看","新增"));
+                            item.put("menu", "测验管理");
+                            item.put("menuJump", "列表");
+                            item.put("tableName", "quiztask");
+                            child.add(item);
+                        }
+                    }
+                }
+            }
+            return roles.toJSONString();
+        } catch (Exception e) { return menuJson; }
+    }
+
     private void hideReserveMenu(PageUtils page) {
         if (page == null || page.getList() == null) {
             return;
@@ -142,6 +199,7 @@ public class MenuController {
 
 		PageUtils page = menuService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, menu), params), params));
         hideReserveMenu(page);
+        ensureExtraMenus(page);
         return R.ok().put("data", page);
     }
 
