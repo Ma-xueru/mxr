@@ -111,6 +111,95 @@ public class QuizController {
         return R.ok().put("data", records.size());
     }
 
+    /** AI 智适应学习中心 — 弱点雷达图 + 自适应排序推荐 */
+    @SuppressWarnings("unchecked")
+    @RequestMapping("/smart-center")
+    public R smartCenter(HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        String username = String.valueOf(request.getSession().getAttribute("username"));
+
+        // 查询所有测验记录
+        EntityWrapper<QuizRecordEntity> ew = new EntityWrapper<>();
+        if ("student".equals(tableName)) ew.eq("studentaccount", username);
+        ew.orderBy("addtime", false);
+        List<QuizRecordEntity> all = quizRecordDao.selectList(ew);
+
+        // 四维弱点分析: 字词释义、意境感悟、文学常识、格律对仗
+        String[] dims = {"字词释义", "意境感悟", "文学常识", "格律对仗"};
+        Map<String, Integer> wrongCount = new LinkedHashMap<>();
+        Map<String, Integer> totalCount = new LinkedHashMap<>();
+        for (String d : dims) { wrongCount.put(d, 0); totalCount.put(d, 0); }
+
+        // 能力值: 初始100，每个错题扣分
+        Map<String, Integer> ability = new LinkedHashMap<>();
+        for (String d : dims) ability.put(d, 100);
+
+        for (QuizRecordEntity r : all) {
+            try {
+                org.json.JSONArray arr = new org.json.JSONArray(r.getWrongListJson());
+                for (int i = 0; i < arr.length(); i++) {
+                    org.json.JSONObject w = arr.getJSONObject(i);
+                    String q = w.optString("question", "");
+                    String dim = classifyQuestion(q);
+                    wrongCount.put(dim, wrongCount.get(dim) + 1);
+                }
+            } catch (Exception e) { /* skip */ }
+        }
+
+        // 能力值 = max(0, 100 - 错题数 * 15)
+        for (String d : dims) {
+            int wc = wrongCount.getOrDefault(d, 0);
+            ability.put(d, Math.max(0, 100 - wc * 15));
+        }
+
+        // 自适应排序: 对古诗按W值排序
+        // 先按 courseid 聚合，取最近得分和时间
+        Map<Long, Integer> latestScores = new LinkedHashMap<>();
+        Map<Long, Long> latestTimes = new LinkedHashMap<>();
+        Map<Long, String> latestTitles = new LinkedHashMap<>();
+        for (QuizRecordEntity r : all) {
+            Long cid = r.getCourseid();
+            if (!latestScores.containsKey(cid)) {
+                latestScores.put(cid, r.getScore());
+                latestTimes.put(cid, r.getAddtime() != null ? r.getAddtime().getTime() : 0L);
+                latestTitles.put(cid, r.getCoursetitle());
+            }
+        }
+
+        List<Map<String, Object>> recommended = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        for (Long cid : latestScores.keySet()) {
+            int score = latestScores.get(cid);
+            long lastTime = latestTimes.get(cid);
+            int daysAgo = (int) ((now - lastTime) / 86400000L);
+            // W = (100 - score) * 0.6 + daysAgo * 10
+            int w = (int) Math.round((100 - score) * 0.6 + daysAgo * 10);
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("courseId", cid);
+            item.put("courseTitle", latestTitles.get(cid));
+            item.put("latestScore", score);
+            item.put("daysAgo", daysAgo);
+            item.put("weight", w);
+            recommended.add(item);
+        }
+        recommended.sort((a, b) -> Integer.compare((int) b.get("weight"), (int) a.get("weight")));
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("ability", ability);
+        result.put("dimensions", dims);
+        result.put("recommended", recommended);
+        result.put("totalQuizzes", all.size());
+        return R.ok().put("data", result);
+    }
+
+    private String classifyQuestion(String q) {
+        if (q.contains("意思") || q.contains("解释") || q.contains("释") || q.contains("义")) return "字词释义";
+        if (q.contains("情感") || q.contains("意境") || q.contains("感受") || q.contains("情怀")) return "意境感悟";
+        if (q.contains("诗人") || q.contains("作者") || q.contains("背景") || q.contains("常识")) return "文学常识";
+        if (q.contains("对仗") || q.contains("平仄") || q.contains("押韵") || q.contains("格律")) return "格律对仗";
+        return "字词释义"; // default
+    }
+
     @RequestMapping("/deleteRecord")
     public R deleteRecord(@RequestBody Long[] ids) {
         quizRecordDao.deleteBatchIds(Arrays.asList(ids));

@@ -1,0 +1,62 @@
+<view class="report-page">
+  <view class="report-loading" wx:if="{{loading}}">
+    <text class="loading-icon">📊</text>
+    <text class="loading-text">正在生成评估报告...</text>
+  </view>
+
+  <view class="report-content" wx:if="{{!loading}}">
+    <!-- 概览卡片 -->
+    <view class="overview-row">
+      <view class="overview-card">
+        <text class="ov-value">{{totalCount}}</text>
+        <text class="ov-label">总练习次数</text>
+      </view>
+      <view class="overview-card">
+        <text class="ov-value {{avgScore>=85?'c-green':avgScore>=60?'c-orange':'c-red'}}">{{avgScore}}</text>
+        <text class="ov-label">平均分</text>
+      </view>
+      <view class="overview-card">
+        <text class="ov-value">{{bestScore}}</text>
+        <text class="ov-label">最高分</text>
+      </view>
+    </view>
+
+    <!-- 子模块1: 成长曲线 -->
+    <view class="report-module" wx:if="{{chartData.length > 0}}">
+      <view class="module-title">📈 学习成长曲线</view>
+      <canvas type="2d" id="trendChart" class="trend-canvas"></canvas>
+      <view class="chart-legend">
+        <view class="legend-item"><view class="legend-dot follow"></view><text>跟读</text></view>
+        <view class="legend-item"><view class="legend-dot quiz"></view><text>测验</text></view>
+      </view>
+    </view>
+
+    <!-- 子模块2: AI 导师建议 -->
+    <view class="report-module" wx:if="{{aiComment}}">
+      <view class="module-title">🤖 AI 导师建议</view>
+      <view class="ai-comment">
+        <text class="ai-comment-text">{{aiComment}}</text>
+      </view>
+    </view>
+
+    <!-- 子模块3: 历史记录 -->
+    <view class="report-module" wx:if="{{historyList.length > 0}}">
+      <view class="module-title">📋 学习记录</view>
+      <view class="history-item" wx:for="{{historyList}}" wx:key="index" bindtap="viewDetail" data-index="{{index}}">
+        <view class="hi-type {{item.type}}">{{item.type === 'follow' ? '🎙️ 跟读' : '📝 测验'}}</view>
+        <view class="hi-info">
+          <text class="hi-title">{{item.courseTitle}}</text>
+          <text class="hi-time">{{item.timeStr}}</text>
+        </view>
+        <text class="hi-score {{item.score>=85?'s-high':item.score>=60?'s-mid':'s-low'}}">{{item.score}}分</text>
+      </view>
+    </view>
+
+    <!-- 无数据 -->
+    <view class="report-empty" wx:if="{{!loading && !chartData.length && !historyList.length}}">
+      <text class="empty-icon">📖</text>
+      <text class="empty-text">暂无学习记录</text>
+      <text class="empty-desc">去古诗词页面开始跟读或测验吧～</text>
+    </view>
+  </view>
+</view>
