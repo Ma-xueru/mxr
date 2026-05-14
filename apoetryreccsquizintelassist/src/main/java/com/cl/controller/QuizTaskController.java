@@ -40,7 +40,7 @@ public class QuizTaskController {
     }
 
     /** save/update/delete 委托给 recitationtask */
-    @RequestMapping("/save") public R save(@RequestBody RecitationtaskEntity e) { e.setTaskType(2); e.setId(System.currentTimeMillis()); e.setReleasetime(new Date()); recitationtaskDao.insert(e); return R.ok(); }
+    @RequestMapping("/save") public R save(@RequestBody RecitationtaskEntity e) { e.setTaskType(2); e.setId(System.currentTimeMillis()); e.setReleasetime(new Date()); if (e.getTasktitle() != null && !e.getTasktitle().startsWith("测验：")) e.setTasktitle("测验：" + e.getTasktitle()); recitationtaskDao.insert(e); return R.ok(); }
     @RequestMapping("/update") public R update(@RequestBody RecitationtaskEntity e) { recitationtaskDao.updateById(e); return R.ok(); }
     @RequestMapping("/delete") public R delete(@RequestBody Long[] ids) { recitationtaskDao.deleteBatchIds(java.util.Arrays.asList(ids)); return R.ok(); }
 

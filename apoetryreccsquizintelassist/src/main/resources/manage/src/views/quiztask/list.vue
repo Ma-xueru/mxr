@@ -385,7 +385,7 @@ const getList = () => {
 	listLoading.value = true
 	let params = JSON.parse(JSON.stringify(listQuery.value))
 	params.sort = 'id'; params.order = 'desc'
-	params.tasktitle = searchQuery.value.tasktitle ? ('%' + searchQuery.value.tasktitle + '%') : '测验：%'
+	params.tasktitle = searchQuery.value.tasktitle ? searchQuery.value.tasktitle : '测验：'
 	if(searchQuery.value.studentaccount) params.studentaccount = searchQuery.value.studentaccount
 	context?.$http({ url: `${tableName}/page`, method: 'get', params }).then(res => {
 		listLoading.value = false
