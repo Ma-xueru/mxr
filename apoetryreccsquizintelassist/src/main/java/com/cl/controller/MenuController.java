@@ -73,6 +73,28 @@ public class MenuController {
                 com.alibaba.fastjson.JSONObject role = roles.getJSONObject(i);
                 com.alibaba.fastjson.JSONArray backMenu = role.getJSONArray("backMenu");
                 if (backMenu == null) continue;
+                for (int j = backMenu.size() - 1; j >= 0; j--) {
+                    com.alibaba.fastjson.JSONObject group = backMenu.getJSONObject(j);
+                    String gname = group.getString("menu");
+                    // 删除预约相关菜单组
+                    if ("预约课程管理".equals(gname) || "预约课程学习管理".equals(gname)) {
+                        backMenu.remove(j); continue;
+                    }
+                    // 删除预约+教师管理子项
+                    com.alibaba.fastjson.JSONArray child = group.getJSONArray("child");
+                    if (child != null) {
+                        for (int k = child.size() - 1; k >= 0; k--) {
+                            String tn = child.getJSONObject(k).getString("tableName");
+                            if ("coursereserve".equals(tn) || "reservecancel".equals(tn) || "teacher".equals(tn)) {
+                                child.remove(k);
+                            }
+                        }
+                        // 如果组内没有子项了，删除整个组
+                        if (child.size() == 0 && !"学习任务管理".equals(gname) && !"成绩信息管理".equals(gname)) {
+                            backMenu.remove(j);
+                        }
+                    }
+                }
                 for (int j = 0; j < backMenu.size(); j++) {
                     com.alibaba.fastjson.JSONObject group = backMenu.getJSONObject(j);
                     String name = group.getString("menu");
