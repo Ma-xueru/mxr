@@ -96,6 +96,9 @@ public class TeacherEntity<T> implements Serializable {
 	 * 权限状态
 	 */
 	private String permissionstatus;
+	private String grade;
+	private Long classId;
+	private String classname;
 	
 	
 	@JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
@@ -212,6 +215,27 @@ public class TeacherEntity<T> implements Serializable {
 	 */
 	public String getPermissionstatus() {
 		return permissionstatus;
+	}
+
+	public void setGrade(String grade) {
+		this.grade = grade;
+	}
+	public String getGrade() {
+		return grade;
+	}
+
+	public void setClassId(Long classId) {
+		this.classId = classId;
+	}
+	public Long getClassId() {
+		return classId;
+	}
+
+	public void setClassname(String classname) {
+		this.classname = classname;
+	}
+	public String getClassname() {
+		return classname;
 	}
 
 }

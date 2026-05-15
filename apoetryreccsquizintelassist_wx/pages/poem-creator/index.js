@@ -220,8 +220,9 @@ Page({
 
     if (body) {
       wx.request({
-        url: baseURL + '/poem-creator/tts?text=' + encodeURIComponent(body),
-        method: 'GET', timeout: 30000,
+        url: baseURL + '/poem-creator/tts',
+        method: 'POST', timeout: 30000,
+        data: { text: body },
         success(res) {
           if (res.data && res.data.data) {
             var msgs2 = that.data.messages

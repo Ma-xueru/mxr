@@ -15,16 +15,81 @@
 							<el-input class="list_inp" v-model="form.classname" placeholder="例如：三年级1班" :readonly="!isAdd||disabledForm.classname"></el-input>
 						</el-form-item>
 					</el-col>
+					>
+					>
+					<el-col :span="24">
+						<el-form-item label="班级说明" prop="classdesc">
+							<el-input class="list_inp" type="textarea" :rows="4" v-model="form.classdesc" placeholder="请输入班级说明" :readonly="!isAdd||disabledForm.classdesc"></el-input>
+						</el-form-item>
+					</el-col>
+					<template>
+	<div>
+		<el-dialog v-model="formVisible" :title="formTitle" width="70%" destroy-on-close>
+			<el-form class="formModel_form" ref="formRef" :model="form" label-width="120px" :rules="rules">
+				<el-row :gutter="20">
 					<el-col :span="12">
-						<el-form-item label="班主任" prop="headteacher">
-							<el-input class="list_inp" v-model="form.headteacher" placeholder="请输入班主任姓名" :readonly="!isAdd||disabledForm.headteacher"></el-input>
+						<el-form-item label="年级" prop="grade">
+							<el-select class="list_sel" v-model="form.grade" placeholder="请选择年级" :disabled="!isAdd||disabledForm.grade">
+								<el-option v-for="item in gradeLists" :key="item" :label="item" :value="item"></el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
-						<el-form-item label="学生人数" prop="studentcount">
-							<el-input class="list_inp auto_count_inp" :model-value="selectedStudentIds.length" placeholder="系统自动统计" readonly></el-input>
+						<el-form-item label="班级名称" prop="classname">
+							<el-input class="list_inp" v-model="form.classname" placeholder="例如：三年级1班" :readonly="!isAdd||disabledForm.classname"></el-input>
 						</el-form-item>
 					</el-col>
+					>
+					>
+					<el-col :span="24">
+						<el-form-item label="班级说明" prop="classdesc">
+							<el-input class="list_inp" type="textarea" :rows="4" v-model="form.classdesc" placeholder="请输入班级说明" :readonly="!isAdd||disabledForm.classdesc"></el-input>
+						</el-form-item>
+					</el-col>
+					>
+					<template>
+	<div>
+		<el-dialog v-model="formVisible" :title="formTitle" width="70%" destroy-on-close>
+			<el-form class="formModel_form" ref="formRef" :model="form" label-width="120px" :rules="rules">
+				<el-row :gutter="20">
+					<el-col :span="12">
+						<el-form-item label="年级" prop="grade">
+							<el-select class="list_sel" v-model="form.grade" placeholder="请选择年级" :disabled="!isAdd||disabledForm.grade">
+								<el-option v-for="item in gradeLists" :key="item" :label="item" :value="item"></el-option>
+							</el-select>
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="班级名称" prop="classname">
+							<el-input class="list_inp" v-model="form.classname" placeholder="例如：三年级1班" :readonly="!isAdd||disabledForm.classname"></el-input>
+						</el-form-item>
+					</el-col>
+					>
+					>
+					<el-col :span="24">
+						<el-form-item label="班级说明" prop="classdesc">
+							<el-input class="list_inp" type="textarea" :rows="4" v-model="form.classdesc" placeholder="请输入班级说明" :readonly="!isAdd||disabledForm.classdesc"></el-input>
+						</el-form-item>
+					</el-col>
+					<template>
+	<div>
+		<el-dialog v-model="formVisible" :title="formTitle" width="70%" destroy-on-close>
+			<el-form class="formModel_form" ref="formRef" :model="form" label-width="120px" :rules="rules">
+				<el-row :gutter="20">
+					<el-col :span="12">
+						<el-form-item label="年级" prop="grade">
+							<el-select class="list_sel" v-model="form.grade" placeholder="请选择年级" :disabled="!isAdd||disabledForm.grade">
+								<el-option v-for="item in gradeLists" :key="item" :label="item" :value="item"></el-option>
+							</el-select>
+						</el-form-item>
+					</el-col>
+					<el-col :span="12">
+						<el-form-item label="班级名称" prop="classname">
+							<el-input class="list_inp" v-model="form.classname" placeholder="例如：三年级1班" :readonly="!isAdd||disabledForm.classname"></el-input>
+						</el-form-item>
+					</el-col>
+					>
+					>
 					<el-col :span="24">
 						<el-form-item label="班级说明" prop="classdesc">
 							<el-input class="list_inp" type="textarea" :rows="4" v-model="form.classdesc" placeholder="请输入班级说明" :readonly="!isAdd||disabledForm.classdesc"></el-input>
@@ -53,17 +118,7 @@
 							<div class="student_tip">保存后将自动为所选学生分配当前班级，未勾选的原班级学生会移出本班。</div>
 						</el-form-item>
 					</el-col>
-					<el-col :span="24" v-if="selectedStudents.length">
-						<div class="student_panel">
-							<div class="student_panel_title">已选学生 {{ selectedStudents.length }} 人</div>
-							<div class="student_tags">
-								<div class="student_tag" v-for="item in selectedStudents" :key="item.id">
-									<span class="student_name">{{ item.studentname }}</span>
-									<span class="student_meta">{{ item.studentaccount }}</span>
-								</div>
-							</div>
-						</div>
-					</el-col>
+					>
 				</el-row>
 			</el-form>
 			<template #footer v-if="isAdd">
@@ -85,7 +140,7 @@ const form = ref({})
 const studentOptions = ref([])
 const selectedStudentIds = ref([])
 const originalStudentIds = ref([])
-const disabledForm = ref({ grade:false, classname:false, headteacher:false, studentcount:false, classdesc:false })
+const disabledForm = ref({ grade:false, classname:false, classdesc:false })
 const formVisible = ref(false)
 const isAdd = ref(false)
 const formTitle = ref('')
@@ -105,21 +160,11 @@ const rules = ref({
 })
 const selectedStudents = computed(() => studentOptions.value.filter(item => selectedStudentIds.value.includes(item.id)))
 const resetForm = () => {
-	form.value = { grade:'一年级', classname:'一年级1班', headteacher:'', studentcount:0, classdesc:'' }
-	disabledForm.value = { grade:false, classname:false, headteacher:false, studentcount:false, classdesc:false }
+	form.value = { grade:'一年级', classname:'', classdesc:'' }
+	disabledForm.value = { grade:false, classname:false,   classdesc:false }
 	selectedStudentIds.value = []
 	originalStudentIds.value = []
 }
-const loadStudents = () => {
-	return context?.$http({
-		url: 'student/page',
-		method: 'get',
-		params: { page: 1, limit: 1000, sort: 'id', order: 'asc' }
-	}).then(res => {
-		studentOptions.value = res.data.data.list || []
-	})
-}
-const getInfo = () => {
 	context?.$http({ url: `${tableName}/info/${id.value}`, method: 'get' }).then(res => {
 		form.value = res.data.data
 		selectedStudentIds.value = studentOptions.value
@@ -180,8 +225,7 @@ const save = () => {
 			context?.$http({ url: `${tableName}/${!form.value.id ? "save" : "update"}`, method: 'post', data: form.value }).then(async ()=>{
 				await updateStudentClassRelation()
 				emit('formModelChange')
-				context?.$toolUtil.message(`操作成功`,'success',()=>{ formVisible.value = false })
-			})
+				context?.$toolUtil.message(`操作成功`,'success',()=>{ formVisible.value = false 	})
 		}
 	})
 }

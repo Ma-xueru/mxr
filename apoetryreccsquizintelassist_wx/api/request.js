@@ -1,6 +1,16 @@
 const GET = 'get';
 const POST = 'post';
- const baseURL = "https://api.mxr.asia/apoetryreccsquizintelassist"
+
+// 服务器环境切换: 'remote' 或 'local'
+const SERVERS = {
+  remote: 'https://api.mxr.asia/apoetryreccsquizintelassist',
+  local: 'http://localhost:8080/apoetryreccsquizintelassist'
+}
+const getBaseURL = () => {
+  const env = wx.getStorageSync('serverEnv') || 'remote'
+  return SERVERS[env] || SERVERS.remote
+}
+const baseURL = getBaseURL()
 wx.setStorageSync('baseURL', baseURL)
 module.exports = function (options) {
     return new Promise(function (resolve, reject) {
@@ -10,7 +20,7 @@ module.exports = function (options) {
         const token = wx.getStorageSync('token')
         token ? header['Token'] = token : ''
         wx.request({
-            url: baseURL + options.url,
+            url: getBaseURL() + options.url,
             method: options.method,
             data: options.method === POST ? JSON.stringify(options.data) : options.data,
             header: header,

@@ -5,6 +5,7 @@ import com.cl.utils.AIChatUtil;
 import com.cl.utils.R;
 import com.cl.utils.VolcengineSpeechUtil;
 import com.cl.utils.VolcengineTtsUtil;
+import com.cl.utils.VolcengineTtsV3Util;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -389,11 +390,13 @@ public class PoemCreatorController {
     // ========== TTS 朗读 ==========
     @IgnoreAuth
     @RequestMapping("/tts")
-    public R tts(@RequestParam String text) {
+    public R tts(@RequestBody Map<String, Object> body) {
+        String text = (String) body.get("text");
         if (!StringUtils.hasText(text)) return R.error("文本为空");
         try {
-            String path = VolcengineTtsUtil.textToSpeech(text,
-                new java.io.File(org.springframework.util.ResourceUtils.getFile("classpath:static"), "file").getAbsolutePath());
+            String dir = new java.io.File(org.springframework.util.ResourceUtils.getFile("classpath:static"), "file").getAbsolutePath();
+            String path = VolcengineTtsUtil.textToSpeech(text, dir);
+            if (path == null) path = VolcengineTtsV3Util.textToSpeech(text, dir);
             if (path == null) return R.error("TTS合成失败");
             return R.ok().put("data", "/file/" + new java.io.File(path).getName());
         } catch (Exception e) { return R.error("TTS错误: " + e.getMessage()); }

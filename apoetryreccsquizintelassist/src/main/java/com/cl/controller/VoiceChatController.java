@@ -5,6 +5,7 @@ import com.cl.utils.AIRecitationReviewUtil;
 import com.cl.utils.R;
 import com.cl.utils.VolcengineSpeechUtil;
 import com.cl.utils.VolcengineTtsUtil;
+import com.cl.utils.VolcengineTtsV3Util;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,14 @@ public class VoiceChatController {
         return R.ok().put("data", "已切换至 " + modelKey);
     }
 
+    @RequestMapping("/tts/select")
+    public R selectTtsVoice(@RequestBody Map<String, Object> body) {
+        String voice = String.valueOf(body.getOrDefault("voice", ""));
+        if (!org.springframework.util.StringUtils.hasText(voice)) return R.error("请提供音色标识");
+        VolcengineTtsUtil.setVoiceType(voice);
+        return R.ok().put("data", "TTS音色已切换至 " + voice);
+    }
+
     // 对话历史（按用户session存储，保留最近10轮）
     private static final ConcurrentHashMap<String, List<AIChatUtil.Message>> historyMap = new ConcurrentHashMap<>();
 
@@ -63,8 +72,9 @@ public class VoiceChatController {
             String reply = chatWithDoubao(recognized, request);
             System.out.println("[语音助手] 回复: " + reply);
 
-            // 4. TTS
+            // 4. TTS (V3优先，失败回退V1)
             String ttsFile = VolcengineTtsUtil.textToSpeech(reply, getTtsDir());
+            if (ttsFile == null) ttsFile = VolcengineTtsV3Util.textToSpeech(reply, getTtsDir());
             String ttsUrl = ttsFile != null ? "/file/" + new File(ttsFile).getName() : null;
 
             // 5. 清理

@@ -42,6 +42,13 @@
                     注册用户
                 </view>
             </view>
+
+            <!-- 服务器切换 -->
+            <view class="server-toggle">
+                <text class="server-label">服务器：</text>
+                <switch checked="{{serverEnv == 'remote'}}" bindchange="onServerToggle" color="#f69a28" />
+                <text class="server-text">{{serverEnv == 'remote' ? '云端(api.mxr.asia)' : '本地(localhost)'}}</text>
+            </view>
         </view>
         
         <!-- 底部装饰元素 -->

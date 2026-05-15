@@ -16,11 +16,14 @@ Page({
     showLoginRole: false,
     username: '',
     password: '',
-    loginType: 1, // 1管理员，2商家，3用户
+    loginType: 1,
+    serverEnv: 'remote',
   },
 
   onReady() {},
   onLoad() {
+    const serverEnv = wx.getStorageSync('serverEnv') || 'remote'
+    this.setData({ serverEnv })
     const menu = menuData.default.list()
     const selectType = ["请选择登陆类型"]
     wx.login({
@@ -171,5 +174,16 @@ Page({
         icon: 'none'
       })
     }
+  },
+  onServerToggle(e) {
+    const env = e.detail.value ? 'remote' : 'local'
+    this.setData({ serverEnv: env })
+    wx.setStorageSync('serverEnv', env)
+    // 同步更新baseURL
+    const baseURL = env === 'remote'
+      ? 'https://api.mxr.asia/apoetryreccsquizintelassist'
+      : 'http://localhost:8080/apoetryreccsquizintelassist'
+    wx.setStorageSync('baseURL', baseURL)
+    wx.showToast({ title: env === 'remote' ? '已切换至云端' : '已切换至本地', icon: 'none', duration: 1500 })
   },
 });

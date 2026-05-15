@@ -46,7 +46,7 @@
 				<el-table-column label="序号" width="70" :resizable='true' :sortable='true' align="left" header-align="left"><template #default="scope">{{ scope.$index + 1}}</template></el-table-column>
 				<el-table-column prop="grade" label="年级" width="120" :resizable='true' :sortable='true' align="left" header-align="left"></el-table-column>
 				<el-table-column prop="classname" label="班级名称" min-width="160" :resizable='true' :sortable='true' align="left" header-align="left"></el-table-column>
-				<el-table-column prop="headteacher" label="班主任" width="140" :resizable='true' align="left" header-align="left"></el-table-column>
+				
 				<el-table-column prop="studentcount" label="学生人数" width="100" :resizable='true' :sortable='true' align="left" header-align="left"></el-table-column>
 				<el-table-column prop="classdesc" label="班级说明" min-width="220" :resizable='true' align="left" header-align="left"></el-table-column>
 				<el-table-column label="操作" width="180" :resizable='true' align="left" header-align="left">

@@ -4,9 +4,9 @@
 			<div class="overview_panel" v-if="btnAuth('teacher','查看')">
 				<div class="overview_header">
 					<div>
-						<div class="overview_badge">教师预约</div>
-						<div class="overview_title">教师信息与预约处理</div>
-						<div class="overview_desc">在教师预约页面查看教师资料，并处理学生提交的预约信息。</div>
+						<div class="overview_badge">教师管理</div>
+						<div class="overview_title">教师信息与班级绑定</div>
+						<div class="overview_desc">管理教师账号，绑定年级班级，查看教师所带班级。</div>
 					</div>
 					<div class="overview_stat">
 						<div class="overview_stat_label">当前教师数</div>
@@ -18,9 +18,9 @@
 			<div class="list_search_view">
 				<el-form :model="searchQuery" class="search_form">
 					<div class="search_view">
-						<div class="search_label">教师账号：</div>
+						<div class="search_label">教师工号：</div>
 						<div class="search_box">
-							<el-input class="search_inp" v-model="searchQuery.teacheraccount" placeholder="教师账号" clearable />
+							<el-input class="search_inp" v-model="searchQuery.teacheraccount" placeholder="教师工号" clearable />
 						</div>
 					</div>
 					<div class="search_btn_view">
@@ -48,22 +48,14 @@
 				<el-table-column label="序号" width="70" align="left" header-align="left">
 					<template #default="scope">{{ scope.$index + 1 }}</template>
 				</el-table-column>
-				<el-table-column prop="teacheraccount" label="教师账号" align="left" header-align="left" />
+				<el-table-column prop="teacheraccount" label="教师工号" align="left" header-align="left" />
 				<el-table-column prop="teachername" label="教师姓名" align="left" header-align="left" />
-				<el-table-column label="照片" width="120" align="left" header-align="left">
-					<template #default="scope">
-						<el-image
-							v-if="scope.row.zhaopian"
-							preview-teleported
-							:preview-src-list="[imageUrl(scope.row.zhaopian)]"
-							:src="imageUrl(scope.row.zhaopian)"
-							style="width:72px;height:72px;border-radius:10px;object-fit:cover" />
-						<span v-else>无图片</span>
-					</template>
-				</el-table-column>
+					<el-table-column prop="grade" label="年级" width="100" align="left" header-align="left" />
+					<el-table-column prop="classname" label="绑定班级" width="140" align="left" header-align="left" />
+				
 				<el-table-column prop="gender" label="性别" align="left" header-align="left" />
 				<el-table-column prop="lianxidianhua" label="联系电话" align="left" header-align="left" />
-				<el-table-column prop="reservecount" label="可约人数" align="left" header-align="left" />
+				
 				<el-table-column prop="permissionstatus" label="权限状态" align="left" header-align="left">
 					<template #default="scope">
 						<el-tag :type="scope.row.permissionstatus === '禁用' ? 'danger' : 'success'">
@@ -71,10 +63,10 @@
 						</el-tag>
 					</template>
 				</el-table-column>
-				<el-table-column label="操作" width="340" align="left" header-align="left">
+				<el-table-column label="操作" width="120" align="left" header-align="left">
 					<template #default="scope">
 						<el-button type="info" v-if="btnAuth('teacher','查看')" @click.stop="infoClick(scope.row.id)">详情</el-button>
-						<el-button type="primary" v-if="btnAuth('teacher','查看')" @click.stop="viewReserveClick(scope.row)">查看预约</el-button>
+						>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -96,30 +88,7 @@
 
 		<formModel ref="formRef" @formModelChange="formModelChange"></formModel>
 
-		<el-dialog v-model="requestVisible" :title="`${currentTeacher.teachername || ''} 的预约信息`" width="900px" destroy-on-close>
-			<el-table v-loading="requestLoading" :data="reserveRequests" border>
-				<el-table-column prop="studentaccount" label="学生账号" min-width="110" />
-				<el-table-column prop="studentname" label="学生姓名" min-width="110" />
-				<el-table-column prop="reservetime" label="预约时间" min-width="160" />
-				<el-table-column prop="reservecount" label="人数" width="80" />
-				<el-table-column prop="reservestatus" label="预约状态" min-width="110">
-					<template #default="scope">
-						<el-tag :type="reserveTagType(scope.row.reservestatus)">{{ scope.row.reservestatus || '待确认' }}</el-tag>
-					</template>
-				</el-table-column>
-				<el-table-column prop="sfsh" label="审核状态" min-width="100">
-					<template #default="scope">{{ scope.row.sfsh || '待审核' }}</template>
-				</el-table-column>
-				<el-table-column prop="shhf" label="回复" min-width="150" />
-				<el-table-column label="操作" width="180">
-					<template #default="scope">
-						<el-button type="success" size="small" v-if="canHandleReserve(scope.row)" @click="handleReserve(scope.row, 'accept')">接受</el-button>
-						<el-button type="danger" size="small" v-if="canHandleReserve(scope.row)" @click="handleReserve(scope.row, 'reject')">拒绝</el-button>
-					</template>
-				</el-table-column>
-			</el-table>
-			<el-empty v-if="!requestLoading && reserveRequests.length === 0" description="暂无学生预约" />
-		</el-dialog>
+		>
 	</div>
 </template>
 
@@ -141,19 +110,8 @@ const listLoading = ref(false)
 const total = ref(0)
 const layouts = ref(['total', 'prev', 'pager', 'next', 'sizes'])
 
-const requestVisible = ref(false)
-const requestLoading = ref(false)
-const reserveRequests = ref([])
-const currentTeacher = ref({})
 
 const btnAuth = (e, a) => context?.$toolUtil.isAuth(e, a)
-const imageUrl = (file) => file && file.substring(0, 4) === 'http' ? file.split(',')[0] : context?.$config.url + file.split(',')[0]
-const reserveTagType = (status) => status === '已预约' ? 'success' : status === '已拒绝' || status === '已取消' ? 'danger' : 'warning'
-const canHandleReserve = (row) => {
-	const status = row.reservestatus || ''
-	if (status === '已预约' || status === '已拒绝') return false
-	return true
-}
 
 const getList = () => {
 	listLoading.value = true
@@ -198,49 +156,6 @@ const delClick = (id) => {
 	}).then(() => {
 		context?.$http({ url: `${tableName}/delete`, method: 'post', data: ids }).then(() => {
 			context?.$toolUtil.message('删除成功', 'success', () => getList())
-		})
-	})
-}
-
-const viewReserveClick = (row) => {
-	currentTeacher.value = row
-	requestVisible.value = true
-	loadReserveRequests()
-}
-
-const loadReserveRequests = () => {
-	requestLoading.value = true
-	context?.$http({
-		url: 'coursereserve/page',
-		method: 'get',
-		params: {
-			page: 1,
-			limit: 100,
-			sort: 'id',
-			order: 'desc',
-			teacheraccount: currentTeacher.value.teacheraccount
-		}
-	}).then(res => {
-		reserveRequests.value = res.data.data.list || []
-	}).finally(() => {
-		requestLoading.value = false
-	})
-}
-
-const handleReserve = (row, action) => {
-	const accepted = action === 'accept'
-	context?.$http({
-		url: 'coursereserve/update',
-		method: 'post',
-		data: {
-			...row,
-			reservestatus: accepted ? '已预约' : '已拒绝',
-			sfsh: accepted ? '是' : '否',
-			shhf: accepted ? '教师已接受预约' : '教师已拒绝预约'
-		}
-	}).then(() => {
-		context?.$toolUtil.message(accepted ? '已接受预约' : '已拒绝预约', 'success', () => {
-			loadReserveRequests()
 		})
 	})
 }

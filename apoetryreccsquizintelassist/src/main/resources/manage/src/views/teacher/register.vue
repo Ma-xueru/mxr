@@ -4,10 +4,10 @@
 			<el-form :model="registerForm" class="register_form">
 				<div class="title_view">{{projectName}}注册</div>
 				<div class="list_item">
-					<div class="list_label">教师账号：</div>
+					<div class="list_label">教师工号：</div>
 					<el-input class="list_inp"
 						 v-model="registerForm.teacheraccount"
-						 placeholder="请输入教师账号"
+						 placeholder="请输入教师工号"
 						 type="text"
 						/>
 				</div>
@@ -31,18 +31,7 @@
 						 type="text"
 						/>
 				</div>
-				<div class="list_item">
-					<div class="list_label">照片：</div>
-					<div :style='{"width":"100%","margin":"0 0 0 10px","flex":"1"}' class="list_file_list">
-						<uploads
-							action="file/upload" 
-							tip="请上传照片" 
-							:limit="3"
-							:fileUrls="registerForm.zhaopian?registerForm.zhaopian:''" 
-							@change="zhaopianUploadSuccess">
-						</uploads>
-					</div>
-				</div>
+				
 				<div class="list_item">
 					<div class="list_label">性别：</div>
 					<el-select 
@@ -62,14 +51,7 @@
 						 type="text"
 						/>
 				</div>
-				<div class="list_item">
-					<div class="list_label">可约人数：</div>
-					<el-input class="list_inp"
-						 v-model="registerForm.reservecount"
-						 placeholder="请输入可约人数"
-						 type="text"
-						/>
-				</div>
+				
 				<div class="list_btn">
 					<el-button class="register" type="success" @click="handleRegister">注册</el-button>
 					<div class="r-login" @click="close">已有账号，直接登录</div>
@@ -97,21 +79,17 @@
 	}
 	const registerForm = ref({
         gender: '',
-         reservecount: '5',
 	})
 	const teachergenderLists = ref([])
 	const init=()=>{
 		teachergenderLists.value = "男,女".split(',')
 	}
-    const zhaopianUploadSuccess=(fileUrls)=> {
-        registerForm.value.zhaopian = fileUrls;
-    }
 	// 多级联动参数
 	//注册按钮
 	const handleRegister = () => {
 		let url = tableName.value +"/register";
 		if((!registerForm.value.teacheraccount)){
-			context?.$toolUtil.message(`教师账号不能为空`,'error')
+			context?.$toolUtil.message(`教师工号不能为空`,'error')
 			return false
 		}
 		if((!registerForm.value.teacherpassword)){
@@ -126,15 +104,8 @@
 			context?.$toolUtil.message(`教师姓名不能为空`,'error')
 			return false
 		}
-		if(registerForm.value.zhaopian!=null){
-			registerForm.value.zhaopian = registerForm.value.zhaopian.replace(new RegExp(context?.$config.url,"g"),"");
-		}
 		if(registerForm.value.lianxidianhua&&(!context?.$toolUtil.isMobile(registerForm.value.lianxidianhua))){
 			context?.$toolUtil.message(`联系电话应输入手机格式`,'error')
-			return false
-		}
-		if(registerForm.value.reservecount&&(!context?.$toolUtil.isIntNumer(registerForm.value.reservecount))){
-			context?.$toolUtil.message(`可约人数应输入整数`,'error')
 			return false
 		}
 		

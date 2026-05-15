@@ -256,6 +256,24 @@ input::placeholder {
   transform: translateY(2rpx);
 }
 
+/* 服务器切换 */
+.server-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 0 0;
+  gap: 12rpx;
+  opacity: 0.8;
+}
+.server-label {
+  font-size: 24rpx;
+  color: #999;
+}
+.server-text {
+  font-size: 24rpx;
+  color: #666;
+}
+
 /* 浮动动画 */
 @keyframes float {
   0% {

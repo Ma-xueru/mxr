@@ -84,7 +84,7 @@ public class MenuController {
                     if (child != null) {
                         for (int k = child.size() - 1; k >= 0; k--) {
                             String tn = child.getJSONObject(k).getString("tableName");
-                            if ("coursereserve".equals(tn) || "reservecancel".equals(tn) || "teacher".equals(tn) || "mystudent".equals(tn) || "forum".equals(tn) || "discussforum".equals(tn) || "feedback".equals(tn) || "examquestion".equals(tn) || "exampaper".equals(tn) || "news".equals(tn) || "examrecord".equals(tn) || "examfailrecord".equals(tn)) {
+                            if ("coursereserve".equals(tn) || "reservecancel".equals(tn) || "mystudent".equals(tn) || "forum".equals(tn) || "discussforum".equals(tn) || "feedback".equals(tn) || "examquestion".equals(tn) || "exampaper".equals(tn) || "news".equals(tn) || "examrecord".equals(tn) || "examfailrecord".equals(tn)) {
                                 child.remove(k);
                             }
                         }

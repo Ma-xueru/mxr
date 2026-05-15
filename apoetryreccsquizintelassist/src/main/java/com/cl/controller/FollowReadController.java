@@ -13,6 +13,7 @@ import com.cl.utils.PageUtils;
 import com.cl.utils.R;
 import com.cl.utils.VolcengineSpeechUtil;
 import com.cl.utils.VolcengineTtsUtil;
+import com.cl.utils.VolcengineTtsV3Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,6 +70,7 @@ public class FollowReadController {
 
             // 生成TTS音频
             String ttsPath = VolcengineTtsUtil.textToSpeech(line.trim(), getTtsDir());
+            if (ttsPath == null) ttsPath = VolcengineTtsV3Util.textToSpeech(line.trim(), getTtsDir());
             item.put("ttsUrl", ttsPath != null ? "/file/" + new File(ttsPath).getName() : null);
 
             lineList.add(item);
@@ -203,9 +205,11 @@ public class FollowReadController {
      */
     @IgnoreAuth
     @RequestMapping("/tts")
-    public R tts(@RequestParam String text) {
+    public R tts(@RequestBody Map<String, Object> body) {
+        String text = (String) body.get("text");
         if (!StringUtils.hasText(text)) return R.error("文本为空");
         String path = VolcengineTtsUtil.textToSpeech(text, getTtsDir());
+        if (path == null) path = VolcengineTtsV3Util.textToSpeech(text, getTtsDir());
         if (path == null) return R.error("TTS合成失败");
         return R.ok().put("data", "/file/" + new File(path).getName());
     }

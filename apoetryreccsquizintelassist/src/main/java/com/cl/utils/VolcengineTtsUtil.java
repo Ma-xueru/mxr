@@ -13,13 +13,15 @@ public class VolcengineTtsUtil {
     private static String APP_ID = "";
     private static String ACCESS_TOKEN = "";
     private static String VOICE_TYPE = "BV002_streaming";
+    private static String RESOURCE_ID = "seed-tts-1.0";
     static {
         try {
             java.util.Properties props = new java.util.Properties();
             props.load(VolcengineTtsUtil.class.getClassLoader().getResourceAsStream("asr.properties"));
             APP_ID = props.getProperty("volc.asr.appid", "");
             ACCESS_TOKEN = props.getProperty("volc.asr.token", "");
-            VOICE_TYPE = props.getProperty("volc.tts.voice", "BV002_streaming");
+            VOICE_TYPE = props.getProperty("volc.tts.voice", "zh_female_peiqi_mars_bigtts");
+            RESOURCE_ID = props.getProperty("volc.tts.resource.id", "seed-tts-1.0");
         } catch (Exception e) { e.printStackTrace(); }
     }
     private static final String TTS_URL = "https://openspeech.bytedance.com/api/v1/tts";
@@ -47,9 +49,10 @@ public class VolcengineTtsUtil {
                     .put("reqid", reqId)
                     .put("text", text)
                     .put("text_type", "plain")
-                    .put("operation", "query"));
+                    .put("operation", "query")
+                    .put("resource_id", RESOURCE_ID));
 
-            System.out.println("[TTS] req voice=" + VOICE_TYPE + " cluster=volcano_tts");
+            System.out.println("[TTS] req voice=" + VOICE_TYPE + " resource=" + RESOURCE_ID);
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection)
                     new java.net.URL(TTS_URL).openConnection();
             conn.setRequestMethod("POST");
@@ -105,4 +108,7 @@ public class VolcengineTtsUtil {
             return null;
         }
     }
+
+    public static void setVoiceType(String v) { VOICE_TYPE = v; System.out.println("[TTS] voice -> " + v); }
+    public static String getVoiceType() { return VOICE_TYPE; }
 }

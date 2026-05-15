@@ -4,8 +4,8 @@
 			<el-form class="formModel_form" ref="formRef" :model="form" label-width="$template2.back.add.form.base.labelWidth" :rules="rules">
 				<el-row>
 					<el-col :span="12">
-						<el-form-item label="教师账号" prop="teacheraccount">
-							<el-input class="list_inp" v-model="form.teacheraccount" placeholder="教师账号"
+						<el-form-item label="教师工号" prop="teacheraccount">
+							<el-input class="list_inp" v-model="form.teacheraccount" placeholder="教师工号"
 								type="text" :readonly="!isAdd||disabledForm.teacheraccount?true:false" />
 						</el-form-item>
 					</el-col>
@@ -22,22 +22,7 @@
 						</el-form-item>
 					</el-col>
 
-					<el-col :span="24">
-						<el-form-item prop="zhaopian"
-									  label="照片"
-						>
-							<uploads
-								:disabled="!isAdd||disabledForm.zhaopian?true:false"
-								action="file/upload"
 
-								tip="请上传照片"
-								:limit="3"
-								style="width: 100%;text-align: left;"
-								:fileUrls="form.zhaopian?form.zhaopian:''" 
-								@change="zhaopianUploadSuccess">
-							</uploads>
-						</el-form-item>
-					</el-col>
 					<el-col :span="12">
 						<el-form-item label="性别" prop="gender">
 							<el-select
@@ -60,13 +45,31 @@
 						</el-form-item>
 					</el-col>
 
-					<el-col :span="12">
-						<el-form-item label="可约人数" prop="reservecount">
-							<el-input class="list_inp" v-model.number="form.reservecount" placeholder="可约人数"
-								 type="text" 								:readonly="!isAdd||disabledForm.reservecount?true:false" />
+
+										<el-col :span="12">
+						<el-form-item label="绑定年级" prop="grade">
+							<el-select
+								class="list_sel"
+								:disabled="!isAdd||disabledForm.grade?true:false"
+								v-model="form.grade"
+								placeholder="请选择年级"
+								@change="onGradeChange">
+								<el-option v-for="(item,index) in gradeOptions" :label="item" :value="item"></el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
+						<el-form-item label="绑定班级" prop="classname">
+							<el-select
+								class="list_sel"
+								:disabled="!isAdd||disabledForm.classname?true:false"
+								v-model="form.classname"
+								placeholder="请选择班级">
+								<el-option v-for="(item,index) in classOptions" :label="item.classname" :value="item.classname"></el-option>
+							</el-select>
+						</el-form-item>
+					</el-col>
+<el-col :span="12">
 						<el-form-item label="权限状态" prop="permissionstatus">
 							<el-select
 								class="list_sel"
@@ -114,11 +117,11 @@
 		teacheraccount : false,
 		teacherpassword : false,
 		teachername : false,
-		zhaopian : false,
 		gender : false,
 		lianxidianhua : false,
-		reservecount : false,
 		permissionstatus : false,
+		grade : false,
+		classname : false,
 	})
 	const formVisible = ref(false)
 	const isAdd = ref(false)
@@ -204,8 +207,6 @@
 		teachername: [
 			{required: true,message: '请输入',trigger: 'blur'}, 
 		],
-		zhaopian: [
-		],
 		gender: [
 		],
 		lianxidianhua: [
@@ -222,13 +223,24 @@
 	const formRef = ref(null)
 	const id = ref(0)
 	const type = ref('')
-	//照片上传回调
-	const zhaopianUploadSuccess=(e)=>{
-		form.value.zhaopian = e
-	}
 	//性别列表
 	const genderLists = ref([])
-	//methods
+		//年级选项
+		const gradeOptions = ref(['一年级','二年级','三年级','四年级','五年级','六年级'])
+		//班级选项
+		const classOptions = ref([])
+		//年级切换时加载对应班级
+		const onGradeChange = (grade) => {
+			form.value.classname = ''
+			context?.({
+				url: 'classinfo/page',
+				method: 'get',
+				params: { page: 1, limit: 999, grade: encodeURIComponent(grade) }
+			}).then(res => {
+				classOptions.value = res.data.data.list || []
+			})
+		}
+		//methods
 
 	//获取唯一标识
 	const getUUID =()=> {
@@ -240,11 +252,11 @@
 			teacheraccount: '',
 			teacherpassword: '',
 			teachername: '',
-			zhaopian: '',
 			gender: '',
 			lianxidianhua: '',
-			reservecount: '5',
 			permissionstatus: '启用',
+				grade: '',
+				classname: '',
 		}
 	}
 	//获取info
@@ -256,6 +268,13 @@
 			let reg=new RegExp('../../../file','g')
 			form.value = res.data.data
 			formVisible.value = true
+			context?.({
+				url: 'classinfo/page',
+				method: 'get',
+				params: { page: 1, limit: 999, grade: res.data.data.grade ? encodeURIComponent(res.data.data.grade) : '' }
+			}).then(r => {
+				classOptions.value = r.data.data.list || []
+			})
 		})
 	}
 	const crossRow = ref('')
@@ -303,12 +322,7 @@
 					disabledForm.value.teachername = true;
 					continue;
 				}
-				if(x=='zhaopian'){
-					form.value.zhaopian = row[x];
-					disabledForm.value.zhaopian = true;
-					continue;
-				}
-				if(x=='gender'){
+								if(x=='gender'){
 					form.value.gender = row[x];
 					disabledForm.value.gender = true;
 					continue;
@@ -318,16 +332,21 @@
 					disabledForm.value.lianxidianhua = true;
 					continue;
 				}
-				if(x=='reservecount'){
-					form.value.reservecount = row[x];
-					disabledForm.value.reservecount = true;
-					continue;
-				}
-				if(x=='permissionstatus'){
+								if(x=='permissionstatus'){
 					form.value.permissionstatus = row[x];
 					disabledForm.value.permissionstatus = true;
 					continue;
 				}
+					if(x=='grade'){
+						form.value.grade = row[x];
+						disabledForm.value.grade = true;
+						continue;
+					}
+					if(x=='classname'){
+						form.value.classname = row[x];
+						disabledForm.value.classname = true;
+						continue;
+					}
 			}
 			if(row){
 				crossRow.value = row
@@ -371,10 +390,7 @@
 	}
 	//提交
 	const save=()=>{
-		if(form.value.zhaopian!=null) {
-			form.value.zhaopian = form.value.zhaopian.replace(new RegExp(context?.$config.url,"g"),"");
-		}
-		var table = crossTable.value
+				var table = crossTable.value
 		var objcross = JSON.parse(JSON.stringify(crossRow.value))
 		let crossUserId = ''
 		let crossRefId = ''
