@@ -83,7 +83,9 @@ const currentChange = (p) => { pageNum.value = p; getList() }
 const renderRadar = () => {
   nextTick(() => {
     if (!radarChartRef.value || !parsedReport.value || !echarts) return
-    if (!radarChart.value) radarChart.value = echarts.init(radarChartRef.value)
+    // 每次重新初始化（dialog destroy-on-close 会销毁 DOM）
+    if (radarChart.value) { radarChart.value.dispose(); radarChart.value = null }
+    radarChart.value = echarts.init(radarChartRef.value)
     const dims = parsedReport.value.dimensions
     radarChart.value.setOption({
       radar: { center: ['50%','50%'], radius:'65%', indicator: dims.map(d=>({name:`${d.name}\n${d.score}分`,max:100})), axisName:{color:'#5b503f',fontSize:12} },

@@ -28,11 +28,23 @@ import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.cl.annotation.IgnoreAuth;
 
 import com.cl.entity.TeacherEntity;
+import com.cl.entity.StudentEntity;
+import com.cl.entity.RecitationtaskEntity;
+import com.cl.entity.FollowreadRecordEntity;
 import com.cl.entity.view.TeacherView;
 
 import com.cl.service.TeacherService;
+import com.cl.service.StudentService;
+import com.cl.service.RecitationtaskService;
+import com.cl.dao.FollowreadRecordDao;
+import com.cl.dao.QuizRecordDao;
+import com.cl.dao.StudentQuizRecordDao;
+import com.cl.entity.QuizRecordEntity;
+import com.cl.entity.StudentQuizRecordEntity;
 import com.cl.service.TokenService;
 import com.cl.utils.PageUtils;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 import com.cl.utils.R;
 import com.cl.utils.MPUtil;
 import com.cl.utils.CommonUtil;
@@ -49,6 +61,16 @@ import java.io.IOException;
 public class TeacherController {
     @Autowired
     private TeacherService teacherService;
+    @Autowired
+    private StudentService studentService;
+    @Autowired
+    private RecitationtaskService recitationtaskService;
+    @Autowired
+    private FollowreadRecordDao followreadRecordDao;
+    @Autowired
+    private QuizRecordDao quizRecordDao;
+    @Autowired
+    private StudentQuizRecordDao studentQuizRecordDao;
 
 
 
@@ -395,6 +417,143 @@ public class TeacherController {
                 }
             }
         }
+        return R.ok().put("data", result);
+    }
+
+    /** 教师学情仪表盘 */
+    @SuppressWarnings("unchecked")
+    @RequestMapping("/dashboard")
+    public R dashboard(HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
+        String username = (String) request.getSession().getAttribute("username");
+        String classname = (String) request.getSession().getAttribute("classname");
+        String grade = (String) request.getSession().getAttribute("grade");
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("teachername", username);
+        data.put("grade", grade != null ? grade : "");
+        data.put("classname", classname != null ? classname : "");
+
+        // 本班学生数
+        EntityWrapper<StudentEntity> se = new EntityWrapper<>();
+        if (classname != null) se.eq("classname", classname);
+        data.put("studentCount", studentService.selectCount(se));
+
+        // 背诵任务统计
+        EntityWrapper<RecitationtaskEntity> re = new EntityWrapper<>();
+        re.eq("teacheraccount", username);
+        int recitationTotal = recitationtaskService.selectCount(re);
+        EntityWrapper<RecitationtaskEntity> reDone = new EntityWrapper<>();
+        reDone.eq("teacheraccount", username).eq("completionstatus", "已完成");
+        int recitationDone = recitationtaskService.selectCount(reDone);
+        data.put("recitationTotal", recitationTotal);
+        data.put("recitationDone", recitationDone);
+
+        // 测验统计
+        EntityWrapper<RecitationtaskEntity> qe = new EntityWrapper<>();
+        qe.eq("teacheraccount", username).like("tasktitle", "测验：");
+        int quizTotal = recitationtaskService.selectCount(qe);
+        EntityWrapper<RecitationtaskEntity> qeDone = new EntityWrapper<>();
+        qeDone.eq("teacheraccount", username).like("tasktitle", "测验：").eq("completionstatus", "已完成");
+        int quizDone = recitationtaskService.selectCount(qeDone);
+        data.put("quizTotal", quizTotal);
+        data.put("quizDone", quizDone);
+
+        // 跟读记录统计
+        EntityWrapper<FollowreadRecordEntity> fe = new EntityWrapper<>();
+        if (classname != null) {
+            // 先查本班学生账号
+            List<StudentEntity> students = studentService.selectList(new EntityWrapper<StudentEntity>().eq("classname", classname));
+            if (!students.isEmpty()) {
+                List<String> accounts = students.stream().map(StudentEntity::getStudentaccount).collect(java.util.stream.Collectors.toList());
+                fe.in("studentaccount", accounts);
+            }
+        }
+        int followTotal = followreadRecordDao.selectCount(fe);
+        data.put("followTotal", followTotal);
+        if (followTotal > 0) {
+            List<FollowreadRecordEntity> records = followreadRecordDao.selectList(fe);
+            double avgScore = records.stream().mapToInt(FollowreadRecordEntity::getTotalscore).average().orElse(0);
+            data.put("followAvgScore", Math.round(avgScore * 10.0) / 10.0);
+        } else {
+            data.put("followAvgScore", 0);
+        }
+
+        // 最近5条活动
+        List<Map<String, Object>> activities = new ArrayList<>();
+        EntityWrapper<RecitationtaskEntity> recentTasks = new EntityWrapper<>();
+        recentTasks.eq("teacheraccount", username).orderBy("addtime", false).last("LIMIT 5");
+        for (RecitationtaskEntity t : recitationtaskService.selectList(recentTasks)) {
+            Map<String, Object> act = new LinkedHashMap<>();
+            act.put("type", (t.getTaskType() != null && t.getTaskType() == 2) ? "测验" : "背诵");
+            act.put("student", t.getStudentname());
+            act.put("title", t.getTasktitle());
+            act.put("status", t.getCompletionstatus());
+            act.put("score", t.getKaoshichengji());
+            act.put("time", t.getAddtime());
+            activities.add(act);
+        }
+        data.put("recentActivities", activities);
+
+        return R.ok().put("data", data);
+    }
+
+    /** 学生错题本 — 教师查看指定学生的错题汇总 */
+    @RequestMapping("/studentWrongbook")
+    public R studentWrongbook(@RequestParam String studentaccount, HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
+
+        List<Map<String, Object>> wrongList = new ArrayList<>();
+
+        // 测验错题 (StudentQuizRecord)
+        EntityWrapper<StudentQuizRecordEntity> qe = new EntityWrapper<>();
+        qe.eq("studentaccount", studentaccount).isNotNull("wrong_list_json").ne("wrong_list_json", "[]").orderBy("addtime", false);
+        for (StudentQuizRecordEntity r : studentQuizRecordDao.selectList(qe)) {
+            try {
+                org.json.JSONArray arr = new org.json.JSONArray(r.getWrongListJson());
+                for (int i = 0; i < arr.length(); i++) {
+                    org.json.JSONObject w = arr.getJSONObject(i);
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("type", "测验");
+                    item.put("poemTitle", r.getCourseTitle());
+                    item.put("question", w.optString("question"));
+                    item.put("options", w.optJSONArray("options") != null ? w.optJSONArray("options").toList() : new ArrayList<>());
+                    item.put("answer", w.optInt("answer"));
+                    item.put("selected", w.optInt("selected"));
+                    item.put("analysis", w.optString("analysis"));
+                    item.put("time", r.getAddtime());
+                    wrongList.add(item);
+                }
+            } catch (Exception e) {}
+        }
+
+        // 飞花令/其他错题 (QuizRecord)
+        EntityWrapper<QuizRecordEntity> qr = new EntityWrapper<>();
+        qr.eq("studentaccount", studentaccount).isNotNull("wrong_list_json").ne("wrong_list_json", "[]").orderBy("addtime", false);
+        for (QuizRecordEntity r : quizRecordDao.selectList(qr)) {
+            try {
+                org.json.JSONArray arr = new org.json.JSONArray(r.getWrongListJson());
+                for (int i = 0; i < arr.length(); i++) {
+                    org.json.JSONObject w = arr.getJSONObject(i);
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("type", "练习");
+                    item.put("poemTitle", r.getCoursetitle());
+                    item.put("question", w.optString("question"));
+                    item.put("options", w.optJSONArray("options") != null ? w.optJSONArray("options").toList() : new ArrayList<>());
+                    item.put("answer", w.optInt("answer"));
+                    item.put("selected", w.optInt("selected"));
+                    item.put("analysis", w.optString("analysis"));
+                    item.put("time", r.getAddtime());
+                    wrongList.add(item);
+                }
+            } catch (Exception e) {}
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("studentaccount", studentaccount);
+        result.put("totalWrong", wrongList.size());
+        result.put("wrongList", wrongList);
         return R.ok().put("data", result);
     }
 

@@ -137,6 +137,12 @@ public class StudentController {
     public R page(@RequestParam Map<String, Object> params,StudentEntity student,
 		HttpServletRequest request){
         EntityWrapper<StudentEntity> ew = new EntityWrapper<StudentEntity>();
+		// 教师scope：只看本班学生
+		String tableName = (String) request.getSession().getAttribute("tableName");
+		if ("teacher".equals(tableName)) {
+			String classname = (String) request.getSession().getAttribute("classname");
+			if (org.apache.commons.lang3.StringUtils.isNotBlank(classname)) ew.eq("classname", classname);
+		}
 
 		PageUtils page = studentService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, student), params), params));
 
@@ -151,6 +157,12 @@ public class StudentController {
     public R list(@RequestParam Map<String, Object> params,StudentEntity student,
 		HttpServletRequest request){
         EntityWrapper<StudentEntity> ew = new EntityWrapper<StudentEntity>();
+		// 教师scope：只看本班学生
+		String tableName = (String) request.getSession().getAttribute("tableName");
+		if ("teacher".equals(tableName)) {
+			String classname = (String) request.getSession().getAttribute("classname");
+			if (org.apache.commons.lang3.StringUtils.isNotBlank(classname)) ew.eq("classname", classname);
+		}
 
 		PageUtils page = studentService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, student), params), params));
         return R.ok().put("data", page);

@@ -50,71 +50,44 @@
 	const loginType = ref(1)
 	const context = getCurrentInstance()?.appContext.config.globalProperties;
 	const ensureTeacherMenus = (menuTree) => {
-		const teacherMenu = menuTree.find(item => item.tableName === 'teacher')
-		if (!teacherMenu) return menuTree
-		const hasCourseMenu = teacherMenu.backMenu.some(group => Array.isArray(group.child) && group.child.some(child => child.tableName === 'course'))
-		if (!hasCourseMenu) {
-			teacherMenu.backMenu.splice(1, 0, {
-				child: [{
-					appFrontIcon: "cuIcon-pay",
-					buttons: ["新增", "查看", "修改", "删除", "查看评论"],
-					menu: "古诗词管理信息",
-					menuJump: "列表",
-					tableName: "course",
-				}],
-				fontClass: "icon-common49",
-				menu: "古诗词管理",
-				unicode: "&#xef3d;",
+			const teacherMenu = menuTree.find(item => item.tableName === 'teacher')
+			if (!teacherMenu) return menuTree
+
+			// 清理教师菜单中不需要的分组
+			teacherMenu.backMenu = teacherMenu.backMenu.filter(group => {
+				const name = group.menu || ''
+				return !name.includes('题库') && !name.includes('师生绑定') && !name.includes('学习社区') && !name.includes('公告') && !name.includes('反馈')
 			})
-		}
-		const hasRecitationtaskMenu = teacherMenu.backMenu.some(group => Array.isArray(group.child) && group.child.some(child => child.tableName === 'recitationtask'))
-		if (!hasRecitationtaskMenu) {
-			const taskGroup = teacherMenu.backMenu.find(group => group.menu === '成绩信息管理' || group.menu === '学习任务管理')
-			if (taskGroup) {
-				taskGroup.menu = '学习任务管理'
-				taskGroup.child.push({
-					appFrontIcon: "cuIcon-attentionfavor",
-					buttons: ["查看", "修改", "删除", "成绩统计", "新增"],
-					menu: "成绩信息",
-					menuJump: "列表",
-					tableName: "transcript",
-				})
-				taskGroup.child = taskGroup.child.filter((item, index, arr) =>
-					arr.findIndex(child => child.tableName === item.tableName && child.menu === item.menu) === index
-				)
-				taskGroup.child.push({
-					appFrontIcon: "cuIcon-book",
-					buttons: ["新增", "查看", "修改", "删除"],
-					menu: "背诵任务",
-					menuJump: "列表",
-					tableName: "recitationtask",
-				})
-				taskGroup.child.push({
-					appFrontIcon: "cuIcon-group",
-					buttons: ["查看", "删除"],
-					menu: "跟读记录",
-					menuJump: "列表",
-					tableName: "followreadrecord",
-				})
+
+			// 确保工作台存在
+			if (!teacherMenu.backMenu.some(g => (g.menu||'') === '工作台')) {
+				teacherMenu.backMenu.unshift({ child: [{ appFrontIcon: "cuIcon-home", buttons: ["查看"], menu: "工作台", menuJump: "dashboard", tableName: "teacher" }], fontClass: "icon-common30", menu: "工作台", unicode: "&#xee47;" })
 			}
-		} else {
-			const taskGroup = teacherMenu.backMenu.find(group => group.menu === '成绩信息管理' || group.menu === '学习任务管理')
-			if (taskGroup) {
-				taskGroup.menu = '学习任务管理'
-				const hasFollowread = taskGroup.child.some(c => c.tableName === 'followreadrecord')
-				if (!hasFollowread) {
-					taskGroup.child.push({
-						appFrontIcon: "cuIcon-group",
-						buttons: ["查看", "删除"],
-						menu: "跟读记录",
-						menuJump: "列表",
-						tableName: "followreadrecord",
-					})
+			// 确保班级管理存在
+			if (!teacherMenu.backMenu.some(g => g.child && g.child.some(c => c.tableName === 'classinfo'))) {
+				teacherMenu.backMenu.unshift({ child: [{ appFrontIcon: "cuIcon-group", buttons: ["新增","查看","修改","删除"], menu: "班级管理", menuJump: "列表", tableName: "classinfo" }], fontClass: "icon-common50", menu: "班级管理", unicode: "&#xef96;" })
+			}
+			// 确保学生管理存在
+			if (!teacherMenu.backMenu.some(g => g.child && g.child.some(c => c.tableName === 'student'))) {
+				teacherMenu.backMenu.splice(1, 0, { child: [{ appFrontIcon: "cuIcon-full", buttons: ["新增","查看","修改","删除"], menu: "学生管理", menuJump: "列表", tableName: "student" }], fontClass: "icon-common38", menu: "学生管理", unicode: "&#xeeb2;" })
+			}
+			// 确保古诗文库存在
+			if (!teacherMenu.backMenu.some(g => g.child && g.child.some(c => c.tableName === 'course'))) {
+				teacherMenu.backMenu.splice(2, 0, { child: [{ appFrontIcon: "cuIcon-pay", buttons: ["查看","查看评论"], menu: "古诗文库", menuJump: "列表", tableName: "course" }], fontClass: "icon-common49", menu: "古诗文库管理", unicode: "&#xef3d;" })
+			}
+			// 确保学习任务管理存在(背诵任务/跟读记录/测验管理)
+			if (!teacherMenu.backMenu.some(g => g.child && g.child.some(c => c.tableName === 'recitationtask'))) {
+				const taskGroup = teacherMenu.backMenu.find(g => (g.menu||'').includes('学习任务') || (g.menu||'').includes('成绩信息'))
+				if (taskGroup) {
+					taskGroup.menu = '学习任务管理'
+					if (!taskGroup.child.some(c => c.tableName === 'transcript')) taskGroup.child.push({ appFrontIcon: "cuIcon-attentionfavor", buttons: ["查看","修改","删除","成绩统计","新增"], menu: "成绩信息", menuJump: "列表", tableName: "transcript" })
+				} else {
+					teacherMenu.backMenu.push({ child: [{ appFrontIcon: "cuIcon-book", buttons: ["新增","查看","修改","删除"], menu: "背诵任务", menuJump: "列表", tableName: "recitationtask" }, { appFrontIcon: "cuIcon-edit", buttons: ["新增","查看","修改","删除"], menu: "测验管理", menuJump: "列表", tableName: "quiztask" }, { appFrontIcon: "cuIcon-group", buttons: ["查看","删除"], menu: "跟读记录", menuJump: "列表", tableName: "followreadrecord" }], fontClass: "icon-common31", menu: "学习任务管理", unicode: "&#xee48;" })
 				}
 			}
+			return menuTree
 		}
-		return menuTree
-	}
+
 	const ensureAdminMenus = (menuTree) => {
 		const adminMenu = menuTree.find(item => item.tableName === 'admin')
 		if (!adminMenu) return menuTree

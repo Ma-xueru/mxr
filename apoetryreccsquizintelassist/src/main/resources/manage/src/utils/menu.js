@@ -310,56 +310,36 @@ const menu = {
             {
               child: [
                 {
-                  appFrontIcon: "cuIcon-pic",
-                  buttons: ["查看", "成绩统计"],
-                  menu: "测试记录",
-                  tableName: "examrecord",
-                },
-                {
-                  appFrontIcon: "cuIcon-pic",
-                  buttons: ["查看"],
-                  menu: "错题本",
-                  menuJump: "22",
-                  tableName: "examrecord",
+                  appFrontIcon: "cuIcon-group",
+                  buttons: ["新增", "查看", "修改", "删除"],
+                  menu: "班级管理",
+                  menuJump: "列表",
+                  tableName: "classinfo",
                 },
               ],
-              fontClass: "icon-common18",
-              menu: "题库管理",
-              unicode: "&#xedff;",
+              fontClass: "icon-common50",
+              menu: "班级管理",
+              unicode: "&#xef96;",
             },
             {
               child: [
                 {
-                  appFrontIcon: "cuIcon-discover",
-                  buttons: ["查看"],
-                  menu: "师生绑定",
+                  appFrontIcon: "cuIcon-full",
+                  buttons: ["新增", "查看", "修改", "删除"],
+                  menu: "学生管理",
                   menuJump: "列表",
-                  tableName: "mystudent",
+                  tableName: "student",
                 },
               ],
               fontClass: "icon-common38",
-              menu: "师生绑定管理",
+              menu: "学生管理",
               unicode: "&#xeeb2;",
             },
             {
               child: [
                 {
-                  appFrontIcon: "cuIcon-paint",
-                  buttons: ["新增", "查看", "修改", "删除", "查看评论"],
-                  menu: "学习社区",
-                  menuJump: "列表",
-                  tableName: "forum",
-                },
-              ],
-              fontClass: "icon-common23",
-              menu: "学习社区管理",
-              unicode: "&#xee05;",
-            },
-            {
-              child: [
-                {
                   appFrontIcon: "cuIcon-pay",
-                  buttons: ["新增", "查看", "修改", "删除", "查看评论"],
+                  buttons: ["查看", "查看评论"],
                   menu: "古诗文库",
                   menuJump: "列表",
                   tableName: "course",

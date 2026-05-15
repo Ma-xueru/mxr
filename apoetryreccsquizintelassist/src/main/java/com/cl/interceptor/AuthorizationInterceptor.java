@@ -19,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import com.cl.annotation.IgnoreAuth;
 import com.cl.entity.EIException;
 import com.cl.entity.TokenEntity;
+import com.cl.entity.TeacherEntity;
+import com.cl.dao.TeacherDao;
 import com.cl.service.TokenService;
 import com.cl.utils.R;
 
@@ -32,6 +34,8 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
 
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private TeacherDao teacherDao;
     
 	@Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -75,6 +79,16 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
         	request.getSession().setAttribute("role", tokenEntity.getRole());
         	request.getSession().setAttribute("tableName", tokenEntity.getTablename());
         	request.getSession().setAttribute("username", tokenEntity.getUsername());com.cl.utils.AIChatUtil.setCurrentUser(tokenEntity.getUsername());
+        	// 教师登录时存储年级和班级到session
+        	if ("teacher".equals(tokenEntity.getTablename())) {
+        	    try {
+        	        TeacherEntity teacher = teacherDao.selectList(new com.baomidou.mybatisplus.mapper.EntityWrapper<TeacherEntity>().eq("teacheraccount", tokenEntity.getUsername())).stream().findFirst().orElse(null);
+        	        if (teacher != null) {
+        	            request.getSession().setAttribute("grade", teacher.getGrade());
+        	            request.getSession().setAttribute("classname", teacher.getClassname());
+        	        }
+        	    } catch (Exception e) { /* ignore */ }
+        	}
         	return true;
         }
         

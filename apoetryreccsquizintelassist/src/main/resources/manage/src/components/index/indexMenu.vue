@@ -116,7 +116,10 @@
 		// styleChange()
 	}
 	const menuHandler = (name,menuJump) => {
-		if(name == 'center'){
+		if(menuJump == 'dashboard') {
+				name = 'teacherDashboard'
+			}
+			if(name == 'center'){
 			name = `${role.value}Center`
 		}
 		if(name == 'storeup'){

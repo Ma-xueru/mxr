@@ -28,6 +28,12 @@ public class QuizTaskController {
     public R page(@RequestParam Map<String, Object> params, HttpServletRequest req) {
         EntityWrapper<RecitationtaskEntity> ew = new EntityWrapper<>();
         ew.like("tasktitle", "测验：");
+        // 教师scope
+        Object tableNameObj = req.getSession().getAttribute("tableName");
+        if (tableNameObj != null && "teacher".equals(String.valueOf(tableNameObj))) {
+            String username = (String) req.getSession().getAttribute("username");
+            if (org.springframework.util.StringUtils.hasText(username)) ew.eq("teacheraccount", username);
+        }
         String tasktitle = String.valueOf(params.getOrDefault("tasktitle", ""));
         if (StringUtils.hasText(tasktitle) && !"null".equals(tasktitle)) ew.like("tasktitle", tasktitle);
         String studentaccount = String.valueOf(params.getOrDefault("studentaccount", ""));

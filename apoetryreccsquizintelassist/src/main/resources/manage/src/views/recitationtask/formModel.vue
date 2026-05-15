@@ -377,9 +377,8 @@ const progressColor = (score) => {
 const renderRadarChart = () => {
 	nextTick(() => {
 		if (!radarChartRef.value || !parsedAiReview.value || !echarts) return
-		if (!radarChart.value) {
-			radarChart.value = echarts.init(radarChartRef.value, 'macarons')
-		}
+		if (radarChart.value) { radarChart.value.dispose(); radarChart.value = null }
+		radarChart.value = echarts.init(radarChartRef.value, 'macarons')
 		const dims = parsedAiReview.value.dimensions
 		radarChart.value.setOption({
 			radar: {

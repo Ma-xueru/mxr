@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/classinfo")
@@ -30,16 +31,28 @@ public class ClassinfoController {
     private ClassinfoService classinfoService;
 
     @RequestMapping("/page")
-    public R page(@RequestParam Map<String, Object> params, ClassinfoEntity classinfo) {
+    public R page(@RequestParam Map<String, Object> params, ClassinfoEntity classinfo, HttpServletRequest request) {
         EntityWrapper<ClassinfoEntity> ew = new EntityWrapper<ClassinfoEntity>();
+        // 教师scope：只看自己年级
+        String tableName = (String) request.getSession().getAttribute("tableName");
+        if ("teacher".equals(tableName)) {
+            String grade = (String) request.getSession().getAttribute("grade");
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(grade)) ew.eq("grade", grade);
+        }
         PageUtils page = classinfoService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, classinfo), params), params));
         return R.ok().put("data", page);
     }
 
     @IgnoreAuth
     @RequestMapping("/list")
-    public R list(@RequestParam Map<String, Object> params, ClassinfoEntity classinfo) {
+    public R list(@RequestParam Map<String, Object> params, ClassinfoEntity classinfo, HttpServletRequest request) {
         EntityWrapper<ClassinfoEntity> ew = new EntityWrapper<ClassinfoEntity>();
+        // 教师scope：只看自己年级
+        String tableName = (String) request.getSession().getAttribute("tableName");
+        if ("teacher".equals(tableName)) {
+            String grade = (String) request.getSession().getAttribute("grade");
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(grade)) ew.eq("grade", grade);
+        }
         PageUtils page = classinfoService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, classinfo), params), params));
         return R.ok().put("data", page);
     }

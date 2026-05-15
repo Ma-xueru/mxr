@@ -18,6 +18,7 @@ import exampaperlist from '@/views/exam/exampaperlist/list'
 import examination from '@/views/exam/exampaperlist/examination'
 import examrecord from '@/views/exam/examrecord/list'
 import examfailrecord from '@/views/exam/examfailrecord/list'
+import teacherDashboard from '@/views/teacher/dashboard'
 import teacherRegister from '@/views/teacher/register'
 import teacherCenter from '@/views/teacher/center'
 import course from '@/views/course/list'
@@ -48,7 +49,12 @@ export const routes = [{
 		}
 
 		,{
-			path: '/teacherCenter',
+			path: '/teacherDashboard',
+				name: '教师工作台',
+				component: teacherDashboard
+			}
+			,{
+				path: '/teacherCenter',
 			name: '教师个人中心',
 			component: teacherCenter
 		}

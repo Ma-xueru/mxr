@@ -81,6 +81,7 @@ public class RecitationtaskController {
     @RequestMapping("/list")
     public R list(@RequestParam Map<String, Object> params, RecitationtaskEntity recitationtask, HttpServletRequest request) {
         EntityWrapper<RecitationtaskEntity> ew = new EntityWrapper<RecitationtaskEntity>();
+        applyTeacherScope(ew, request);
         PageUtils page = recitationtaskService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, recitationtask), params), params));
         return R.ok().put("data", page);
     }
@@ -307,7 +308,10 @@ public class RecitationtaskController {
         if (tableNameObj == null || !"teacher".equals(String.valueOf(tableNameObj))) {
             return;
         }
-        // 教师端优先展示系统中的背诵任务，避免因历史数据中教师账号/姓名不一致导致页面查询为空。
+        String username = (String) request.getSession().getAttribute("username");
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(username)) {
+            ew.eq("teacheraccount", username);
+        }
     }
 
     private void fillAutoReviewResult(RecitationtaskEntity recitationtask, HttpServletRequest request) {

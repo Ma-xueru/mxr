@@ -7,7 +7,7 @@
 					<div>
 						<div class="overview_badge">学生管理</div>
 						<div class="overview_title">学生账号与学习身份统一维护</div>
-						<div class="overview_desc">集中查看年级、班级、勋章和权限状态，让班级分配与学生管理更清晰。</div>
+						<div class="overview_desc">集中查看年级、班级、勋章和错题本，让班级分配与学生管理更清晰。</div>
 					</div>
 					<div class="overview_stat">
 						<div class="overview_stat_label">当前学生数</div>
@@ -194,13 +194,14 @@
 						{{scope.row.telephone}}
 					</template>
 				</el-table-column>
-				<el-table-column label="操作" width="300" :resizable='true' :sortable='true' align="left" header-align="left">
+				<el-table-column label="操作" width="380" :resizable='true' :sortable='true' align="left" header-align="left">
 					<template #default="scope">
 						<el-button type="info" v-if=" btnAuth('student','查看')" @click="infoClick(scope.row.id)">详情</el-button>
 						<el-button type="warning" v-if="context?.$toolUtil.storageGet('role')=='管理员'" @click="togglePermission(scope.row)">
 							{{ scope.row.permissionstatus === '禁用' ? '启用权限' : '禁用权限' }}
 						</el-button>
 						<el-button v-if="btnAuth('student','分配')" type="success" @click="mystudentCrossAddOrUpdateHandler(scope.row,'cross','','','')">分配</el-button>
+						<el-button type="danger" @click="wrongbookClick(scope.row)">错题本</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -229,6 +230,20 @@
 				</span>
 			</template>
 		</el-dialog>
+
+	<el-dialog v-model="wrongbookVisible" title="错题本" width="60%" destroy-on-close>
+		<div v-if="wrongbookData" style="margin-bottom:12px;color:#5b503f;">
+			学生：<b>{{ wrongbookData.studentaccount }}</b> | 错题数：<b style="color:#F44336;">{{ wrongbookData.totalWrong }}</b>
+		</div>
+		<el-table :data="wrongbookData?.wrongList || []" border max-height="500">
+			<el-table-column prop="type" label="类型" width="70"><template #default="s"><el-tag :type="s.row.type==='测验'?'danger':'warning'" size="small">{{ s.row.type}}</el-tag></template></el-table-column>
+			<el-table-column prop="poemTitle" label="古诗" width="140"></el-table-column>
+			<el-table-column prop="question" label="题目" min-width="200"></el-table-column>
+			<el-table-column label="回答" width="80"><template #default="s">{{ s.row.options&&s.row.options[s.row.selected]||s.row.selected }}</template></el-table-column>
+			<el-table-column label="正解" width="80"><template #default="s">{{ s.row.options&&s.row.options[s.row.answer]||s.row.answer }}</template></el-table-column>
+			<el-table-column prop="analysis" label="解析" min-width="160"></el-table-column>
+		</el-table>
+	</el-dialog>
 		<mystudentFormModel ref="mystudentFormModelRef" @formModelChange="formModelChange"></mystudentFormModel>
 	</div>
 </template>
@@ -326,6 +341,7 @@
 		}
 	}
 	//删
+	const wrongbookClick = (row) => { context?.$http({ url: 'teacher/studentWrongbook', method: 'get', params: { studentaccount: row.studentaccount } }).then(res => { wrongbookData.value = res.data.data; wrongbookVisible.value = true }) }
 	const delClick = (id) => {
 		let ids = ref([])
 		if (id) {
