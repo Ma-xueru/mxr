@@ -1,6 +1,6 @@
 const GET = 'get';
 const POST = 'post';
- const baseURL = "http://localhost:8080/apoetryreccsquizintelassist"
+ const baseURL = "https://api.mxr.asia/apoetryreccsquizintelassist"
 wx.setStorageSync('baseURL', baseURL)
 module.exports = function (options) {
     return new Promise(function (resolve, reject) {
