@@ -8,7 +8,7 @@ const utils = require("../../utils/index.js")
 Page({
   data: {
     messages: [],
-    baseUrl: 'http://localhost:8080/hukoureservesys/',
+    baseUrl: wx.getStorageSync('baseURL') + '/',
     inputText: '',
     currentPage: 1,
     totalPages: 1, // 改为从接口动态获取，默认1页
