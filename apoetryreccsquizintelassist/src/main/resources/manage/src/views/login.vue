@@ -142,21 +142,6 @@
 			)
 		}
 
-		const examGroup = ensureGroup('国学答题库管理', 'icon-common47', '&#xef63;')
-		const ensureChild = (tableName, menu, extra = {}) => {
-			if (!examGroup.child.some(child => child.tableName === tableName && child.menu === menu)) {
-				examGroup.child.push({
-					appFrontIcon: "cuIcon-addressbook",
-					buttons: ["新增", "查看", "修改", "删除"],
-					menu,
-					menuJump: "列表",
-					tableName,
-					...extra
-				})
-			}
-		}
-		ensureChild('exampaper', '答题试卷')
-		ensureChild('examquestion', '问答题库管理')
 		const classGroup = ensureGroup('班级管理', 'icon-common50', '&#xef96;')
 		if (!classGroup.child.some(child => child.tableName === 'classinfo')) {
 			classGroup.child.push({
@@ -335,7 +320,7 @@
         method: "get",
         params: params
       }).then(res => {
-          menus.value = ensureReserveMenus(normalizeTeacherTaskMenu(ensureAdminMenus(ensureTeacherMenus(JSON.parse(res.data.data.list[0].menujson)))))
+          menus.value = normalizeTeacherTaskMenu(ensureAdminMenus(ensureTeacherMenus(JSON.parse(res.data.data.list[0].menujson))))
           for (let i = 0; i < menus.value.length; i++) {
             if (menus.value[i].hasBackLogin=='是') {
               userList.value.push(menus.value[i])

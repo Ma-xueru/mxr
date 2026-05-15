@@ -73,28 +73,27 @@ public class MenuController {
                 com.alibaba.fastjson.JSONObject role = roles.getJSONObject(i);
                 com.alibaba.fastjson.JSONArray backMenu = role.getJSONArray("backMenu");
                 if (backMenu == null) continue;
+                // 第一遍：删除不需要的菜单组和子项
                 for (int j = backMenu.size() - 1; j >= 0; j--) {
                     com.alibaba.fastjson.JSONObject group = backMenu.getJSONObject(j);
                     String gname = group.getString("menu");
-                    // 删除预约相关菜单组
-                    if ("预约课程管理".equals(gname) || "预约课程学习管理".equals(gname)) {
+                    if ("预约课程管理".equals(gname) || "预约课程学习管理".equals(gname) || "学习社区管理".equals(gname) || "题库管理".equals(gname)) {
                         backMenu.remove(j); continue;
                     }
-                    // 删除预约+教师管理子项
                     com.alibaba.fastjson.JSONArray child = group.getJSONArray("child");
                     if (child != null) {
                         for (int k = child.size() - 1; k >= 0; k--) {
                             String tn = child.getJSONObject(k).getString("tableName");
-                            if ("coursereserve".equals(tn) || "reservecancel".equals(tn) || "teacher".equals(tn)) {
+                            if ("coursereserve".equals(tn) || "reservecancel".equals(tn) || "teacher".equals(tn) || "mystudent".equals(tn) || "forum".equals(tn) || "discussforum".equals(tn) || "feedback".equals(tn) || "examquestion".equals(tn) || "exampaper".equals(tn) || "news".equals(tn) || "examrecord".equals(tn) || "examfailrecord".equals(tn)) {
                                 child.remove(k);
                             }
                         }
-                        // 如果组内没有子项了，删除整个组
                         if (child.size() == 0 && !"学习任务管理".equals(gname) && !"成绩信息管理".equals(gname)) {
                             backMenu.remove(j);
                         }
                     }
                 }
+                // 第二遍：添加跟读记录和测验管理
                 for (int j = 0; j < backMenu.size(); j++) {
                     com.alibaba.fastjson.JSONObject group = backMenu.getJSONObject(j);
                     String name = group.getString("menu");
@@ -128,10 +127,32 @@ public class MenuController {
                         }
                     }
                 }
+                // 清理 frontMenu
+                com.alibaba.fastjson.JSONArray frontMenu = role.getJSONArray("frontMenu");
+                if (frontMenu != null) {
+                    for (int j = frontMenu.size() - 1; j >= 0; j--) {
+                        com.alibaba.fastjson.JSONObject fgroup = frontMenu.getJSONObject(j);
+                        String fgname = fgroup.getString("menu");
+                        if ("教师管理".equals(fgname) || "教师预约".equals(fgname)) {
+                            frontMenu.remove(j); continue;
+                        }
+                        com.alibaba.fastjson.JSONArray fchild = fgroup.getJSONArray("child");
+                        if (fchild != null) {
+                            for (int k = fchild.size() - 1; k >= 0; k--) {
+                                String tn = fchild.getJSONObject(k).getString("tableName");
+                                if ("teacher".equals(tn) || "coursereserve".equals(tn) || "reservecancel".equals(tn) || "mystudent".equals(tn) || "forum".equals(tn)) {
+                                    fchild.remove(k);
+                                }
+                            }
+                            if (fchild.size() == 0) frontMenu.remove(j);
+                        }
+                    }
+                }
             }
             return roles.toJSONString();
         } catch (Exception e) { return menuJson; }
     }
+
 
     private void hideReserveMenu(PageUtils page) {
         if (page == null || page.getList() == null) {
