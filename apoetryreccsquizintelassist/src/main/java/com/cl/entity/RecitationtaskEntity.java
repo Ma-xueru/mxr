@@ -58,7 +58,11 @@ public class RecitationtaskEntity<T> implements Serializable {
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat
     private Date addtime;
+    private String classname;
     private Integer taskType;
+
+    public String getClassname() { return classname; }
+    public void setClassname(String classname) { this.classname = classname; }
 
     public Date getAddtime() {
         return addtime;

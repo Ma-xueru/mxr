@@ -1,0 +1,1 @@
+UPDATE course SET author_name='', annotations='', translation='', intro='《诗经·小雅》名篇，昔我往矣杨柳依依今我来思雨雪霏霏，以景写情的典范。' WHERE id=118;

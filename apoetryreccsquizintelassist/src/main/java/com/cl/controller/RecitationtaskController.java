@@ -117,6 +117,7 @@ public class RecitationtaskController {
     @RequestMapping("/save")
     public R save(@RequestBody RecitationtaskEntity recitationtask, HttpServletRequest request) {
         recitationtask.setId(new Date().getTime() + new Double(Math.floor(Math.random() * 1000)).longValue());
+        fillClassname(recitationtask);
         fillAutoReviewResult(recitationtask, request);
         recitationtaskService.insert(recitationtask);
         return R.ok();
@@ -125,9 +126,18 @@ public class RecitationtaskController {
     @RequestMapping("/add")
     public R add(@RequestBody RecitationtaskEntity recitationtask, HttpServletRequest request) {
         recitationtask.setId(new Date().getTime() + new Double(Math.floor(Math.random() * 1000)).longValue());
+        fillClassname(recitationtask);
         fillAutoReviewResult(recitationtask, request);
         recitationtaskService.insert(recitationtask);
         return R.ok();
+    }
+
+    private void fillClassname(RecitationtaskEntity task) {
+        if (task.getClassname() != null && !task.getClassname().isEmpty()) return;
+        if (task.getStudentaccount() != null) {
+            StudentEntity s = studentService.selectOne(new EntityWrapper<StudentEntity>().eq("studentaccount", task.getStudentaccount()));
+            if (s != null && s.getClassname() != null) task.setClassname(s.getClassname());
+        }
     }
 
     @RequestMapping("/batchAssign")
@@ -216,6 +226,7 @@ public class RecitationtaskController {
             task.setTeacheraccount(teacheraccount);
             task.setTeachername(teachername);
             task.setReleasetime(releasetime);
+            task.setClassname(student.getClassname());
             recitationtaskService.insert(task);
             successCount++;
         }
@@ -308,9 +319,9 @@ public class RecitationtaskController {
         if (tableNameObj == null || !"teacher".equals(String.valueOf(tableNameObj))) {
             return;
         }
-        String username = (String) request.getSession().getAttribute("username");
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(username)) {
-            ew.eq("teacheraccount", username);
+        java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
+        if (classnames != null && !classnames.isEmpty()) {
+            ew.in("classname", classnames);
         }
     }
 

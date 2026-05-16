@@ -1,0 +1,1 @@
+UPDATE course SET contentpinyin = 'xī wǒ wǎng yǐ yáng liǔ yī yī|||jīn wǒ lái sī yǔ xuě fēi fēi|||xíng dào chí chí zài kě zài jī|||wǒ xīn shāng bēi mò zhī wǒ āi' WHERE id = 118;
