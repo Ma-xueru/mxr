@@ -28,6 +28,7 @@ import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.cl.annotation.IgnoreAuth;
 
 import com.cl.entity.TeacherEntity;
+import com.cl.entity.TeacherClassEntity;
 import com.cl.entity.StudentEntity;
 import com.cl.entity.RecitationtaskEntity;
 import com.cl.entity.FollowreadRecordEntity;
@@ -36,6 +37,7 @@ import com.cl.entity.view.TeacherView;
 import com.cl.service.TeacherService;
 import com.cl.service.StudentService;
 import com.cl.service.RecitationtaskService;
+import com.cl.dao.TeacherClassDao;
 import com.cl.dao.FollowreadRecordDao;
 import com.cl.dao.QuizRecordDao;
 import com.cl.dao.StudentQuizRecordDao;
@@ -65,6 +67,8 @@ public class TeacherController {
     private StudentService studentService;
     @Autowired
     private RecitationtaskService recitationtaskService;
+    @Autowired
+    private TeacherClassDao teacherClassDao;
     @Autowired
     private FollowreadRecordDao followreadRecordDao;
     @Autowired
@@ -112,6 +116,7 @@ public class TeacherController {
 		Long uId = new Date().getTime();
 		teacher.setId(uId);
         teacherService.insert(teacher);
+        syncTeacherClasses(teacher);
         return R.ok();
     }
 
@@ -259,6 +264,7 @@ public class TeacherController {
 		}
 		teacher.setId(new Date().getTime());
         teacherService.insert(teacher);
+        syncTeacherClasses(teacher);
         return R.ok();
     }
 
@@ -273,7 +279,29 @@ public class TeacherController {
         //ValidatorUtils.validateEntity(teacher);
         fillDefaultPermission(teacher);
         teacherService.updateById(teacher);//全部更新
+        syncTeacherClasses(teacher);
         return R.ok();
+    }
+
+    private void syncTeacherClasses(TeacherEntity teacher) {
+        if (teacher == null || teacher.getTeacheraccount() == null) return;
+        // 删除旧绑定
+        teacherClassDao.delete(new EntityWrapper<TeacherClassEntity>().eq("teacher_account", teacher.getTeacheraccount()));
+        // 解析班级列表并插入新绑定
+        String classnameStr = teacher.getClassname();
+        if (StringUtils.isNotBlank(classnameStr)) {
+            String[] classes = classnameStr.split(",");
+            for (String cn : classes) {
+                cn = cn.trim();
+                if (!cn.isEmpty()) {
+                    TeacherClassEntity tc = new TeacherClassEntity();
+                    tc.setTeacherId(teacher.getId());
+                    tc.setTeacherAccount(teacher.getTeacheraccount());
+                    tc.setClassname(cn);
+                    teacherClassDao.insert(tc);
+                }
+            }
+        }
     }
 
     private void fillDefaultPermission(TeacherEntity teacher) {

@@ -1,4 +1,4 @@
-import {
+﻿import {
 	createRouter,
 	createWebHashHistory
 } from 'vue-router'
@@ -19,7 +19,6 @@ import examination from '@/views/exam/exampaperlist/examination'
 import examrecord from '@/views/exam/examrecord/list'
 import examfailrecord from '@/views/exam/examfailrecord/list'
 import teacherDashboard from '@/views/teacher/dashboard'
-import teacherRegister from '@/views/teacher/register'
 import teacherCenter from '@/views/teacher/center'
 import course from '@/views/course/list'
 import recitationtask from '@/views/recitationtask/list'
@@ -157,11 +156,6 @@ export const routes = [{
 			component: classinfo
 		}
 		]
-	},
-	{
-		path: '/teacherRegister',
-		name: '教师注册',
-		component: teacherRegister
 	},
 	{
 		path: '/examination',

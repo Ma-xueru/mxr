@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<div>
 		<el-dialog v-model="formVisible" :title="formTitle" width="80%" destroy-on-close :fullscreen='false'>
 			<el-form class="formModel_form" ref="formRef" :model="form" label-width="$template2.back.add.form.base.labelWidth" :rules="rules">
@@ -63,9 +63,12 @@
 							<el-select
 								class="list_sel"
 								:disabled="!isAdd||disabledForm.classname?true:false"
-								v-model="form.classname"
-								placeholder="请选择班级">
-								<el-option v-for="(item,index) in classOptions" :label="item.classname" :value="item.classname"></el-option>
+								v-model="form.classnameArr"
+								placeholder="请选择班级"
+								multiple
+								collapse-tags
+								collapse-tags-tooltip>
+								<el-option v-for="(item,index) in classOptions" :label="item.classname" :value="item.classname" :key="index"></el-option>
 							</el-select>
 						</el-form-item>
 					</el-col>
@@ -212,9 +215,6 @@
 		lianxidianhua: [
 			{ validator: validateMobile, trigger: 'blur' },
 		],
-		reservecount: [
-			{ validator: validateIntNumber, trigger: 'blur' },
-		],
 		permissionstatus: [
 		],
 	})
@@ -232,10 +232,10 @@
 		//年级切换时加载对应班级
 		const onGradeChange = (grade) => {
 			form.value.classname = ''
-			context?.({
+			context?.$http({
 				url: 'classinfo/page',
 				method: 'get',
-				params: { page: 1, limit: 999, grade: encodeURIComponent(grade) }
+				params: { page: 1, limit: 999, grade: grade }
 			}).then(res => {
 				classOptions.value = res.data.data.list || []
 			})
@@ -257,6 +257,7 @@
 			permissionstatus: '启用',
 				grade: '',
 				classname: '',
+				classnameArr: [],
 		}
 	}
 	//获取info
@@ -267,8 +268,9 @@
 		}).then(res => {
 			let reg=new RegExp('../../../file','g')
 			form.value = res.data.data
+			form.value.classnameArr = form.value.classname ? form.value.classname.split(',').filter(c => c.trim()) : []
 			formVisible.value = true
-			context?.({
+			context?.$http({
 				url: 'classinfo/page',
 				method: 'get',
 				params: { page: 1, limit: 999, grade: res.data.data.grade ? encodeURIComponent(res.data.data.grade) : '' }
@@ -363,7 +365,6 @@
 			if(statusColumnValue){
 				crossColumnValue.value = statusColumnValue
 			}
-			form.value.reservecount='5'
 			formVisible.value = true
 		}
 
@@ -411,6 +412,9 @@
 					crossOptNum = crossColumnName.value.replace(/\[/,"").replace(/\]/,"")
 				}
 			}
+		}
+		if (form.value.classnameArr && form.value.classnameArr.length > 0) {
+			form.value.classname = form.value.classnameArr.join(',')
 		}
 		formRef.value.validate((valid)=>{
 			if(valid){

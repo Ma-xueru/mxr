@@ -154,64 +154,7 @@ public class MenuController {
     }
 
 
-    private void hideReserveMenu(PageUtils page) {
-        if (page == null || page.getList() == null) {
-            return;
-        }
-        List<?> rows = page.getList();
-        for (Object row : rows) {
-            if (row instanceof MenuEntity) {
-                MenuEntity<?> menuEntity = (MenuEntity<?>) row;
-                menuEntity.setMenujson(hideReserveMenuJson(menuEntity.getMenujson()));
-            }
-        }
-    }
 
-    private String hideReserveMenuJson(String menuJson) {
-        if (StringUtils.isBlank(menuJson)) {
-            return menuJson;
-        }
-        JSONArray roles = JSON.parseArray(menuJson);
-        for (int i = 0; i < roles.size(); i++) {
-            JSONObject role = roles.getJSONObject(i);
-            JSONArray backMenu = role.getJSONArray("backMenu");
-            if (backMenu != null) {
-                for (int j = backMenu.size() - 1; j >= 0; j--) {
-                    JSONObject group = backMenu.getJSONObject(j);
-                    String groupName = group.getString("menu");
-                    if ("预约课程管理".equals(groupName) || "预约课程学习管理".equals(groupName)) {
-                        backMenu.remove(j);
-                    }
-                }
-            }
-            JSONArray frontMenu = role.getJSONArray("frontMenu");
-            if (frontMenu != null) {
-                for (int j = 0; j < frontMenu.size(); j++) {
-                    JSONObject group = frontMenu.getJSONObject(j);
-                    JSONArray child = group.getJSONArray("child");
-                    if (child == null) {
-                        continue;
-                    }
-                    for (int k = 0; k < child.size(); k++) {
-                        JSONObject childItem = child.getJSONObject(k);
-                        if (!"teacher".equals(childItem.getString("tableName"))) {
-                            continue;
-                        }
-                        JSONArray buttons = childItem.getJSONArray("buttons");
-                        if (buttons == null) {
-                            continue;
-                        }
-                        for (int n = buttons.size() - 1; n >= 0; n--) {
-                            if ("预约".equals(buttons.getString(n))) {
-                                buttons.remove(n);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return roles.toJSONString();
-    }
 
 
 
@@ -241,7 +184,6 @@ public class MenuController {
         EntityWrapper<MenuEntity> ew = new EntityWrapper<MenuEntity>();
 
 		PageUtils page = menuService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, menu), params), params));
-        hideReserveMenu(page);
         ensureExtraMenus(page);
         return R.ok().put("data", page);
     }

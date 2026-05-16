@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<div>
 		<div class="app-contain">
 			<div class="course_hero">
@@ -9,7 +9,7 @@
 				</div>
 				<div class="hero_stats">
 					<div class="stat_card">
-						<div class="stat_label">当前课程数</div>
+						<div class="stat_label">当前古诗数</div>
 						<div class="stat_value">{{ total }}</div>
 					</div>
 					<div class="stat_card stat_warm">
@@ -104,28 +104,10 @@
 						<span class="grade_tag">{{ scope.row.grade }}</span>
 					</template>
 				</el-table-column>
-				<el-table-column label="古诗词封面" width="120" :resizable='true' align="left" header-align="left">
-					<template #default="scope">
-						<div v-if="scope.row.picture">
-							<el-image v-if="scope.row.picture.substring(0,4)=='http'" preview-teleported
-								:preview-src-list="[scope.row.picture.split(',')[0]]"
-								:src="scope.row.picture.split(',')[0]" style="width:100px;height:100px"></el-image>
-							<el-image v-else preview-teleported
-								:preview-src-list="[$config.url+scope.row.picture.split(',')[0]]"
-								:src="$config.url+scope.row.picture.split(',')[0]" style="width:100px;height:100px">
-							</el-image>
-						</div>
-						<div v-else>无图片</div>
-					</template>
-				</el-table-column>
-				<el-table-column prop="clicknum" label="点击数" width="90" :resizable='true' :sortable='true' align="left" header-align="left"></el-table-column>
-				<el-table-column prop="thumbsupnum" label="点赞数" width="90" :resizable='true' :sortable='true' align="left" header-align="left"></el-table-column>
-				<el-table-column prop="crazilynum" label="点踩数" width="90" :resizable='true' :sortable='true' align="left" header-align="left"></el-table-column>
 				<el-table-column prop="addtime" label="最后更新时间" :resizable='true' :sortable='true' align="left" header-align="left"></el-table-column>
 				<el-table-column label="操作" width="200" :resizable='true' align="left" header-align="left">
 					<template #default="scope">
 						<el-button type="info" size="small" v-if=" btnAuth('course','查看')" @click="infoClick(scope.row.id)">详情</el-button>
-						<el-button type="warning" size="small" v-if="btnAuth('course','查看评论')" @click="commentClick(scope.row.id)">查看评论</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -308,10 +290,6 @@
 		}
 	}
 	
-	// 查看评论
-	const commentClick=(id)=>{
-		router.push(`/discusscourse?refid=${id}`)
-	}
 	
 	// 初始化
 	onMounted(() => {

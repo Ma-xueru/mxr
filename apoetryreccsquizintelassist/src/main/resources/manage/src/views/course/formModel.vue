@@ -31,49 +31,18 @@
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
-						<el-form-item label="点击数" prop="clicknum">
-							<el-input class="list_inp" v-model="form.clicknum" placeholder="请输入点击数" type="number"
-								:readonly="!isAdd || disabledForm.clicknum ? true : false" />
-						</el-form-item>
-					</el-col>
-					<el-col :span="24">
-						<el-form-item prop="picture" label="古诗词封面">
-							<uploads :disabled="!isAdd || disabledForm.picture ? true : false" action="file/upload"
-								tip="请上传图片" :limit="3" style="width: 100%;text-align: left;"
-								:fileUrls="form.picture ? form.picture : ''" @change="pictureUploadSuccess">
-							</uploads>
+						<el-form-item label="古诗词封面">
+							<div v-if="form.picture&&form.picture.substring(0,6)=='cloud:'" style="display:flex;align-items:center;gap:12px">
+								<el-image :src="$config.url+'/course/coverProxy?fileId='+encodeURIComponent(form.picture)" style="width:120px;height:120px;border-radius:8px"></el-image>
+								<span style="color:#909399;font-size:12px">来自微信云存储</span>
+							</div>
+							<div v-else style="color:#909399;font-size:13px">封面由小程序端AI自动生成，无需手动上传</div>
 						</el-form-item>
 					</el-col>
 					<el-col :span="24">
 						<el-form-item label="古诗词简介" prop="intro">
 							<el-input class="textarea" v-model="form.intro" placeholder="请输入古诗词简介" type="textarea"
 								:rows="3" :readonly="!isAdd || disabledForm.intro ? true : false" />
-						</el-form-item>
-					</el-col>
-					<el-col :span="24">
-						<el-form-item prop="video" label="视频">
-							<div class="video_field">
-								<uploads
-									:disabled="!isAdd || disabledForm.video ? true : false"
-									action="file/upload"
-									tip="请上传视频"
-									:limit="1"
-									class="video_upload"
-									:fileUrls="form.video ? form.video : ''"
-									@change="videoUploadSuccess">
-								</uploads>
-								<div class="video_preview_box">
-									<video
-										v-if="form.video"
-										class="video_preview"
-										:src="$config.url + form.video"
-										controls
-										preload="metadata">
-										无视频
-									</video>
-									<div v-else class="video_preview_empty">上传后在这里预览</div>
-								</div>
-							</div>
 						</el-form-item>
 					</el-col>
 					<el-col :span="24">
@@ -97,18 +66,6 @@
 								:readonly="!isAdd || disabledForm.clicktime ? true : false" placeholder="请选择最后点击时间" />
 						</el-form-item>
 					</el-col>
-					<el-col :span="12">
-						<el-form-item label="点赞数" prop="thumbsupnum">
-							<el-input class="list_inp" v-model="form.thumbsupnum" placeholder="请输入点赞数" type="number"
-								:readonly="!isAdd || disabledForm.thumbsupnum ? true : false" />
-						</el-form-item>
-					</el-col>
-					<el-col :span="12">
-						<el-form-item label="点踩数" prop="crazilynum">
-							<el-input class="list_inp" v-model="form.crazilynum" placeholder="请输入点踩数" type="number"
-								:readonly="!isAdd || disabledForm.crazilynum ? true : false" />
-						</el-form-item>
-					</el-col>
 				</el-row>
 			</el-form>
 			<template #footer v-if="isAdd || type == 'logistics' || type == 'reply'">
@@ -125,24 +82,18 @@ import { reactive, ref, getCurrentInstance, nextTick, computed, defineEmits } fr
 const context = getCurrentInstance()?.appContext.config.globalProperties;
 const emit = defineEmits(['formModelChange'])
 
-// 基础信息 - 改为古诗词
 const tableName = 'course'
 const formName = '古诗词'
 
-// 表单数据
 const form = ref({})
 const disabledForm = ref({
 	courseno: false,
 	coursetitle: false,
 	coursetype: false,
 	grade: false,
-	picture: false,
+	picture: true,
 	intro: false,
 	content: false,
-	video: false,
-	thumbsupnum: false,
-	crazilynum: false,
-	clicknum: false,
 	addtime: false,
 	clicktime: false,
 })
@@ -150,16 +101,6 @@ const formVisible = ref(false)
 const isAdd = ref(false)
 const formTitle = ref('')
 
-// 表单验证
-const validateIntNumber = (rule, value, callback) => {
-	if (!value) {
-		callback();
-	} else if (!context?.$toolUtil.isIntNumer(value)) {
-		callback(new Error("请输入整数"));
-	} else {
-		callback();
-	}
-}
 const rules = ref({
 	courseno: [
 		{ required: true, message: '请输入古诗词号', trigger: 'blur' }
@@ -173,15 +114,6 @@ const rules = ref({
 	grade: [
 		{ required: true, message: '请选择适用年级', trigger: 'change' }
 	],
-	clicknum: [
-		{ validator: validateIntNumber, trigger: 'blur' }
-	],
-	thumbsupnum: [
-		{ validator: validateIntNumber, trigger: 'blur' }
-	],
-	crazilynum: [
-		{ validator: validateIntNumber, trigger: 'blur' }
-	],
 })
 
 const formRef = ref(null)
@@ -189,17 +121,6 @@ const id = ref(0)
 const type = ref('')
 const gradeLists = ref("一年级,二年级,三年级,四年级,五年级,六年级".split(','))
 
-// 图片上传回调
-const pictureUploadSuccess = (e) => {
-	form.value.picture = e
-}
-
-// 视频上传回调
-const videoUploadSuccess = (e) => {
-	form.value.video = e
-}
-
-// 重置表单
 const resetForm = () => {
 	form.value = {
 		courseno: '',
@@ -209,16 +130,11 @@ const resetForm = () => {
 		picture: '',
 		intro: '',
 		content: '',
-		video: '',
-		thumbsupnum: 0,
-		crazilynum: 0,
-		clicknum: 0,
 		addtime: new Date(),
 		clicktime: null,
 	}
 }
 
-// 获取详情
 const getInfo = () => {
 	context?.$http({
 		url: `${tableName}/info/${id.value}`,
@@ -239,7 +155,6 @@ const crossTips = ref('')
 const crossColumnName = ref('')
 const crossColumnValue = ref('')
 
-// 初始化表单
 const init = (formId = null, formType = 'add', formNames = '', row = null, table = null, statusColumnName = null, tips = null, statusColumnValue = null) => {
 	resetForm()
 	if (formId) {
@@ -262,7 +177,6 @@ const init = (formId = null, formType = 'add', formNames = '', row = null, table
 		isAdd.value = true
 		formTitle.value = formNames
 		if (row) {
-			// 跨表数据回显
 			Object.keys(row).forEach(key => {
 				if (disabledForm.value.hasOwnProperty(key)) {
 					form.value[key] = row[key]
@@ -276,39 +190,28 @@ const init = (formId = null, formType = 'add', formNames = '', row = null, table
 		if (statusColumnName) crossColumnName.value = statusColumnName
 		if (statusColumnValue) crossColumnValue.value = statusColumnValue
 
-		form.value.thumbsupnum = 0
-		form.value.crazilynum = 0
 		formVisible.value = true
 	}
 
 	context?.$http({
 		url: `${context?.$toolUtil.storageGet('sessionTable')}/session`,
 		method: 'get'
-	}).then(res => {
-		// 处理会话数据
-	})
+	}).then(res => {})
 }
 
 defineExpose({ init })
 
-// 关闭表单
 const closeClick = () => {
 	formVisible.value = false
 }
 
-// 富文本变化
 const editorChange = (e, name) => {
 	form.value[name] = e
 }
 
-// 提交表单
 const save = () => {
-	// 处理文件路径
 	if (form.value.picture) {
 		form.value.picture = form.value.picture.replace(new RegExp(context?.$config.url, "g"), "");
-	}
-	if (form.value.video) {
-		form.value.video = form.value.video.replace(new RegExp(context?.$config.url, "g"), "");
 	}
 
 	var table = crossTable.value
@@ -358,7 +261,6 @@ const save = () => {
 	})
 }
 
-// 保存数据
 const saveData = () => {
 	context?.$http({
 		url: `${tableName}/${!form.value.id ? "save" : "update"}`,
@@ -372,17 +274,15 @@ const saveData = () => {
 	})
 }
 
-// 修改跨表数据
 const changeCrossData = (row) => {
 	context?.$http({
 		url: `${crossTable.value}/update`,
 		method: 'post',
 		data: row
-	}).then(res => { })
+	}).then(res => {})
 }
 </script>
 <style lang="scss" scoped>
-// 保持原有样式不变
 .formModel_form {
 	border: 0px solid #ddd;
 	border-radius: 4px;
@@ -540,43 +440,5 @@ const changeCrossData = (row) => {
 		min-width: 100px;
 		height: 36px;
 	}
-}
-
-.video_field {
-	display: flex;
-	align-items: flex-start;
-	gap: 20px;
-	width: 100%;
-	flex-wrap: wrap;
-}
-
-.video_upload {
-	min-width: 220px;
-	max-width: 320px;
-}
-
-.video_preview_box {
-	width: 420px;
-	max-width: 100%;
-	min-height: 236px;
-	border: 1px solid #dcdfe6;
-	border-radius: 8px;
-	background: #f8fafc;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	overflow: hidden;
-}
-
-.video_preview {
-	width: 100%;
-	height: 236px;
-	object-fit: contain;
-	background: #000;
-}
-
-.video_preview_empty {
-	color: #909399;
-	font-size: 14px;
 }
 </style>

@@ -36,8 +36,8 @@ public class ClassinfoController {
         // 教师scope：只看自己年级
         String tableName = (String) request.getSession().getAttribute("tableName");
         if ("teacher".equals(tableName)) {
-            String grade = (String) request.getSession().getAttribute("grade");
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(grade)) ew.eq("grade", grade);
+            java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
+            if (classnames != null && !classnames.isEmpty()) ew.in("classname", classnames);
         }
         PageUtils page = classinfoService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, classinfo), params), params));
         return R.ok().put("data", page);
@@ -50,8 +50,8 @@ public class ClassinfoController {
         // 教师scope：只看自己年级
         String tableName = (String) request.getSession().getAttribute("tableName");
         if ("teacher".equals(tableName)) {
-            String grade = (String) request.getSession().getAttribute("grade");
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(grade)) ew.eq("grade", grade);
+            java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
+            if (classnames != null && !classnames.isEmpty()) ew.in("classname", classnames);
         }
         PageUtils page = classinfoService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, classinfo), params), params));
         return R.ok().put("data", page);

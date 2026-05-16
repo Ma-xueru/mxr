@@ -16,11 +16,17 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
 import com.cl.annotation.IgnoreAuth;
 import com.cl.entity.EIException;
 import com.cl.entity.TokenEntity;
 import com.cl.entity.TeacherEntity;
+import com.cl.entity.TeacherClassEntity;
 import com.cl.dao.TeacherDao;
+import com.cl.dao.TeacherClassDao;
 import com.cl.service.TokenService;
 import com.cl.utils.R;
 
@@ -36,6 +42,8 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
     private TokenService tokenService;
     @Autowired
     private TeacherDao teacherDao;
+    @Autowired
+    private TeacherClassDao teacherClassDao;
     
 	@Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -85,7 +93,18 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
         	        TeacherEntity teacher = teacherDao.selectList(new com.baomidou.mybatisplus.mapper.EntityWrapper<TeacherEntity>().eq("teacheraccount", tokenEntity.getUsername())).stream().findFirst().orElse(null);
         	        if (teacher != null) {
         	            request.getSession().setAttribute("grade", teacher.getGrade());
-        	            request.getSession().setAttribute("classname", teacher.getClassname());
+        	            // 从 teacher_class 表读取教师绑定的所有班级
+        	            List<TeacherClassEntity> bindings = teacherClassDao.selectList(new com.baomidou.mybatisplus.mapper.EntityWrapper<TeacherClassEntity>().eq("teacher_account", tokenEntity.getUsername()));
+        	            List<String> classnames = new ArrayList<>();
+        	            if (bindings != null) {
+        	                classnames = bindings.stream().map(TeacherClassEntity::getClassname).filter(c -> c != null && !c.isEmpty()).collect(Collectors.toList());
+        	            }
+        	            // 向后兼容：也保留旧 classname 字段的值
+        	            if (teacher.getClassname() != null && !teacher.getClassname().isEmpty() && !classnames.contains(teacher.getClassname())) {
+        	                classnames.add(teacher.getClassname());
+        	            }
+        	            request.getSession().setAttribute("classnames", classnames);
+        	            request.getSession().setAttribute("classname", classnames.isEmpty() ? teacher.getClassname() : String.join(",", classnames));
         	        }
         	    } catch (Exception e) { /* ignore */ }
         	}

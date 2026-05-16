@@ -132,10 +132,6 @@ const {
 		wx.navigateTo({ url: '/pages/quiz/task-list' })
 	},
 
-	goWrongbook() {
-		wx.navigateTo({ url: '/pages/quiz/wrongbook' })
-	},
-
 	goReciteTask(e) {
       const id = e.currentTarget.dataset.id
       getApp().globalData.detailId = id

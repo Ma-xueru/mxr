@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.cl.utils.ValidatorUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -114,6 +115,7 @@ public class CourseController {
         CourseEntity course = courseService.selectById(id);
         course.setClicknum((course.getClicknum()==null?0:course.getClicknum())+1);
         course.setClicktime(new Date());
+        course.setAddtime(new Date());
         courseService.updateById(course);
         return R.ok().put("data", course);
     }
@@ -127,6 +129,7 @@ public class CourseController {
         CourseEntity course = courseService.selectById(id);
         course.setClicknum((course.getClicknum()==null?0:course.getClicknum())+1);
         course.setClicktime(new Date());
+        course.setAddtime(new Date());
         courseService.updateById(course);
         return R.ok().put("data", course);
     }
@@ -162,8 +165,50 @@ public class CourseController {
     @Transactional
     public R update(@RequestBody CourseEntity course, HttpServletRequest request){
         //ValidatorUtils.validateEntity(course);
+        course.setAddtime(new Date());
         courseService.updateById(course);//全部更新
         return R.ok();
+    }
+
+    /** 微信云存储封面代理 — cloud:// → 临时HTTPS */
+    @IgnoreAuth
+    @RequestMapping("/coverProxy")
+    public void coverProxy(@RequestParam String fileId, HttpServletResponse response) throws Exception {
+        if (fileId == null || !fileId.startsWith("cloud://")) { response.sendError(400); return; }
+        String token = getWxAccessToken();
+        String apiUrl = "https://api.weixin.qq.com/tcb/batchgetdownloadurl?access_token=" + token;
+        org.json.JSONObject body = new org.json.JSONObject();
+        String env = com.cl.utils.AsrPropertiesUtil.get("wechat.cloud.env", "cloudbase-d6g5mlt4tbaa32ec2");
+        body.put("env", env);
+        body.put("file_list", new org.json.JSONArray().put(new org.json.JSONObject().put("fileid", fileId).put("max_age", 7200)));
+        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(apiUrl).openConnection();
+        conn.setRequestMethod("POST"); conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true); conn.getOutputStream().write(body.toString().getBytes("UTF-8"));
+        java.io.InputStream is = conn.getResponseCode() == 200 ? conn.getInputStream() : conn.getErrorStream();
+        String resp = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A").next(); is.close();
+        org.json.JSONObject j = new org.json.JSONObject(resp);
+        if (j.has("file_list")) {
+            String url = j.getJSONArray("file_list").getJSONObject(0).optString("temp_file_url", "");
+            if (!url.isEmpty()) { response.sendRedirect(url); return; }
+        }
+        response.sendError(404);
+    }
+
+    private static String wxAccessToken = null;
+    private static long wxTokenExpire = 0;
+    private synchronized String getWxAccessToken() throws Exception {
+        if (wxAccessToken != null && System.currentTimeMillis() < wxTokenExpire) return wxAccessToken;
+        String appid = com.cl.utils.AsrPropertiesUtil.get("wechat.appid", "wx57dec8b4d87f5f37");
+        String secret = com.cl.utils.AsrPropertiesUtil.get("wechat.appsecret", "");
+        String url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + appid + "&secret=" + secret;
+        java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+        java.io.InputStream is = c.getResponseCode() == 200 ? c.getInputStream() : c.getErrorStream();
+        String resp = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A").next(); is.close();
+        org.json.JSONObject j = new org.json.JSONObject(resp);
+        wxAccessToken = j.getString("access_token");
+        wxTokenExpire = System.currentTimeMillis() + (j.optInt("expires_in", 7200) - 300) * 1000L;
+        System.out.println("[WxToken] refreshed, expires in " + j.optInt("expires_in") + "s");
+        return wxAccessToken;
     }
 
     /**

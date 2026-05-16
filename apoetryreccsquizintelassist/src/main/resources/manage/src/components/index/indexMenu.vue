@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<div class="menu_theme" :class="themeClass">
 		<div class="menu_brand" :class="{ collapsed: collapse }">
 			<div class="brand_mark">{{ roleName === '教师' ? '师' : '管' }}</div>
@@ -75,31 +75,6 @@
 	const btnAuth = (e,a)=>{
 		return context?.$toolUtil.isAuth(e,a)
 	}
-	const ensureReserveMenu = (roleMenu) => {
-		if (!roleMenu || !Array.isArray(roleMenu.backMenu)) return roleMenu
-		const exists = roleMenu.backMenu.some(group =>
-			Array.isArray(group.child) && group.child.some(child => child.tableName === 'teacher' && child.menu === '教师预约')
-		)
-		if (!exists) {
-			roleMenu.backMenu.splice(1, 0, {
-				child: [{
-					appFrontIcon: 'cuIcon-time',
-					buttons: ['查看'],
-					menu: '教师预约',
-					menuJump: 'reserve',
-					tableName: 'teacher'
-				}],
-				fontClass: 'icon-common50',
-				menu: '教师预约',
-				unicode: '&#xef96;'
-			})
-		}
-		roleMenu.backMenu = roleMenu.backMenu.map(group => ({
-			...group,
-			child: (group.child || []).filter(child => child.tableName !== 'coursereserve')
-		})).filter(group => (group.child || []).length)
-		return roleMenu
-	}
 	const init = () => {
 		const menus = menu.list()
 		if (menus) {
@@ -109,7 +84,7 @@
 
 		for (let i = 0; i < menuList.value.length; i++) {
 			if (menuList.value[i].roleName == role.value) {
-				menuList.value = ensureReserveMenu(menuList.value[i]);
+				menuList.value = menuList.value[i];
 				break;
 			}
 		}

@@ -140,8 +140,8 @@ public class StudentController {
 		// 教师scope：只看本班学生
 		String tableName = (String) request.getSession().getAttribute("tableName");
 		if ("teacher".equals(tableName)) {
-			String classname = (String) request.getSession().getAttribute("classname");
-			if (org.apache.commons.lang3.StringUtils.isNotBlank(classname)) ew.eq("classname", classname);
+			java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
+			if (classnames != null && !classnames.isEmpty()) ew.in("classname", classnames);
 		}
 
 		PageUtils page = studentService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, student), params), params));
@@ -160,8 +160,8 @@ public class StudentController {
 		// 教师scope：只看本班学生
 		String tableName = (String) request.getSession().getAttribute("tableName");
 		if ("teacher".equals(tableName)) {
-			String classname = (String) request.getSession().getAttribute("classname");
-			if (org.apache.commons.lang3.StringUtils.isNotBlank(classname)) ew.eq("classname", classname);
+			java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
+			if (classnames != null && !classnames.isEmpty()) ew.in("classname", classnames);
 		}
 
 		PageUtils page = studentService.queryPage(params, MPUtil.sort(MPUtil.between(MPUtil.likeOrEq(ew, student), params), params));
@@ -218,6 +218,12 @@ public class StudentController {
      */
     @RequestMapping("/save")
     public R save(@RequestBody StudentEntity student, HttpServletRequest request){
+        // 教师：强制绑定自己的班级
+        String tableName = (String) request.getSession().getAttribute("tableName");
+        if ("teacher".equals(tableName)) {
+            String teacherClass = (String) request.getSession().getAttribute("classname");
+            if (StringUtils.isNotBlank(teacherClass)) student.setClassname(teacherClass);
+        }
         fillDefaultClassname(student);
         fillDefaultPermission(student);
         if(studentService.selectCount(new EntityWrapper<StudentEntity>().eq("studentaccount", student.getStudentaccount()))>0) {
@@ -239,6 +245,12 @@ public class StudentController {
      */
     @RequestMapping("/add")
     public R add(@RequestBody StudentEntity student, HttpServletRequest request){
+        // 教师：强制绑定自己的班级
+        String tableName = (String) request.getSession().getAttribute("tableName");
+        if ("teacher".equals(tableName)) {
+            String teacherClass = (String) request.getSession().getAttribute("classname");
+            if (StringUtils.isNotBlank(teacherClass)) student.setClassname(teacherClass);
+        }
         fillDefaultClassname(student);
         fillDefaultPermission(student);
         if(studentService.selectCount(new EntityWrapper<StudentEntity>().eq("studentaccount", student.getStudentaccount()))>0) {

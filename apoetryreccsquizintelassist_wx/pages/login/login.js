@@ -55,19 +55,7 @@ Page({
   },
 
 
-  bindPickerChange: function (e) {
-    this.setData({
-      loginType: e.detail.value
-    })
 
-  },
-
-  registerUser(e) {
-    const tablename = e.currentTarget.dataset.tablename;
-    wx.navigateTo({
-      url: `../${tablename}/register`
-    })
-  },
   // 选择用户登录类型
   bindLoginTypeChange(e) {
     const loginType = e.detail.value;

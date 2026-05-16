@@ -684,6 +684,58 @@ page {
   flex: 1;
 }
 
+/* 错题本全宽卡片 */
+.wrongbook-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 28rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+
+.wrongbook-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex: 1;
+}
+
+.wrongbook-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+
+.wrongbook-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.wrongbook-title {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.wrongbook-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.wrongbook-arrow {
+  font-size: 28rpx;
+  color: #ccc;
+  padding-right: 10rpx;
+}
+
 /* AI 评估报告卡片 */
 .action-report { background: linear-gradient(135deg, #1B5E20, #388E3C) !important; }
 .action-report .action-title { color: #fff !important; }

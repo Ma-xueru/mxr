@@ -15,55 +15,15 @@
 							<el-input class="list_inp" v-model="form.classname" placeholder="例如：三年级1班" :readonly="!isAdd||disabledForm.classname"></el-input>
 						</el-form-item>
 					</el-col>
-					<el-col :span="12">
-						<el-form-item label="班主任" prop="headteacher">
-							<el-input class="list_inp" v-model="form.headteacher" placeholder="请输入班主任姓名" :readonly="!isAdd||disabledForm.headteacher"></el-input>
-						</el-form-item>
-					</el-col>
-					<el-col :span="12">
-						<el-form-item label="学生人数" prop="studentcount">
-							<el-input class="list_inp auto_count_inp" :model-value="selectedStudentIds.length" placeholder="系统自动统计" readonly></el-input>
-						</el-form-item>
-					</el-col>
+
+
 					<el-col :span="24">
 						<el-form-item label="班级说明" prop="classdesc">
 							<el-input class="list_inp" type="textarea" :rows="4" v-model="form.classdesc" placeholder="请输入班级说明" :readonly="!isAdd||disabledForm.classdesc"></el-input>
 						</el-form-item>
 					</el-col>
-					<el-col :span="24">
-						<el-form-item label="班级学生" prop="studentIds">
-							<el-select
-								class="list_sel"
-								v-model="selectedStudentIds"
-								multiple
-								filterable
-								collapse-tags
-								collapse-tags-tooltip
-								:max-collapse-tags="3"
-								placeholder="请选择需要分配到本班的学生"
-								:disabled="!isAdd"
-							>
-								<el-option
-									v-for="item in studentOptions"
-									:key="item.id"
-									:label="`${item.studentname}（${item.studentaccount}）${item.classname ? ' - 当前班级：' + item.classname : ''}`"
-									:value="item.id"
-								></el-option>
-							</el-select>
-							<div class="student_tip">保存后将自动为所选学生分配当前班级，未勾选的原班级学生会移出本班。</div>
-						</el-form-item>
-					</el-col>
-					<el-col :span="24" v-if="selectedStudents.length">
-						<div class="student_panel">
-							<div class="student_panel_title">已选学生 {{ selectedStudents.length }} 人</div>
-							<div class="student_tags">
-								<div class="student_tag" v-for="item in selectedStudents" :key="item.id">
-									<span class="student_name">{{ item.studentname }}</span>
-									<span class="student_meta">{{ item.studentaccount }}</span>
-								</div>
-							</div>
-						</div>
-					</el-col>
+
+
 				</el-row>
 			</el-form>
 			<template #footer v-if="isAdd">

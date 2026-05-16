@@ -353,6 +353,10 @@ Page({
     })
   },
 
+  toWrongBook() {
+    wx.navigateTo({ url: '/pages/quiz/wrongbook' })
+  },
+
   toReport() {
     wx.navigateTo({ url: '/pages/center/report' })
   },

@@ -23,26 +23,11 @@
                 </view>
             </view>
             
-            <view class="section">
-                <picker bindchange="bindPickerChange" value="{{loginType}}" range="{{selectType}}">
-                    <view class="picker-text">
-                        <icon class="picker-icon" type="tag" size="18"></icon>
-                        {{selectType[loginType]}}
-                    </view>
-                </picker>
-            </view>
-
             <button bindtap="login" data-tablename="${table.tableName}" class="login-btn">
                 <span class="btn-text">登录</span>
                 <icon class="btn-icon" type="right" size="16"></icon>
             </button>
             
-            <view class="action-row">
-                <view bindtap="registerUser" data-tablename="student" class="register-btn">
-                    注册用户
-                </view>
-            </view>
-
             <!-- 服务器切换 -->
             <view class="server-toggle">
                 <text class="server-label">服务器：</text>

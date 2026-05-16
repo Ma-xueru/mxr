@@ -98,12 +98,14 @@ Page({
         if (res.data && res.data.length > 0 && res.data[0].imageUrl) {
           var stored = res.data[0].imageUrl
           if (stored.indexOf('cloud://') === 0) {
-            // 云存储fileID → 临时URL
+            // 云存储fileID → 临时URL显示 + 同步到后端MySQL
             wx.cloud.getTempFileURL({ fileList: [stored] }).then(function(urlRes) {
-              that.setData({ imageUrl: (urlRes.fileList && urlRes.fileList[0].tempFileURL) || stored, imageLoading: false })
+              var tmpUrl = (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) || stored
+              that.setData({ imageUrl: tmpUrl, imageLoading: false })
+              // 同步 cloud:// fileID 到后端
+              that._syncImageToBackend(stored)
             }).catch(function() { that.setData({ imageUrl: stored, imageLoading: false }) })
           } else if (stored.indexOf('/file/') !== -1 || stored.indexOf('http') === 0) {
-            // 旧格式(后端URL) → 自动迁移到云存储
             that._uploadToCloudStorage(stored)
           } else {
             that.setData({ imageUrl: stored, imageLoading: false })
@@ -113,6 +115,16 @@ Page({
         }
       })
       .catch(function() { that.generateImage() })
+  },
+
+  // 把 cloud:// fileID 同步到后端 MySQL
+  _syncImageToBackend(fileID) {
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({ url: baseURL + '/course/update', method: 'POST',
+      header: { Token: wx.getStorageSync('token'), 'Content-Type': 'application/json' },
+      data: JSON.stringify({ id: Number(this.data.id), picture: fileID }),
+      success: function() { console.log('[封面] 已同步 cloud:// fileID') }
+    })
   },
 
   generateImage() {
@@ -154,7 +166,14 @@ Page({
           success: function(upRes) {
             var fileID = upRes.fileID
             that.setData({ imageUrl: fileID, imageLoading: false })
-            // 3. 写云数据库
+            // 3. 同步 cloud:// fileID 到后端 MySQL（后端代理转 HTTPS）
+            var baseURL = wx.getStorageSync('baseURL') || ''
+            wx.request({ url: baseURL + '/course/update', method: 'POST',
+              header: { Token: wx.getStorageSync('token'), 'Content-Type': 'application/json' },
+              data: JSON.stringify({ id: pid, picture: fileID }),
+              success: function() { console.log('[封面] 已同步 course.picture='+fileID) }
+            })
+            // 4. 写云数据库（小程序端展示用）
             var db = wx.cloud.database()
             db.collection('poem_assets').where({ courseId: pid }).limit(1).get()
               .then(function(qRes) {
