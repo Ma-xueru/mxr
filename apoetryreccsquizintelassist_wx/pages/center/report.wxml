@@ -1,62 +1,117 @@
 <view class="report-page">
   <view class="report-loading" wx:if="{{loading}}">
     <text class="loading-icon">📊</text>
-    <text class="loading-text">正在生成评估报告...</text>
+    <text class="loading-text">AI 正在生成综合评估报告...</text>
   </view>
 
-  <view class="report-content" wx:if="{{!loading}}">
-    <!-- 概览卡片 -->
-    <view class="overview-row">
-      <view class="overview-card">
-        <text class="ov-value">{{totalCount}}</text>
-        <text class="ov-label">总练习次数</text>
-      </view>
-      <view class="overview-card">
-        <text class="ov-value {{avgScore>=85?'c-green':avgScore>=60?'c-orange':'c-red'}}">{{avgScore}}</text>
-        <text class="ov-label">平均分</text>
-      </view>
-      <view class="overview-card">
-        <text class="ov-value">{{bestScore}}</text>
-        <text class="ov-label">最高分</text>
-      </view>
-    </view>
-
-    <!-- 子模块1: 成长曲线 -->
-    <view class="report-module" wx:if="{{chartData.length > 0}}">
-      <view class="module-title">📈 学习成长曲线</view>
-      <canvas type="2d" id="trendChart" class="trend-canvas"></canvas>
-      <view class="chart-legend">
-        <view class="legend-item"><view class="legend-dot follow"></view><text>跟读</text></view>
-        <view class="legend-item"><view class="legend-dot quiz"></view><text>测验</text></view>
-      </view>
-    </view>
-
-    <!-- 子模块2: AI 导师建议 -->
-    <view class="report-module" wx:if="{{aiComment}}">
-      <view class="module-title">🤖 AI 导师建议</view>
-      <view class="ai-comment">
-        <text class="ai-comment-text">{{aiComment}}</text>
-      </view>
-    </view>
-
-    <!-- 子模块3: 历史记录 -->
-    <view class="report-module" wx:if="{{historyList.length > 0}}">
-      <view class="module-title">📋 学习记录</view>
-      <view class="history-item" wx:for="{{historyList}}" wx:key="index" bindtap="viewDetail" data-index="{{index}}">
-        <view class="hi-type {{item.type}}">{{item.type === 'follow' ? '🎙️ 跟读' : '📝 测验'}}</view>
-        <view class="hi-info">
-          <text class="hi-title">{{item.courseTitle}}</text>
-          <text class="hi-time">{{item.timeStr}}</text>
-        </view>
-        <text class="hi-score {{item.score>=85?'s-high':item.score>=60?'s-mid':'s-low'}}">{{item.score}}分</text>
-      </view>
-    </view>
-
+  <scroll-view class="report-scroll" scroll-y wx:if="{{!loading}}">
     <!-- 无数据 -->
-    <view class="report-empty" wx:if="{{!loading && !chartData.length && !historyList.length}}">
+    <view class="report-empty" wx:if="{{!totalCount}}">
       <text class="empty-icon">📖</text>
       <text class="empty-text">暂无学习记录</text>
       <text class="empty-desc">去古诗词页面开始跟读或测验吧～</text>
+    </view>
+
+    <block wx:if="{{totalCount}}">
+      <!-- 1. 概览卡片 -->
+      <view class="rp-overview">
+        <view class="rp-ov-title">📊 学习概览</view>
+        <view class="rp-ov-cards">
+          <view class="rp-ov-card"><text class="rp-ov-num c-green">{{stats['4'].count || 0}}</text><text class="rp-ov-lbl">🗣️ 跟读</text><text class="rp-ov-sub">{{stats['4'].avgScore || 0}}分</text></view>
+          <view class="rp-ov-card"><text class="rp-ov-num c-orange">{{stats['6'].count || 0}}</text><text class="rp-ov-lbl">✍️ 测验</text><text class="rp-ov-sub">{{stats['6'].avgScore || 0}}分</text></view>
+          <view class="rp-ov-card"><text class="rp-ov-num c-purple">{{stats['7'].count || 0}}</text><text class="rp-ov-lbl">🔄 举一反三</text><text class="rp-ov-sub">{{stats['7'].avgScore || 0}}分</text></view>
+          <view class="rp-ov-card"><text class="rp-ov-num c-blue">{{stats['8'].count || 0}}</text><text class="rp-ov-lbl">📚 温故知新</text><text class="rp-ov-sub">{{stats['8'].avgScore || 0}}分</text></view>
+        </view>
+        <view class="rp-ov-total">共 {{totalCount}} 次学习 · 综合均分 {{avgScore}} 分</view>
+      </view>
+
+      <!-- 2. 综合能力雷达图 -->
+      <view class="rp-module" wx:if="{{radar.knowledgeScore !== undefined}}">
+        <view class="rp-mod-title">🎯 综合能力画像</view>
+        <view class="rp-radar-wrap">
+          <canvas type="2d" id="reportRadarCanvas" class="rp-radar-canvas"></canvas>
+        </view>
+        <view class="rp-radar-scores">
+          <view class="rp-rs-item"><text class="rp-rs-val">{{radar.knowledgeScore || 0}}</text><text class="rp-rs-lbl">知识掌握度</text></view>
+          <view class="rp-rs-item"><text class="rp-rs-val">{{radar.accuracyScore || 0}}</text><text class="rp-rs-lbl">答题准确率</text></view>
+          <view class="rp-rs-item"><text class="rp-rs-val">{{radar.depthScore || 0}}</text><text class="rp-rs-lbl">理解深度</text></view>
+        </view>
+      </view>
+
+      <!-- 3. 学习成长曲线 -->
+      <view class="rp-module" wx:if="{{trend.length}}">
+        <view class="rp-mod-title">📈 学习成长曲线</view>
+        <canvas type="2d" id="trendChart" class="rp-trend-canvas"></canvas>
+        <view class="rp-chart-legend">
+          <view class="rp-lg-item"><view class="rp-lg-dot" style="background:#4CAF50"></view><text>跟读</text></view>
+          <view class="rp-lg-item"><view class="rp-lg-dot" style="background:#FF9800"></view><text>测验</text></view>
+          <view class="rp-lg-item"><view class="rp-lg-dot" style="background:#9C27B0"></view><text>举一反三</text></view>
+          <view class="rp-lg-item"><view class="rp-lg-dot" style="background:#2196F3"></view><text>温故知新</text></view>
+        </view>
+      </view>
+
+      <!-- 4. AI 导师总评 -->
+      <view class="rp-module" wx:if="{{aiMentor}}">
+        <view class="rp-mod-title">🤖 AI 导师总评</view>
+        <view class="rp-ai-box">
+          <text class="rp-ai-text">{{aiMentor}}</text>
+        </view>
+      </view>
+
+      <!-- 5. 历史记录列表 -->
+      <view class="rp-module" wx:if="{{history.length}}">
+        <view class="rp-mod-title">📋 学习记录（点击查看诊断详情）</view>
+        <view class="rp-history-list">
+          <view class="rp-h-item" wx:for="{{history}}" wx:key="id" data-index="{{index}}" bindtap="tapHistory">
+            <view class="rp-h-left">
+              <view class="rp-h-type" style="background:{{item.sourceType===4?'#E8F5E9':item.sourceType===6?'#FFF3E0':item.sourceType===7?'#F3E5F5':'#E3F2FD'}};color:{{item.sourceType===4?'#2E7D32':item.sourceType===6?'#E65100':item.sourceType===7?'#7B1FA2':'#1565C0'}}">{{sourceLabel(item.sourceType)}}</view>
+              <view class="rp-h-info">
+                <text class="rp-h-title">{{item.poetryTitle || '自主学习'}}</text>
+                <text class="rp-h-time">{{fmtFullTime(item.createTime)}}</text>
+              </view>
+            </view>
+            <text class="rp-h-score" style="color:{{item.score>=85?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}">{{item.score}}分</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="rp-bottom-space"></view>
+    </block>
+  </scroll-view>
+
+  <!-- 详情弹窗 -->
+  <view class="rp-overlay" wx:if="{{showDetail && selectedRecord}}">
+    <view class="rp-detail">
+      <view class="rp-dt-header">
+        <text class="rp-dt-title">{{sourceLabel(selectedRecord.sourceType)}}</text>
+        <text class="rp-dt-close" bindtap="closeDetail">✕</text>
+      </view>
+      <scroll-view class="rp-dt-scroll" scroll-y>
+        <view class="rp-dt-score-wrap">
+          <text class="rp-dt-score">{{selectedRecord.score}}分</text>
+          <text class="rp-dt-time">{{fmtFullTime(selectedRecord.createTime)}}</text>
+        </view>
+        <view class="rp-dt-radar-wrap">
+          <canvas type="2d" id="detailRadarCanvas" class="rp-dt-radar"></canvas>
+        </view>
+        <view class="rp-dt-dims" wx:if="{{parsedReport && parsedReport.dimensions}}">
+          <view class="rp-dt-dim" wx:for="{{parsedReport.dimensions}}" wx:key="name">
+            <view class="rp-dt-dim-head">
+              <text class="rp-dt-dim-name">{{item.name}}</text>
+              <text class="rp-dt-dim-score">{{item.score}}分</text>
+            </view>
+            <view class="rp-dim-bar"><view class="rp-dim-fill" style="width:{{item.score}}%"></view></view>
+          </view>
+        </view>
+        <view class="rp-dt-sug" wx:if="{{parsedReport.suggestion}}">
+          <text class="rp-dt-sug-label">💡 学习建议</text>
+          <text class="rp-dt-sug-text">{{parsedReport.suggestion}}</text>
+        </view>
+        <view class="rp-dt-ov" wx:if="{{parsedReport.overallComment}}">
+          <text class="rp-dt-ov-label">📝 总评</text>
+          <text class="rp-dt-ov-text">{{parsedReport.overallComment}}</text>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </view>

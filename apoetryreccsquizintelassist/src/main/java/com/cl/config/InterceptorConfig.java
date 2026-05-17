@@ -35,6 +35,9 @@ public class InterceptorConfig extends WebMvcConfigurationSupport{
 		// 直接读源码目录 dist，npm build 完无需重启
 		registry.addResourceHandler("/manage/dist/**")
         .addResourceLocations("file:src/main/resources/manage/dist/");
+		// 音频/上传文件目录
+		registry.addResourceHandler("/file/**")
+        .addResourceLocations("file:file/", "classpath:/static/file/");
 		super.addResourceHandlers(registry);
     }
 }

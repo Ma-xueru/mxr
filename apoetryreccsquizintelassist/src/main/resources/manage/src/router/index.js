@@ -23,7 +23,7 @@ import teacherDashboard from '@/views/teacher/dashboard'
 import teacherCenter from '@/views/teacher/center'
 import course from '@/views/course/list'
 import recitationtask from '@/views/recitationtask/list'
-import followreadrecord from '@/views/followreadrecord/list'
+import autonomousLearning from '@/views/teacher/AutonomousLearning.vue'
 	import quiztask from '@/views/quiztask/list'
 import classinfo from '@/views/classinfo/list'
 
@@ -148,8 +148,8 @@ export const routes = [{
 		}
 		,{
 			path: '/followreadrecord',
-			name: '跟读记录',
-			component: followreadrecord
+			name: '自主学习管理',
+			component: autonomousLearning
 		}
 			,{
 				path: '/quiztask',

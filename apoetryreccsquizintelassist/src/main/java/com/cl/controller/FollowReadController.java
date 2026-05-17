@@ -4,10 +4,14 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.cl.annotation.IgnoreAuth;
 import com.cl.dao.FollowreadRecordDao;
 import com.cl.dao.QuizRecordDao;
+import com.cl.dao.StudentDao;
+import com.cl.dao.StudentScoreLogDao;
+import com.cl.entity.StudentScoreLogEntity;
 import com.cl.entity.CourseEntity;
 import com.cl.entity.FollowreadRecordEntity;
 import com.cl.entity.QuizRecordEntity;
 import com.cl.service.CourseService;
+import com.cl.utils.AIChatUtil;
 import com.cl.utils.AIRecitationReviewUtil;
 import com.cl.utils.PageUtils;
 import com.cl.utils.R;
@@ -42,6 +46,10 @@ public class FollowReadController {
     private FollowreadRecordDao followreadRecordDao;
     @Autowired
     private QuizRecordDao quizRecordDao;
+    @Autowired
+    private StudentDao studentDao;
+    @Autowired
+    private StudentScoreLogDao studentScoreLogDao;
 
     /**
      * 获取古诗分行内容 + TTS音频
@@ -247,7 +255,18 @@ public class FollowReadController {
         record.setRecognizedtext(String.valueOf(body.getOrDefault("recognizedtext", "")));
         record.setAddtime(new Date());
         record.setRecordTimestamp(System.currentTimeMillis());
+        // 自动填充 classname — 优先从请求body，其次从学生表查询
+        String classname = String.valueOf(body.getOrDefault("classname", ""));
+        if (!StringUtils.hasText(classname) && StringUtils.hasText(record.getStudentaccount())) {
+            com.cl.entity.StudentEntity stu = studentDao.selectList(new com.baomidou.mybatisplus.mapper.EntityWrapper<com.cl.entity.StudentEntity>().eq("studentaccount", record.getStudentaccount()).last("LIMIT 1")).stream().findFirst().orElse(null);
+            if (stu != null && StringUtils.hasText(stu.getClassname())) classname = stu.getClassname();
+        }
+        record.setClassname(classname);
         followreadRecordDao.insert(record);
+        // 双写 student_score_log (sourceType=4 自主跟读)
+        writeScoreLog(record.getStudentaccount(), record.getStudentname(), classname,
+            record.getCourseid(), record.getCoursetitle(), 4, record.getTotalscore(),
+            record.getReportjson(), null, record.getId());
         return R.ok().put("data", record.getId());
     }
 
@@ -368,10 +387,201 @@ public class FollowReadController {
         return R.ok().put("data", result);
     }
 
+    /** AI 综合评估报告 — 4模块统计 + 雷达 + 趋势 + AI导师点评 */
+    @RequestMapping("/comprehensiveReport")
+    public R comprehensiveReport(HttpServletRequest request) {
+        String username = String.valueOf(request.getSession().getAttribute("username"));
+        EntityWrapper<StudentScoreLogEntity> ew = new EntityWrapper<>();
+        ew.eq("studentaccount", username).orderBy("create_time", true);
+        List<StudentScoreLogEntity> all = studentScoreLogDao.selectList(ew);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        // 1. 4模块统计
+        long[] counts = new long[9], sumScores = new long[9], sumK = new long[9], sumA = new long[9], sumD = new long[9];
+        for (StudentScoreLogEntity l : all) {
+            int t = l.getSourceType() != null ? l.getSourceType() : 0;
+            counts[t]++; sumScores[t] += l.getScore() != null ? l.getScore() : 0;
+            sumK[t] += l.getKnowledgeScore() != null ? l.getKnowledgeScore() : 0;
+            sumA[t] += l.getAccuracyScore() != null ? l.getAccuracyScore() : 0;
+            sumD[t] += l.getDepthScore() != null ? l.getDepthScore() : 0;
+        }
+        Map<String, Object> stats = new LinkedHashMap<>();
+        for (int[] pair : new int[][]{{4,4},{6,6},{7,7},{8,8}}) {
+            int t = pair[0];
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("count", counts[t]); m.put("avgScore", counts[t] > 0 ? sumScores[t] / counts[t] : 0);
+            m.put("avgKnowledge", counts[t] > 0 ? sumK[t] / counts[t] : 0);
+            m.put("avgAccuracy", counts[t] > 0 ? sumA[t] / counts[t] : 0);
+            m.put("avgDepth", counts[t] > 0 ? sumD[t] / counts[t] : 0);
+            stats.put(String.valueOf(t), m);
+        }
+        result.put("stats", stats);
+
+        // 2. 综合雷达维度均分
+        long totalK = 0, totalA = 0, totalD = 0;
+        for (StudentScoreLogEntity l : all) {
+            totalK += l.getKnowledgeScore() != null ? l.getKnowledgeScore() : 0;
+            totalA += l.getAccuracyScore() != null ? l.getAccuracyScore() : 0;
+            totalD += l.getDepthScore() != null ? l.getDepthScore() : 0;
+        }
+        int n = all.size();
+        Map<String, Object> radar = new LinkedHashMap<>();
+        radar.put("knowledgeScore", n > 0 ? (int)(totalK / n) : 0);
+        radar.put("accuracyScore", n > 0 ? (int)(totalA / n) : 0);
+        radar.put("depthScore", n > 0 ? (int)(totalD / n) : 0);
+        result.put("radar", radar);
+
+        // 3. 趋势数据（按日期聚合，4线）
+        Map<String, Map<String, Object>> trendMap = new LinkedHashMap<>();
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MM-dd");
+        for (StudentScoreLogEntity l : all) {
+            String day = sdf.format(l.getCreateTime());
+            trendMap.computeIfAbsent(day, k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("date", day); m.put("f4", 0); m.put("f6", 0); m.put("f7", 0); m.put("f8", 0);
+                m.put("c4", 0); m.put("c6", 0); m.put("c7", 0); m.put("c8", 0);
+                return m;
+            });
+            Map<String, Object> td = trendMap.get(day);
+            int st = l.getSourceType() != null ? l.getSourceType() : 0;
+            int sc = l.getScore() != null ? l.getScore() : 0;
+            td.put("f" + st, (int)td.get("f" + st) + sc);
+            td.put("c" + st, (int)td.get("c" + st) + 1);
+        }
+        java.util.List<Map<String, Object>> trend = new java.util.ArrayList<>();
+        for (Map.Entry<String, Map<String, Object>> e : trendMap.entrySet()) {
+            Map<String, Object> td = e.getValue();
+            for (int t : new int[]{4,6,7,8}) {
+                int c = (int)td.get("c" + t);
+                td.put("s" + t, c > 0 ? (int)td.get("f" + t) / c : 0);
+            }
+            trend.add(td);
+        }
+        result.put("trend", trend);
+
+        // 4. 真AI导师总评
+        long totalCount = all.size();
+        long totalScore = 0; for (StudentScoreLogEntity l : all) totalScore += l.getScore() != null ? l.getScore() : 0;
+        int overallAvg = totalCount > 0 ? (int)(totalScore / totalCount) : 0;
+        StringBuilder ctx = new StringBuilder();
+        ctx.append("总学习").append(totalCount).append("次，均分").append(overallAvg).append("。");
+        if (counts[4] > 0) ctx.append("跟读").append(counts[4]).append("次均分").append(counts[4]>0?sumScores[4]/counts[4]:0).append("；");
+        if (counts[6] > 0) ctx.append("测验").append(counts[6]).append("次均分").append(counts[6]>0?sumScores[6]/counts[6]:0).append("；");
+        if (counts[7] > 0) ctx.append("举一反三").append(counts[7]).append("次；");
+        if (counts[8] > 0) ctx.append("温故知新").append(counts[8]).append("次；");
+        ctx.append("维度均分：知识掌握").append(n>0?(int)(totalK/n):0)
+           .append("，答题准确").append(n>0?(int)(totalA/n):0)
+           .append("，理解深度").append(n>0?(int)(totalD/n):0).append("。");
+
+        String aiPrompt = ctx.toString() + "\n请以古诗词导师的口吻，给出50-100字的个性化学习点评和阶段性建议。只返回纯文本。";
+        java.util.List<AIChatUtil.Message> aiMsgs = new java.util.ArrayList<>();
+        aiMsgs.add(new AIChatUtil.Message("system", "你是古诗词学习导师，语言亲切鼓励。"));
+        aiMsgs.add(new AIChatUtil.Message("user", aiPrompt));
+        AIChatUtil.ChatResult aiCr = AIChatUtil.chatWithMessages(aiMsgs, 0.7, 400);
+        String aiMentor = aiCr != null ? aiCr.getContent() : "";
+        result.put("aiMentor", aiMentor != null && !aiMentor.isEmpty() ? aiMentor.trim() : "坚持学习，积少成多！继续加油🌱");
+
+        // 5. 历史记录（倒序，最多50条）
+        java.util.Collections.reverse(all);
+        java.util.List<Map<String, Object>> history = new java.util.ArrayList<>();
+        int limit = Math.min(all.size(), 50);
+        for (int i = 0; i < limit; i++) {
+            StudentScoreLogEntity l = all.get(i);
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", l.getId()); item.put("sourceType", l.getSourceType());
+            item.put("poetryTitle", l.getPoetryTitle()); item.put("score", l.getScore());
+            item.put("createTime", l.getCreateTime());
+            item.put("knowledgeScore", l.getKnowledgeScore());
+            item.put("accuracyScore", l.getAccuracyScore());
+            item.put("depthScore", l.getDepthScore());
+            item.put("reportJson", l.getReportJson());
+            item.put("learningSuggestion", l.getLearningSuggestion());
+            item.put("overallSummary", l.getOverallSummary());
+            history.add(item);
+        }
+        result.put("history", history);
+        result.put("totalCount", totalCount);
+        result.put("avgScore", overallAvg);
+
+        return R.ok().put("data", result);
+    }
+
+    /** 学生自查 — 自主学习历史（4类：跟读4/测验6/举一反三7/温故知新8） */
+    @RequestMapping("/myAutonomousHistory")
+    public R myAutonomousHistory(@RequestParam Integer sourceType, HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        String username = String.valueOf(request.getSession().getAttribute("username"));
+        EntityWrapper<StudentScoreLogEntity> ew = new EntityWrapper<>();
+        ew.eq("studentaccount", username).eq("source_type", sourceType).orderBy("create_time", false);
+        List<StudentScoreLogEntity> list = studentScoreLogDao.selectList(ew);
+
+        // 统计概览
+        EntityWrapper<StudentScoreLogEntity> cntEw = new EntityWrapper<>();
+        cntEw.eq("studentaccount", username);
+        List<StudentScoreLogEntity> all = studentScoreLogDao.selectList(cntEw);
+        long followCount = all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 4).count();
+        long quizCount = all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 6).count();
+        long analogyCount = all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 7).count();
+        long reviewCount = all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 8).count();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("list", list);
+        result.put("followCount", followCount);
+        result.put("quizCount", quizCount);
+        result.put("analogyCount", analogyCount);
+        result.put("reviewCount", reviewCount);
+        result.put("totalCount", all.size());
+        return R.ok().put("data", result);
+    }
+
     @RequestMapping("/deleteRecord")
     public R deleteRecord(@RequestBody Long[] ids) {
         followreadRecordDao.deleteBatchIds(Arrays.asList(ids));
         return R.ok();
+    }
+
+    /** 双写 student_score_log，解析 AI report 提取3维分数 */
+    private void writeScoreLog(String studentaccount, String studentname, String classname,
+            Long poetryId, String poetryTitle, int sourceType, Integer score,
+            String reportJson, String audioUrl, Long refId) {
+        try {
+            StudentScoreLogEntity log = new StudentScoreLogEntity();
+            log.setId(new Date().getTime() + new Double(Math.floor(Math.random() * 1000)).longValue());
+            log.setStudentaccount(studentaccount);
+            log.setStudentname(studentname);
+            log.setClassname(classname);
+            log.setPoetryId(poetryId);
+            log.setPoetryTitle(poetryTitle);
+            log.setSourceType(sourceType);
+            log.setScore(score != null ? score : 0);
+            log.setAudioUrl(audioUrl);
+            log.setReportJson(reportJson);
+            log.setCreateTime(new Date());
+            // 解析3维度分数 + 建议 + 总评
+            if (StringUtils.hasText(reportJson)) {
+                try {
+                    org.json.JSONObject obj = new org.json.JSONObject(reportJson);
+                    if (obj.has("dimensions")) {
+                        org.json.JSONArray dims = obj.getJSONArray("dimensions");
+                        for (int i = 0; i < dims.length(); i++) {
+                            org.json.JSONObject d = dims.getJSONObject(i);
+                            String name = d.optString("name", "");
+                            int ds = d.optInt("score", 0);
+                            if (name.contains("知识掌握")) log.setKnowledgeScore(ds);
+                            else if (name.contains("答题准确")) log.setAccuracyScore(ds);
+                            else if (name.contains("理解深度")) log.setDepthScore(ds);
+                        }
+                    }
+                    if (obj.has("suggestion")) log.setLearningSuggestion(obj.optString("suggestion", ""));
+                    if (obj.has("overallComment")) log.setOverallSummary(obj.optString("overallComment", ""));
+                } catch (Exception e) { /* ignore parse errors */ }
+            }
+            if (log.getKnowledgeScore() == null) log.setKnowledgeScore(0);
+            if (log.getAccuracyScore() == null) log.setAccuracyScore(0);
+            if (log.getDepthScore() == null) log.setDepthScore(0);
+            studentScoreLogDao.insert(log);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private int levenshtein(String a, String b) {

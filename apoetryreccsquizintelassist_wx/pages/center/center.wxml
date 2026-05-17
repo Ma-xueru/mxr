@@ -1,4 +1,4 @@
-<view class="user-container">
+﻿<view class="user-container">
   <!-- 顶部装饰条 -->
   <view class="top-decoration"></view>
 
@@ -64,10 +64,10 @@
           <view class="action-tag">查看 →</view>
         </view>
 
-        <view class="action-card action-pk" bindtap="toClassPk">
-          <view class="action-title">班级PK</view>
-          <view class="action-desc">和同班同学比拼学习成果，获胜拿勋章</view>
-          <view class="action-tag">去挑战</view>
+        <view class="action-card action-pk" bindtap="toAutonomousHistory">
+          <view class="action-title">自主学习历史</view>
+          <view class="action-desc">跟读·测验·举一反三·温故知新，全量轨迹</view>
+          <view class="action-tag">查看 →</view>
         </view>
       </view>
     </view>
@@ -81,44 +81,6 @@
       <view class="login-desc">登录后可同步学习进度和记录</view>
     </view>
 
-    <!-- 功能列表 -->
-    <view class="list-container" wx:if="{{userInfo.id}}">
-      <!-- 个人功能 -->
-      <view class="menu-card">
-        <view class="list-item" bind:tap="uppdatePassword">
-          <text class="iconfont icon-lock list-img"></text>
-          <view class="list-text">密码修改</view>
-          <view class="list-icon">></view>
-
-          <!-- 密码修改弹窗 -->
-          <com-popup id="bottomFrame" className="buttom-popup">
-            <view class="popup-content">
-              <view class="popup-header">
-                <view class="popup-title">修改密码</view>
-                <view class="popup-close" bind:tap="cancelShow">
-                  <view class="iconfont icon-close">x</view>
-                </view>
-              </view>
-
-              <view class="popup-body">
-                <input class="passwordInput" model:value="{{passWorded}}" type="password" placeholder="请输入原密码" />
-                <input class="passwordInput" type="password" model:value="{{newPassword}}" placeholder="请输入新密码" />
-                <input model:value="{{confirmPassword}}" class="passwordInput" type="password" placeholder="请确认新密码" />
-              </view>
-
-              <view class="popup-footer">
-                <button bindtap="resetpasswordBtn" class="update-btn">确认修改</button>
-              </view>
-            </view>
-          </com-popup>
-        </view>
-      </view>
-
-    </view>
-  </view>
-
-  <!-- 底部装饰 -->
-  <view class="bottom-decoration"></view>
-
-<voice-assistant />
+    <voice-assistant />
+</view>
 </view>

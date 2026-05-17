@@ -65,6 +65,59 @@ public class RecitationtaskController {
     @Autowired
     private CourseService courseService;
 
+    /** 任务大盘 — 按发布批次分组，一个任务占一行 */
+    @RequestMapping("/taskGroups")
+    public R taskGroups(@RequestParam Map<String, Object> params, HttpServletRequest request) {
+        EntityWrapper<RecitationtaskEntity> ew = new EntityWrapper<>();
+        applyTeacherScope(ew, request);
+        // 只查背诵任务，排除测验
+                ew.orderBy("releasetime", false);
+        List<RecitationtaskEntity> all = recitationtaskService.selectList(ew);
+        // 手动聚合: 按分组键 -> 统计
+        Map<String, Map<String, Object>> groups = new LinkedHashMap<>();
+        for (RecitationtaskEntity t : all) {
+            // 跳过测验任务（taskType=2）
+            if (t.getTaskType() != null && t.getTaskType() == 2) continue;
+            String key = (t.getCoursetitles()==null?"":"") + "|" + (t.getTasktitle()==null?"":"") + "|" + t.getReleasetime() + "|" + (t.getTeacheraccount()==null?"":"");
+            Map<String, Object> g = groups.get(key);
+            if (g == null) {
+                g = new LinkedHashMap<>();
+                g.put("tasktitle", t.getTasktitle());
+                g.put("coursetitles", t.getCoursetitles());
+                g.put("releasetime", t.getReleasetime());
+                g.put("teacheraccount", t.getTeacheraccount());
+                g.put("teachername", t.getTeachername());
+                g.put("deadline", t.getDeadline());
+                g.put("total", 0); g.put("done", 0); g.put("classnames", new LinkedHashSet<>());
+                groups.put(key, g);
+            }
+            g.put("total", (int)g.get("total") + 1);
+            if ("已完成".equals(t.getCompletionstatus())) g.put("done", (int)g.get("done") + 1);
+            if (t.getClassname() != null) ((java.util.Set<String>)g.get("classnames")).add(t.getClassname());
+            if (t.getTeacheraccount() == null && t.getTeachername() != null) { g.put("teacheraccount", t.getTeachername()); }
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> g : groups.values()) {
+            g.put("classes", String.join(", ", (java.util.Set<String>)g.get("classnames")));
+            g.remove("classnames");
+            result.add(g);
+        }
+        return R.ok().put("data", result);
+    }
+
+    /** 任务明细 — 按任务分组键查询学生明细 */
+    @RequestMapping("/taskDetails")
+    public R taskDetails(@RequestParam String title, @RequestParam String courses,
+                         @RequestParam(required = false) String releaseTime,
+                         @RequestParam String teacher,
+                         HttpServletRequest request) {
+        EntityWrapper<RecitationtaskEntity> ew = new EntityWrapper<>();
+        ew.eq("tasktitle", title).eq("coursetitles", courses).eq("teacheraccount", teacher);
+                ew.orderBy("studentname", true);
+        List<RecitationtaskEntity> list = recitationtaskService.selectList(ew);
+        return R.ok().put("data", list);
+    }
+
     @RequestMapping("/page")
     public R page(@RequestParam Map<String, Object> params, RecitationtaskEntity recitationtask, HttpServletRequest request) {
         String tableName = request.getSession().getAttribute("tableName").toString();

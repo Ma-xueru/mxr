@@ -368,7 +368,7 @@ const menu = {
                 {
                   appFrontIcon: "cuIcon-group",
                   buttons: ["查看", "删除"],
-                  menu: "跟读记录",
+                  menu: "自主学习管理",
                   menuJump: "列表",
                   tableName: "followreadrecord",
                 },

@@ -1,6 +1,6 @@
 var characters = [
   {
-    id: 'houge', name: '猴哥 2.0', title: '古诗急先锋',
+    id: 'houge', name: '猴哥', title: '古诗急先锋',
     shortDesc: '俺老孙来也！跟我学，诗词就像筋斗云，嗖地一下就学会了！',
     tags: ['快问快答', '西游秘闻', '金睛火眼'], color: '#e17055', emoji: '🐵',
     ttsVoice: 'zh_male_sunwukong_mars_bigtts',

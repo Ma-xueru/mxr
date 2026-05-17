@@ -46,8 +46,12 @@
         <view class="te-dim-bar"><view class="te-dim-fill" style="width:{{item.score}}%;background:{{item.score>=85?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}"></view></view>
         <text class="te-dim-comment">{{item.comment}}</text>
       </view>
+      <view class="te-suggestion" wx:if="{{aiReport.suggestion}}">
+        <text class="te-sug-label">💡 智能自学建议</text>
+        <text class="te-sug-text">{{aiReport.suggestion}}</text>
+      </view>
       <view class="te-overall" wx:if="{{aiReport.overallComment}}">
-        <text class="te-overall-label">📝 总评</text>
+        <text class="te-overall-label">📝 测验整体总评</text>
         <text class="te-overall-text">{{aiReport.overallComment}}</text>
       </view>
     </view>

@@ -4,8 +4,12 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.cl.annotation.IgnoreAuth;
 import com.cl.dao.FollowreadRecordDao;
 import com.cl.dao.QuizRecordDao;
+import com.cl.dao.StudentDao;
+import com.cl.dao.StudentScoreLogDao;
 import com.cl.entity.FollowreadRecordEntity;
+import com.cl.entity.StudentEntity;
 import com.cl.entity.QuizRecordEntity;
+import com.cl.entity.StudentScoreLogEntity;
 import com.cl.utils.AIChatUtil;
 import com.cl.utils.PageUtils;
 import com.cl.utils.R;
@@ -24,6 +28,10 @@ public class QuizController {
     private QuizRecordDao quizRecordDao;
     @Autowired
     private FollowreadRecordDao followreadRecordDao;
+    @Autowired
+    private StudentScoreLogDao studentScoreLogDao;
+    @Autowired
+    private StudentDao studentDao;
 
     /** 保存测验记录 */
     @RequestMapping("/saveRecord")
@@ -41,6 +49,22 @@ public class QuizController {
         record.setWrongListJson(String.valueOf(body.getOrDefault("wrongListJson", "[]")));
         record.setAddtime(new Date());
         quizRecordDao.insert(record);
+        // 双写 student_score_log (sourceType=6 自主测验)
+        String cls = null;
+        try {
+            StudentEntity stu = studentDao.selectList(new EntityWrapper<StudentEntity>().eq("studentaccount", record.getStudentaccount()).last("LIMIT 1")).stream().findFirst().orElse(null);
+            if (stu != null && StringUtils.hasText(stu.getClassname())) cls = stu.getClassname();
+        } catch (Exception e) {}
+        int s = record.getScore() != null ? record.getScore() : 0;
+        String quizReport = "{\"dimensions\":[" +
+            "{\"name\":\"知识掌握度\",\"score\":" + s + ",\"comment\":\"自主测验综合表现\"}," +
+            "{\"name\":\"答题准确率\",\"score\":" + s + ",\"comment\":\"自主测验综合表现\"}," +
+            "{\"name\":\"理解深度\",\"score\":" + s + ",\"comment\":\"自主测验综合表现\"}]," +
+            "\"suggestion\":\"" + (s >= 80 ? "表现优秀，继续保持！" : s >= 60 ? "还有提升空间，建议复习薄弱知识点。" : "需要加强基础，建议重新学习相关古诗。") + "\"," +
+            "\"overallComment\":\"答对" + record.getCorrectCount() + "/" + record.getQuestionsCount() + "题，得分" + s + "分。\"}";
+        writeScoreLog(record.getStudentaccount(), record.getStudentname(), cls,
+            record.getCourseid(), record.getCoursetitle(), 6, s,
+            quizReport, null, record.getId());
         return R.ok().put("data", record.getId());
     }
 
@@ -199,6 +223,48 @@ public class QuizController {
         return R.ok().put("data", result);
     }
 
+    /** 双写 student_score_log */
+    private void writeScoreLog(String studentaccount, String studentname, String classname,
+            Long poetryId, String poetryTitle, int sourceType, int score,
+            String reportJson, String audioUrl, Long refId) {
+        try {
+            StudentScoreLogEntity log = new StudentScoreLogEntity();
+            log.setId(new Date().getTime() + new Double(Math.floor(Math.random() * 1000)).longValue());
+            log.setStudentaccount(studentaccount);
+            log.setStudentname(studentname);
+            log.setClassname(classname);
+            log.setPoetryId(poetryId);
+            log.setPoetryTitle(poetryTitle);
+            log.setSourceType(sourceType);
+            log.setScore(score);
+            log.setAudioUrl(audioUrl);
+            log.setReportJson(reportJson);
+            log.setCreateTime(new Date());
+            if (StringUtils.hasText(reportJson)) {
+                try {
+                    org.json.JSONObject obj = new org.json.JSONObject(reportJson);
+                    if (obj.has("dimensions")) {
+                        org.json.JSONArray dims = obj.getJSONArray("dimensions");
+                        for (int i = 0; i < dims.length(); i++) {
+                            org.json.JSONObject d = dims.getJSONObject(i);
+                            String name = d.optString("name", "");
+                            int ds = d.optInt("score", 0);
+                            if (name.contains("知识掌握")) log.setKnowledgeScore(ds);
+                            else if (name.contains("答题准确")) log.setAccuracyScore(ds);
+                            else if (name.contains("理解深度")) log.setDepthScore(ds);
+                        }
+                    }
+                    if (obj.has("suggestion")) log.setLearningSuggestion(obj.optString("suggestion", ""));
+                    if (obj.has("overallComment")) log.setOverallSummary(obj.optString("overallComment", ""));
+                } catch (Exception e) {}
+            }
+            if (log.getKnowledgeScore() == null) log.setKnowledgeScore(0);
+            if (log.getAccuracyScore() == null) log.setAccuracyScore(0);
+            if (log.getDepthScore() == null) log.setDepthScore(0);
+            studentScoreLogDao.insert(log);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
     private String classifyQuestion(String q) {
         if (q.contains("意思") || q.contains("解释") || q.contains("释") || q.contains("义")) return "字词释义";
         if (q.contains("情感") || q.contains("意境") || q.contains("感受") || q.contains("情怀")) return "意境感悟";
@@ -340,6 +406,92 @@ public class QuizController {
         int start = s.indexOf('['), end = s.lastIndexOf(']');
         if (start >= 0 && end > start) s = s.substring(start, end + 1);
         return s;
+    }
+
+    /** AI 智能评估 — 统用于：AI智能测验(6) / 举一反三(7) / 温故知新(8) */
+    @RequestMapping("/evaluate")
+    public R evaluate(@RequestBody Map<String, Object> body) {
+        String poemTitle = String.valueOf(body.getOrDefault("poemTitle", ""));
+        int score = Integer.parseInt(String.valueOf(body.getOrDefault("score", "0")));
+        int correctCount = Integer.parseInt(String.valueOf(body.getOrDefault("correctCount", "0")));
+        int totalQuestions = Integer.parseInt(String.valueOf(body.getOrDefault("totalQuestions", "5")));
+        String studentaccount = String.valueOf(body.getOrDefault("studentaccount", ""));
+        String studentname = String.valueOf(body.getOrDefault("studentname", ""));
+        Long courseid = Long.valueOf(String.valueOf(body.getOrDefault("courseid", "0")));
+        int sourceType = Integer.parseInt(String.valueOf(body.getOrDefault("sourceType", "6")));
+
+        // 构建错题上下文
+        StringBuilder wrongCtx = new StringBuilder();
+        java.util.List<Map<String, Object>> wrongList = new java.util.ArrayList<>();
+        Object wlObj = body.get("wrongList");
+        if (wlObj instanceof java.util.List) {
+            for (Object item : (java.util.List<?>) wlObj) {
+                if (item instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> w = (Map<String, Object>) item;
+                    wrongList.add(w);
+                    wrongCtx.append("题：").append(w.getOrDefault("question", ""))
+                        .append(" 正确答案：").append(w.getOrDefault("answer", ""))
+                        .append(" 学生选：").append(w.getOrDefault("selected", "")).append("；");
+                }
+            }
+        }
+
+        // AI 评估
+        String aiReport = "";
+        if (wrongList.size() > 0 || score < 100) {
+            String aiPrompt = "学生测验《" + poemTitle + "》得分" + score + "分，错" + wrongList.size() + "题。" +
+                (wrongCtx.length() > 0 ? wrongCtx.toString() : "全对！") +
+                "\n请按三量化维度评估（严格仅输出3个维度！）：" +
+                "{\"dimensions\":[{\"name\":\"知识掌握度\",\"score\":80,\"comment\":\"...\"},{\"name\":\"答题准确率\",\"score\":70,\"comment\":\"...\"},{\"name\":\"理解深度\",\"score\":60,\"comment\":\"...\"}],\"suggestion\":\"针对薄弱点的具体学习行动计划\",\"overallComment\":\"总评收尾\"}。" +
+                "维度仅限3个。suggestion和overallComment为纯文本。只返回JSON。";
+            java.util.List<AIChatUtil.Message> aiMsgs = new java.util.ArrayList<>();
+            aiMsgs.add(new AIChatUtil.Message("system", "你是学习评估专家，严格按JSON返回。dimensions数组里只能有3个元素"));
+            aiMsgs.add(new AIChatUtil.Message("user", aiPrompt));
+            AIChatUtil.ChatResult aiCr = AIChatUtil.chatWithMessages(aiMsgs, 0.5, 800);
+            aiReport = aiCr != null ? aiCr.getContent() : "";
+            if (aiReport != null) { int s = aiReport.indexOf('{'), e = aiReport.lastIndexOf('}'); if (s>=0&&e>s) aiReport = aiReport.substring(s,e+1); }
+            aiReport = enforceThreeDimensions(aiReport);
+        } else {
+            aiReport = "{\"dimensions\":[" +
+                "{\"name\":\"知识掌握度\",\"score\":" + score + ",\"comment\":\"全部正确，知识掌握扎实！\"}," +
+                "{\"name\":\"答题准确率\",\"score\":" + score + ",\"comment\":\"答题准确率完美！\"}," +
+                "{\"name\":\"理解深度\",\"score\":" + score + ",\"comment\":\"理解深度优秀！\"}]," +
+                "\"suggestion\":\"表现完美！建议继续挑战更高难度的古诗。\"," +
+                "\"overallComment\":\"答对" + correctCount + "/" + totalQuestions + "题，满分通过，太棒了！\"}";
+        }
+
+        // 保存到 student_score_log
+        int s = score;
+        writeScoreLog(studentaccount, studentname, null,
+            courseid, poemTitle, sourceType, s, aiReport, null, null);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("score", score);
+        result.put("correctCount", correctCount);
+        result.put("totalQuestions", totalQuestions);
+        result.put("aiReport", aiReport);
+        return R.ok().put("data", result);
+    }
+
+    /** 强制裁剪 dimensions 为3个 */
+    private String enforceThreeDimensions(String report) {
+        if (report == null || report.isEmpty()) return report;
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(report);
+            if (obj.has("dimensions")) {
+                org.json.JSONArray dims = obj.getJSONArray("dimensions");
+                String[] standardNames = {"知识掌握度", "答题准确率", "理解深度"};
+                org.json.JSONArray trimmed = new org.json.JSONArray();
+                for (int i = 0; i < Math.min(dims.length(), 3); i++) {
+                    org.json.JSONObject d = dims.getJSONObject(i);
+                    if (i < standardNames.length) d.put("name", standardNames[i]);
+                    trimmed.put(d);
+                }
+                obj.put("dimensions", trimmed);
+            }
+            return obj.toString();
+        } catch (Exception e) { return report; }
     }
 
     @RequestMapping("/deleteRecord")

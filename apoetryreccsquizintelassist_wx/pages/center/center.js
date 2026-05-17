@@ -1,4 +1,4 @@
-const utils = require('../../utils/index.js')
+﻿const utils = require('../../utils/index.js')
 const {
   session,
   encrypt,
@@ -11,9 +11,6 @@ Page({
    * 页面的初始数据
    */
   data: {
-    passWorded: "",
-    newPassword: '',
-    confirmPassword: '',
     nickname: '',
     token: '',
     userInfo: {},
@@ -342,6 +339,11 @@ Page({
       url: '/pages/classpk/list',
     })
   },
+  toAutonomousHistory() {
+    wx.navigateTo({
+      url: '/pages/autonomous/history',
+    })
+  },
   toMedalWall() {
     wx.navigateTo({
       url: '/pages/medalwall/list',
@@ -365,74 +367,6 @@ Page({
     wx.navigateTo({
       url: '/pages/login/login',
     })
-  },
-
-  cancelShow() {
-    this.selectComponent('#bottomFrame').hideFrame();
-  },
-
-  uppdatePassword() {
-    this.selectComponent('#bottomFrame').showFrame();
-  },
-
-  async resetpasswordBtn() {
-    if (!this.data.passWorded) {
-      wx.showToast({
-        title: '原密码不能为空',
-        icon: 'none'
-      })
-      return
-    }
-    if (!this.data.newPassword) {
-      wx.showToast({
-        title: '新密码不能为空',
-        icon: 'none'
-      })
-      return
-    }
-    if (!this.data.confirmPassword) {
-      wx.showToast({
-        title: '确认密码不能为空',
-        icon: 'none'
-      })
-      return
-    }
-
-    let password = ''
-    let table = wx.getStorageSync("nowTable")
-
-    if (table == 'student') {
-      password = getApp().globalData.userInfo.studentpassword;
-    }
-
-    let newpassword = this.data.passWorded
-    if (password != newpassword) {
-      wx.showToast({
-        title: '原密码不正确',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (this.data.newPassword != this.data.confirmPassword) {
-      wx.showToast({
-        title: '两次密码不一致',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (table == 'student') {
-      getApp().globalData.userInfo.studentpassword = this.data.newPassword
-    }
-
-    let userInfo = getApp().globalData.userInfo;
-    await update(table, userInfo)
-    wx.showToast({
-      title: `修改密码成功,下次登录系统生效`,
-      icon: 'none'
-    })
-    this.selectComponent('#bottomFrame').hideFrame();
   },
 
   /**

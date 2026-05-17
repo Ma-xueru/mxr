@@ -53,6 +53,7 @@
         "pages/recitationtask/update-and-add",
         "pages/recitationtask/list",
         "pages/classpk/list",
+        "pages/autonomous/history",
         "pages/medalwall/list",
         "pages/transcript/detail",
         "pages/transcript/update-and-add",

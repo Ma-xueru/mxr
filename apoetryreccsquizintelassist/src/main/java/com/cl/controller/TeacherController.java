@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +28,10 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.cl.annotation.IgnoreAuth;
 
+import com.cl.dao.StudentScoreLogDao;
+import com.cl.entity.StudentScoreLogEntity;
 import com.cl.entity.TeacherEntity;
+import com.cl.utils.R;
 import com.cl.entity.TeacherClassEntity;
 import com.cl.entity.StudentEntity;
 import com.cl.entity.RecitationtaskEntity;
@@ -75,6 +79,8 @@ public class TeacherController {
     private QuizRecordDao quizRecordDao;
     @Autowired
     private StudentQuizRecordDao studentQuizRecordDao;
+    @Autowired
+    private StudentScoreLogDao studentScoreLogDao;
 
 
 
@@ -587,6 +593,168 @@ public class TeacherController {
 
 
 
+
+    /** 一次性迁移: 旧表记录 → student_score_log */
+    @RequestMapping("/migrateScoreLog")
+    public R migrateScoreLog() {
+        int count = 0;
+        // 迁移跟读记录
+        EntityWrapper<FollowreadRecordEntity> fw = new EntityWrapper<>();
+        List<FollowreadRecordEntity> followList = followreadRecordDao.selectList(fw);
+        for (FollowreadRecordEntity r : followList) {
+            try {
+                // 跳过已迁移的
+                EntityWrapper<StudentScoreLogEntity> ck = new EntityWrapper<>();
+                ck.eq("studentaccount", r.getStudentaccount()).eq("poetry_id", r.getCourseid())
+                  .eq("source_type", 4).last("LIMIT 1");
+                if (studentScoreLogDao.selectCount(ck) > 0) continue;
+                StudentScoreLogEntity log = new StudentScoreLogEntity();
+                log.setId(new Date().getTime() + new Double(Math.floor(Math.random() * 1000)).longValue());
+                log.setStudentaccount(r.getStudentaccount());
+                log.setStudentname(r.getStudentname());
+                log.setClassname(r.getClassname());
+                log.setPoetryId(r.getCourseid());
+                log.setPoetryTitle(r.getCoursetitle());
+                log.setSourceType(4);
+                log.setScore(r.getTotalscore() != null ? r.getTotalscore() : 0);
+                log.setReportJson(r.getReportjson());
+                log.setCreateTime(r.getAddtime());
+                // 解析维度分数
+                parseDimensions(log, r.getReportjson());
+                studentScoreLogDao.insert(log);
+                count++;
+            } catch (Exception e) {}
+        }
+        // 迁移测验记录
+        EntityWrapper<QuizRecordEntity> qw = new EntityWrapper<>();
+        List<QuizRecordEntity> quizList = quizRecordDao.selectList(qw);
+        for (QuizRecordEntity r : quizList) {
+            try {
+                EntityWrapper<StudentScoreLogEntity> ck = new EntityWrapper<>();
+                ck.eq("studentaccount", r.getStudentaccount()).eq("poetry_id", r.getCourseid())
+                  .eq("source_type", 6).last("LIMIT 1");
+                if (studentScoreLogDao.selectCount(ck) > 0) continue;
+                StudentScoreLogEntity log = new StudentScoreLogEntity();
+                log.setId(new Date().getTime() + new Double(Math.floor(Math.random() * 1000)).longValue());
+                log.setStudentaccount(r.getStudentaccount());
+                log.setStudentname(r.getStudentname());
+                log.setClassname(null);
+                // 从学生表查 classname
+                try {
+                    StudentEntity stu = studentService.selectList(new EntityWrapper<StudentEntity>().eq("studentaccount", r.getStudentaccount()).last("LIMIT 1")).stream().findFirst().orElse(null);
+                    if (stu != null && StringUtils.isNotBlank(stu.getClassname())) log.setClassname(stu.getClassname());
+                } catch (Exception e) {}
+                log.setPoetryId(r.getCourseid());
+                log.setPoetryTitle(r.getCoursetitle());
+                log.setSourceType(6);
+                int s = r.getScore() != null ? r.getScore() : 0;
+                log.setScore(s);
+                log.setKnowledgeScore(s); log.setAccuracyScore(s); log.setDepthScore(s);
+                log.setLearningSuggestion(s >= 80 ? "表现优秀，继续保持！" : s >= 60 ? "还有提升空间。" : "需要加强基础。");
+                log.setOverallSummary("答对" + (r.getCorrectCount() != null ? r.getCorrectCount() : 0) + "/" + (r.getQuestionsCount() != null ? r.getQuestionsCount() : 0) + "题，得分" + s + "分。");
+                log.setCreateTime(r.getAddtime());
+                studentScoreLogDao.insert(log);
+                count++;
+            } catch (Exception e) {}
+        }
+        return R.ok().put("data", "迁移完成，共 " + count + " 条");
+    }
+
+    private void parseDimensions(StudentScoreLogEntity log, String reportJson) {
+        if (StringUtils.isBlank(reportJson)) return;
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(reportJson);
+            if (obj.has("dimensions")) {
+                org.json.JSONArray dims = obj.getJSONArray("dimensions");
+                for (int i = 0; i < dims.length(); i++) {
+                    org.json.JSONObject d = dims.getJSONObject(i);
+                    String name = d.optString("name", "");
+                    int ds = d.optInt("score", 0);
+                    if (name.contains("知识掌握")) log.setKnowledgeScore(ds);
+                    else if (name.contains("答题准确")) log.setAccuracyScore(ds);
+                    else if (name.contains("理解深度")) log.setDepthScore(ds);
+                }
+            }
+            if (obj.has("suggestion")) log.setLearningSuggestion(obj.optString("suggestion", ""));
+            if (obj.has("overallComment")) log.setOverallSummary(obj.optString("overallComment", ""));
+        } catch (Exception e) {}
+        // 如果标准维度未匹配到，用总分均分
+        int fallback = log.getScore() != null ? log.getScore() : 0;
+        if (log.getKnowledgeScore() == null || log.getKnowledgeScore() == 0)
+            log.setKnowledgeScore(fallback);
+        if (log.getAccuracyScore() == null || log.getAccuracyScore() == 0)
+            log.setAccuracyScore(fallback);
+        if (log.getDepthScore() == null || log.getDepthScore() == 0)
+            log.setDepthScore(fallback);
+    }
+
+    /** 自主学习管理 — 按学生聚合大盘 */
+    @RequestMapping("/autonomousStudents")
+    public R autonomousStudents(HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
+        java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
+
+        EntityWrapper<StudentScoreLogEntity> ew = new EntityWrapper<>();
+        if (classnames != null && !classnames.isEmpty()) ew.in("classname", classnames);
+        List<StudentScoreLogEntity> all = studentScoreLogDao.selectList(ew);
+
+        // 按 studentaccount 聚合
+        Map<String, Map<String, Object>> agg = new LinkedHashMap<>();
+        for (StudentScoreLogEntity log : all) {
+            String key = log.getStudentaccount();
+            agg.computeIfAbsent(key, k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("studentaccount", log.getStudentaccount());
+                m.put("studentname", log.getStudentname());
+                m.put("classname", log.getClassname());
+                m.put("followCount", 0);
+                m.put("quizCount", 0);
+                m.put("analogyCount", 0);
+                m.put("reviewCount", 0);
+                m.put("lastActiveTime", null);
+                return m;
+            });
+            Map<String, Object> row = agg.get(key);
+            if (log.getSourceType() != null) {
+                if (log.getSourceType() == 4) row.put("followCount", (int) row.get("followCount") + 1);
+                else if (log.getSourceType() == 6) row.put("quizCount", (int) row.get("quizCount") + 1);
+                else if (log.getSourceType() == 7) row.put("analogyCount", (int) row.get("analogyCount") + 1);
+                else if (log.getSourceType() == 8) row.put("reviewCount", (int) row.get("reviewCount") + 1);
+            }
+            if (log.getCreateTime() != null) {
+                Date cur = (Date) row.get("lastActiveTime");
+                if (cur == null || log.getCreateTime().after(cur)) row.put("lastActiveTime", log.getCreateTime());
+            }
+        }
+        List<Map<String, Object>> list = new ArrayList<>(agg.values());
+        list.sort((a, b) -> {
+            Date da = (Date) a.get("lastActiveTime"), db = (Date) b.get("lastActiveTime");
+            if (da == null && db == null) return 0;
+            if (da == null) return 1; if (db == null) return -1;
+            return db.compareTo(da);
+        });
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("list", list);
+        result.put("totalFollow", all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 4).count());
+        result.put("totalQuiz", all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 6).count());
+        result.put("totalAnalogy", all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 7).count());
+        result.put("totalReview", all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 8).count());
+        result.put("totalAll", all.size());
+        return R.ok().put("data", result);
+    }
+
+    /** 自主学习管理 — 单人全量历史 */
+    @RequestMapping("/autonomousHistory")
+    public R autonomousHistory(@RequestParam String studentaccount, @RequestParam Integer sourceType,
+                               HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
+        EntityWrapper<StudentScoreLogEntity> ew = new EntityWrapper<>();
+        ew.eq("studentaccount", studentaccount).eq("source_type", sourceType)
+          .orderBy("create_time", false);
+        return R.ok().put("data", studentScoreLogDao.selectList(ew));
+    }
 
     /**
      * 总数量

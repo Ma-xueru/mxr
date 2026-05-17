@@ -1,0 +1,108 @@
+<view class="ah-page">
+  <!-- 概览 -->
+  <view class="ah-overview">
+    <view class="ah-ov-title">📊 自主学习总览</view>
+    <view class="ah-ov-cards">
+      <view class="ah-ov-card" bindtap="switchTab" data-tab="follow">
+        <text class="ah-ov-num">{{counts.followCount}}</text>
+        <text class="ah-ov-label">🗣️ 跟读</text>
+      </view>
+      <view class="ah-ov-card" bindtap="switchTab" data-tab="quiz">
+        <text class="ah-ov-num">{{counts.quizCount}}</text>
+        <text class="ah-ov-label">✍️ 测验</text>
+      </view>
+      <view class="ah-ov-card" bindtap="switchTab" data-tab="analogy">
+        <text class="ah-ov-num">{{counts.analogyCount}}</text>
+        <text class="ah-ov-label">🔄 举一反三</text>
+      </view>
+      <view class="ah-ov-card" bindtap="switchTab" data-tab="review">
+        <text class="ah-ov-num">{{counts.reviewCount}}</text>
+        <text class="ah-ov-label">📚 温故知新</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分类标签 -->
+  <view class="ah-tabs">
+    <view class="ah-tab {{activeTab==='follow'?'active':''}}" bindtap="switchTab" data-tab="follow">🗣️ 跟读</view>
+    <view class="ah-tab {{activeTab==='quiz'?'active':''}}" bindtap="switchTab" data-tab="quiz">✍️ 测验</view>
+    <view class="ah-tab {{activeTab==='analogy'?'active':''}}" bindtap="switchTab" data-tab="analogy">🔄 举一反三</view>
+    <view class="ah-tab {{activeTab==='review'?'active':''}}" bindtap="switchTab" data-tab="review">📚 温故知新</view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="ah-loading" wx:if="{{loading}}"><text>加载中...</text></view>
+
+  <!-- 记录列表 -->
+  <view class="ah-list" wx:if="{{!loading && records.length}}">
+    <view class="ah-item" wx:for="{{records}}" wx:key="id" data-index="{{index}}" bindtap="selectRecord">
+      <view class="ah-item-left">
+        <text class="ah-item-title">{{item.poetryTitle || '自主学习'}}</text>
+        <text class="ah-item-time">{{fmtTime(item.createTime)}}</text>
+      </view>
+      <view class="ah-item-right">
+        <text class="ah-item-score" style="color:{{item.score>=85?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}">{{item.score}}分</text>
+        <text class="ah-item-arrow">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="ah-empty" wx:if="{{!loading && !records.length}}">
+    <text class="ah-empty-icon">📭</text>
+    <text class="ah-empty-text">暂无记录</text>
+  </view>
+
+  <!-- 详情弹窗 -->
+  <view class="ah-overlay" wx:if="{{showDetail && selectedRecord}}">
+    <view class="ah-detail">
+      <view class="ah-detail-header">
+        <text class="ah-detail-title">{{selectedRecord.poetryTitle || '自主学习'}}</text>
+        <text class="ah-detail-close" bindtap="closeDetail">✕</text>
+      </view>
+      <scroll-view class="ah-detail-scroll" scroll-y>
+        <view class="ah-detail-score-wrap">
+          <text class="ah-detail-score">{{selectedRecord.score}}分</text>
+          <text class="ah-detail-time">{{fmtTime(selectedRecord.createTime)}}</text>
+        </view>
+
+        <!-- 3维评分速览 -->
+        <view class="ah-quick-scores" wx:if="{{parsedReport && parsedReport.dimensions}}">
+          <view class="ah-qs-item" wx:for="{{parsedReport.dimensions}}" wx:key="name">
+            <text class="ah-qs-name">{{item.name}}</text>
+            <text class="ah-qs-score">{{item.score}}</text>
+          </view>
+        </view>
+
+        <!-- 雷达图 -->
+        <view class="ah-radar-wrap">
+          <canvas type="2d" id="historyRadarCanvas" class="ah-radar-canvas"></canvas>
+        </view>
+
+        <!-- 维度详情 -->
+        <view class="ah-dim-cards" wx:if="{{parsedReport && parsedReport.dimensions}}">
+          <view class="ah-dim-card" wx:for="{{parsedReport.dimensions}}" wx:key="name">
+            <view class="ah-dim-head">
+              <text class="ah-dim-name">{{item.name}}</text>
+              <text class="ah-dim-score" style="color:{{item.score>=80?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}">{{item.score}}分</text>
+            </view>
+            <view class="ah-dim-bar"><view class="ah-dim-fill" style="width:{{item.score}}%;background:{{item.score>=80?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}"></view></view>
+            <text class="ah-dim-comment" wx:if="{{item.comment}}">{{item.comment}}</text>
+          </view>
+        </view>
+
+        <!-- 学习建议 -->
+        <view class="ah-sug" wx:if="{{parsedReport.suggestion}}">
+          <text class="ah-sug-label">💡 智能自学建议</text>
+          <text class="ah-sug-text">{{parsedReport.suggestion}}</text>
+        </view>
+
+        <!-- 总评 -->
+        <view class="ah-overall" wx:if="{{parsedReport.overallComment}}">
+          <text class="ah-ov-label">📝 整体总评</text>
+          <text class="ah-ov-text">{{parsedReport.overallComment}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

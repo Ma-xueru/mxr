@@ -30,17 +30,53 @@
     </view>
   </view>
 
-  <!-- 结果弹窗 -->
-  <view class="quiz-overlay" wx:if="{{finished}}">
-    <view class="quiz-result-modal">
-      <text class="quiz-result-emoji">{{score >= 80 ? '🎉' : score >= 60 ? '😊' : '💪'}}</text>
-      <text class="quiz-result-score">{{score}}分</text>
-      <text class="quiz-result-label">答对 {{correctCount}} / {{questions.length}} 题</text>
-      <text class="quiz-result-time">用时 {{timerDisplay}}</text>
-      <view class="quiz-result-actions">
-        <button class="quiz-result-btn retry" bindtap="retryQuiz">再来一次</button>
-        <button class="quiz-result-btn back" bindtap="goBack">返回详情</button>
+  <!-- 结果页 -->
+  <scroll-view class="result-scroll" scroll-y wx:if="{{finished}}">
+    <view class="result-page">
+      <view class="result-score-wrap">
+        <text class="result-emoji">{{score >= 80 ? '🎉' : score >= 60 ? '😊' : '💪'}}</text>
+        <text class="result-score">{{score}}分</text>
+        <text class="result-label">答对 {{correctCount}} / {{questions.length}} 题 · 用时 {{timerDisplay}}</text>
+      </view>
+
+      <!-- AI 加载 -->
+      <view class="result-ai-loading" wx:if="{{aiLoading}}">
+        <text>🤖 AI 正在生成评估报告...</text>
+      </view>
+
+      <!-- AI 报告 -->
+      <block wx:if="{{!aiLoading && aiReport}}">
+        <view class="result-radar-wrap" wx:if="{{aiReport.dimensions}}">
+          <text class="result-section-title">📊 核心能力指标</text>
+          <canvas type="2d" id="practiceRadarCanvas" class="result-radar-canvas"></canvas>
+        </view>
+
+        <view class="result-report" wx:if="{{aiReport.dimensions}}">
+          <view class="result-dim-card" wx:for="{{aiReport.dimensions}}" wx:key="name">
+            <view class="result-dim-header">
+              <text class="result-dim-name">{{item.name}}</text>
+              <text class="result-dim-score">{{item.score}}分</text>
+            </view>
+            <view class="result-dim-bar"><view class="result-dim-fill" style="width:{{item.score}}%;background:{{item.score>=85?'#4CAF50':item.score>=60?'#FF9800':'#F44336'}}"></view></view>
+            <text class="result-dim-comment">{{item.comment}}</text>
+          </view>
+
+          <view class="result-suggestion" wx:if="{{aiReport.suggestion}}">
+            <text class="result-sug-label">💡 智能自学建议</text>
+            <text class="result-sug-text">{{aiReport.suggestion}}</text>
+          </view>
+
+          <view class="result-overall" wx:if="{{aiReport.overallComment}}">
+            <text class="result-ov-label">📝 整体总评</text>
+            <text class="result-ov-text">{{aiReport.overallComment}}</text>
+          </view>
+        </view>
+      </block>
+
+      <view class="result-actions">
+        <button class="result-btn retry" bindtap="retryQuiz">再来一次</button>
+        <button class="result-btn back" bindtap="goBack">返回</button>
       </view>
     </view>
-  </view>
+  </scroll-view>
 </view>

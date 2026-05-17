@@ -135,7 +135,7 @@ Page({
             url: (wx.getStorageSync('baseURL') || '') + '/game/history-review', method: 'GET',
             header: { Token: wx.getStorageSync('token') },
             timeout: 45000,
-            success: function(res) { that._onQuizReady(res) },
+            success: function(res) { that._onQuizReady(res, 'review') },
             fail: function() { that.setData({ aiLoading: false }); wx.showToast({ title: '出题超时，请重试', icon: 'none' }) }
         })
     },
@@ -147,17 +147,18 @@ Page({
             url: (wx.getStorageSync('baseURL') || '') + '/game/analogy-training', method: 'GET',
             header: { Token: wx.getStorageSync('token') },
             timeout: 45000,
-            success: function(res) { that._onQuizReady(res) },
+            success: function(res) { that._onQuizReady(res, 'analogy') },
             fail: function() { that.setData({ aiLoading: false }); wx.showToast({ title: '出题超时，请重试', icon: 'none' }) }
         })
     },
 
-    _onQuizReady(res) {
+    _onQuizReady(res, source) {
         this.setData({ aiLoading: false })
         if (res.data.code === 0 && res.data.data) {
             var questions = JSON.parse(res.data.data)
             getApp().globalData._aiQuestions = questions
-            wx.navigateTo({ url: '/pages/quiz/practice?id=ai&title=' + encodeURIComponent('AI智能出题') + '&content=ai' })
+            var title = source === 'review' ? '温故知新' : source === 'analogy' ? '举一反三' : 'AI智能出题'
+            wx.navigateTo({ url: '/pages/quiz/practice?id=ai&title=' + encodeURIComponent(title) + '&content=ai&source=' + (source || 'quiz') })
         } else {
             wx.showToast({ title: res.data.msg || '出题失败', icon: 'none' })
         }

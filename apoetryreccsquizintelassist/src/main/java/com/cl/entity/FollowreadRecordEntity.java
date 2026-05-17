@@ -15,6 +15,7 @@ public class FollowreadRecordEntity implements Serializable {
     private Long id;
     private String studentaccount;
     private String studentname;
+    private String classname;
     private Long courseid;
     private String coursetitle;
     private Integer totalscore;
@@ -31,6 +32,8 @@ public class FollowreadRecordEntity implements Serializable {
     public void setStudentaccount(String v) { this.studentaccount = v; }
     public String getStudentname() { return studentname; }
     public void setStudentname(String v) { this.studentname = v; }
+    public String getClassname() { return classname; }
+    public void setClassname(String v) { this.classname = v; }
     public Long getCourseid() { return courseid; }
     public void setCourseid(Long v) { this.courseid = v; }
     public String getCoursetitle() { return coursetitle; }
