@@ -517,3 +517,39 @@ page {
 
 .poem-creator-card { background: linear-gradient(135deg, #4FC3F7, #29B6F6) !important; box-shadow: 0 12rpx 36rpx rgba(41,182,246,.3) !important; }
 .poem-creator-badge { background: rgba(255,255,255,.2) !important; }
+
+/* 每日一句 */
+.home-quote { width: calc(100% - 40rpx); margin: 16rpx auto; padding: 24rpx 28rpx; background: linear-gradient(135deg,#fff8e1,#fff3e0); border-radius: 20rpx; text-align: center; border: 1px solid rgba(255,183,77,.3); display: flex; align-items: center; justify-content: center; gap: 8rpx; }
+.home-quote-mark { font-size: 36rpx; color: #e65100; font-weight: 700; }
+.home-quote-text { font-size: 30rpx; color: #4e342e; font-weight: 600; line-height: 1.6; }
+
+/* 通用模块 */
+.home-module { width: calc(100% - 40rpx); margin: 16rpx auto; padding: 24rpx; background: #fff; border-radius: 24rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,.05); }
+.home-mod-title { font-size: 28rpx; font-weight: 700; color: #3d3532; margin-bottom: 16rpx; }
+.home-mod-sub { font-size: 24rpx; color: #999; text-align: center; margin-top: 12rpx; }
+
+/* 学习热力 */
+.home-heat-row { display: flex; justify-content: space-between; }
+.home-heat-cell { display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
+.home-heat-dot { width: 48rpx; height: 48rpx; border-radius: 14rpx; }
+.home-heat-dot.on { background: linear-gradient(135deg,#66BB6A,#43A047); box-shadow: 0 4rpx 12rpx rgba(76,175,80,.4); }
+.home-heat-dot.off { background: #f0f0f0; }
+.home-heat-day { font-size: 22rpx; color: #999; }
+
+/* 趋势条 */
+.home-trend-row { display: flex; justify-content: space-between; align-items: flex-end; height: 200rpx; padding-top: 10rpx; }
+.home-trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
+.home-trend-val { font-size: 20rpx; font-weight: 700; color: #555; }
+.home-trend-val.zero { color: #ccc; }
+.home-trend-bar { width: 36rpx; min-height: 4rpx; border-radius: 6rpx 6rpx 0 0; }
+.home-trend-date { font-size: 20rpx; color: #999; margin-top: 4rpx; }
+
+/* 最佳成绩 */
+.home-best-row { display: flex; gap: 10rpx; }
+.home-best-card { flex: 1; text-align: center; padding: 16rpx 6rpx; background: #faf7f0; border-radius: 16rpx; }
+.home-best-val { font-size: 40rpx; font-weight: 800; display: block; }
+.home-best-val.c-green { color: #4CAF50; }
+.home-best-val.c-orange { color: #FF9800; }
+.home-best-val.c-purple { color: #9C27B0; }
+.home-best-val.c-blue { color: #2196F3; }
+.home-best-lbl { font-size: 22rpx; color: #999; display: block; margin-top: 4rpx; }

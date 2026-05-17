@@ -80,6 +80,49 @@
           </view>
         </view>
 
+      <!-- 每日一句 -->
+      <view class="home-quote" wx:if="{{dailyQuote && isStudent}}">
+        <text class="home-quote-mark">"</text>
+        <text class="home-quote-text">{{dailyQuote}}</text>
+        <text class="home-quote-mark">"</text>
+      </view>
+
+      <!-- 本周学习热力 -->
+      <view class="home-module" wx:if="{{isStudent}}">
+        <view class="home-mod-title">🔥 本周学习热力</view>
+        <view class="home-heat-row">
+          <view class="home-heat-cell" wx:for="{{weeklyHeat}}" wx:key="label">
+            <view class="home-heat-dot {{item.active ? 'on' : 'off'}}"></view>
+            <text class="home-heat-day">{{item.label}}</text>
+          </view>
+        </view>
+        <text class="home-mod-sub">已坚持 {{totalDays}} 天</text>
+      </view>
+
+      <!-- 7日正确率趋势 -->
+      <view class="home-module" wx:if="{{isStudent && trend7.length}}">
+        <view class="home-mod-title">📈 近7日学习趋势</view>
+        <view class="home-trend-row">
+          <view class="home-trend-bar-wrap" wx:for="{{trend7}}" wx:key="date">
+            <text class="home-trend-val" wx:if="{{item.count > 0}}">{{item.avgScore}}</text>
+            <text class="home-trend-val zero" wx:else>-</text>
+            <view class="home-trend-bar" style="height:{{item.avgScore * 0.8}}rpx; background:{{item.avgScore>=80?'#4CAF50':item.avgScore>=60?'#FF9800':'#e0e0e0'}}"></view>
+            <text class="home-trend-date">{{item.date}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 各模块最佳成绩 -->
+      <view class="home-module" wx:if="{{isStudent}}">
+        <view class="home-mod-title">🏆 各模块最佳</view>
+        <view class="home-best-row">
+          <view class="home-best-card"><text class="home-best-val c-green">{{bestScores.follow || 0}}</text><text class="home-best-lbl">🗣️ 跟读</text></view>
+          <view class="home-best-card"><text class="home-best-val c-orange">{{bestScores.quiz || 0}}</text><text class="home-best-lbl">✍️ 测验</text></view>
+          <view class="home-best-card"><text class="home-best-val c-purple">{{bestScores.analogy || 0}}</text><text class="home-best-lbl">🔄 举一反三</text></view>
+          <view class="home-best-card"><text class="home-best-val c-blue">{{bestScores.review || 0}}</text><text class="home-best-lbl">📚 温故知新</text></view>
+        </view>
+      </view>
+
     </view>
     <voice-assistant />
 </view>

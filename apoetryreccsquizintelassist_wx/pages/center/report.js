@@ -1,8 +1,7 @@
 Page({
   data: {
     loading: true, stats: {}, radar: {}, trend: [], aiMentor: '',
-    history: [], totalCount: 0, avgScore: 0,
-    showDetail: false, selectedRecord: null, parsedReport: null
+    totalCount: 0, avgScore: 0
   },
 
   onLoad() { this.loadData() },
@@ -18,7 +17,7 @@ Page({
         var d = res.data.data
         that.setData({
           stats: d.stats || {}, radar: d.radar || {}, trend: d.trend || [],
-          aiMentor: d.aiMentor || '', history: d.history || [],
+          aiMentor: d.aiMentor || '',
           totalCount: d.totalCount || 0, avgScore: d.avgScore || 0, loading: false
         }, function() {
           if (d.radar && d.radar.knowledgeScore !== undefined) that.drawRadar()
@@ -118,90 +117,10 @@ Page({
     })
   },
 
-  tapHistory(e) {
-    var idx = e.currentTarget.dataset.index
-    var record = this.data.history[idx]
-    if (!record) return
-    var report = null
-    if (record.reportJson) {
-      try { report = JSON.parse(record.reportJson) } catch(e) {}
-    }
-    if (!report || !report.dimensions) {
-      report = {
-        dimensions: [
-          { name: '知识掌握度', score: record.knowledgeScore || 0, comment: '' },
-          { name: '答题准确率', score: record.accuracyScore || 0, comment: '' },
-          { name: '理解深度', score: record.depthScore || 0, comment: '' }
-        ],
-        suggestion: record.learningSuggestion || '',
-        overallComment: record.overallSummary || ''
-      }
-    }
-    this.setData({ selectedRecord: record, parsedReport: report, showDetail: true }, function() {
-      var that = this
-      setTimeout(function() {
-        var query = wx.createSelectorQuery().in(that)
-        query.select('#detailRadarCanvas').fields({ node: true, size: true }).exec(function(res) {
-          if (!res || !res[0] || !res[0].node) return
-          var canvas = res[0].node, ctx = canvas.getContext('2d')
-          var w = res[0].width, h = res[0].height
-          var dpr = wx.getSystemInfoSync().pixelRatio
-          canvas.width = w * dpr; canvas.height = h * dpr; ctx.scale(dpr, dpr)
-          var cx = w/2, cy = h/2, r = Math.min(w,h)/2 - 26
-          var dims = report.dimensions
-          var n = dims.length, step = Math.PI*2/n
-          for (var lv = 1; lv <= 5; lv++) {
-            var lr = r * lv / 5
-            ctx.beginPath()
-            for (var i = 0; i <= n; i++) {
-              var a = step*i - Math.PI/2, x = cx + lr*Math.cos(a), y = cy + lr*Math.sin(a)
-              i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
-            }
-            ctx.closePath(); ctx.strokeStyle = '#e8e0d0'; ctx.lineWidth = 0.5; ctx.stroke()
-          }
-          for (var i = 0; i < n; i++) {
-            ctx.beginPath(); ctx.moveTo(cx,cy)
-            ctx.lineTo(cx + r*Math.cos(step*i-Math.PI/2), cy + r*Math.sin(step*i-Math.PI/2))
-            ctx.strokeStyle = '#e8e0d0'; ctx.stroke()
-          }
-          ctx.beginPath()
-          for (var i = 0; i < n; i++) {
-            var val = (dims[i].score || 50) / 100
-            var a = step*i - Math.PI/2, x = cx + r*val*Math.cos(a), y = cy + r*val*Math.sin(a)
-            i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
-          }
-          ctx.closePath(); ctx.fillStyle = 'rgba(129,199,132,0.2)'; ctx.fill()
-          ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 2; ctx.stroke()
-          var colors = ['#e57373','#64B5F6','#FFB74D','#81C784']
-          for (var i = 0; i < n; i++) {
-            var val = (dims[i].score || 50) / 100
-            var a = step*i - Math.PI/2
-            ctx.fillStyle = colors[i%4]
-            ctx.beginPath(); ctx.arc(cx + r*val*Math.cos(a), cy + r*val*Math.sin(a), 3.5, 0, 2*Math.PI); ctx.fill()
-            ctx.fillStyle = '#555'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center'
-            ctx.fillText(dims[i].name + ' ' + (dims[i].score||0), cx + (r+22)*Math.cos(a), cy + (r+22)*Math.sin(a)+4)
-          }
-        })
-      }, 300)
-    })
-  },
-
-  closeDetail() { this.setData({ showDetail: false, selectedRecord: null, parsedReport: null }) },
-
   fmtTime(v) {
     if (!v) return ''
     var d = new Date(v), pad = function(n) { return String(n).padStart(2, '0') }
     return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
   },
 
-  fmtFullTime(v) {
-    if (!v) return ''
-    var d = new Date(v), pad = function(n) { return String(n).padStart(2, '0') }
-    return (d.getMonth()+1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes())
-  },
-
-  sourceLabel(t) {
-    var m = { 4: '🗣️ 跟读', 6: '✍️ 测验', 7: '🔄 举一反三', 8: '📚 温故知新' }
-    return m[t] || '学习'
-  }
 })

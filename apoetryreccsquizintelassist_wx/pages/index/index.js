@@ -13,7 +13,7 @@ const {
   data: {
   value: null,
        baseURL: wx.getStorageSync('baseURL') + "/",
-      
+
   isIndex: false,
   forumArr: [],
   newsList:[],
@@ -24,7 +24,12 @@ const {
     isStudent: true,
     pendingCount: 0,
     pendingTasks: [],
-    taskStats: { total: 0, completed: 0, pending: 0 }
+    taskStats: { total: 0, completed: 0, pending: 0 },
+    weeklyHeat: [],
+    trend7: [],
+    bestScores: { follow: 0, quiz: 0, analogy: 0, review: 0 },
+    totalDays: 0,
+    dailyQuote: ''
   },
   
   onReady() {
@@ -152,6 +157,27 @@ const {
       console.log('图片加载失败:', e)
       // 在这里可以进行错误处理，例如显示加载失败的提示文字或设置默认图片
   },
+  loadHomeStats() {
+    var that = this
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/followread/homeStats', method: 'GET',
+      header: { Token: wx.getStorageSync('token') },
+      success: function(res) {
+        if (res.data && res.data.code === 0) {
+          var d = res.data.data
+          that.setData({
+            weeklyHeat: d.weeklyHeat || [],
+            trend7: d.trend7 || [],
+            bestScores: d.bestScores || { follow: 0, quiz: 0, analogy: 0, review: 0 },
+            totalDays: d.totalDays || 0,
+            dailyQuote: d.dailyQuote || ''
+          })
+        }
+      }
+    })
+  },
+
   onPullDownRefresh() {
   
   },
@@ -223,6 +249,7 @@ const {
   this.setData({
   newsList
   })
+  this.loadHomeStats()
   }
   })
   

@@ -387,6 +387,99 @@ public class FollowReadController {
         return R.ok().put("data", result);
     }
 
+    /** 首页数据 — 学习热力 + 7日趋势 + 最佳成绩 + 每日一句 */
+    @RequestMapping("/homeStats")
+    public R homeStats(HttpServletRequest request) {
+        String username = String.valueOf(request.getSession().getAttribute("username"));
+        EntityWrapper<StudentScoreLogEntity> ew = new EntityWrapper<>();
+        ew.eq("studentaccount", username);
+        List<StudentScoreLogEntity> all = studentScoreLogDao.selectList(ew);
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        // 1. 本周学习热力（周一到周日）
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.MONDAY);
+        String[] weekLabels = {"周一","周二","周三","周四","周五","周六","周日"};
+        java.util.List<Map<String, Object>> weeklyHeat = new java.util.ArrayList<>();
+        java.text.SimpleDateFormat daySdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+        java.util.Set<String> activeDays = new java.util.HashSet<>();
+        for (StudentScoreLogEntity l : all) {
+            if (l.getCreateTime() != null) activeDays.add(daySdf.format(l.getCreateTime()));
+        }
+        for (int i = 0; i < 7; i++) {
+            String dayStr = daySdf.format(cal.getTime());
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("label", weekLabels[i]);
+            item.put("active", activeDays.contains(dayStr));
+            weeklyHeat.add(item);
+            cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
+        }
+        result.put("weeklyHeat", weeklyHeat);
+
+        // 2. 近7天正确率趋势
+        java.util.List<Map<String, Object>> trend7 = new java.util.ArrayList<>();
+        cal = java.util.Calendar.getInstance();
+        cal.add(java.util.Calendar.DAY_OF_MONTH, -6);
+        for (int i = 0; i < 7; i++) {
+            String dayStr = daySdf.format(cal.getTime());
+            int sum = 0, cnt = 0;
+            for (StudentScoreLogEntity l : all) {
+                if (l.getCreateTime() != null && daySdf.format(l.getCreateTime()).equals(dayStr)) {
+                    sum += l.getScore() != null ? l.getScore() : 0;
+                    cnt++;
+                }
+            }
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("date", (cal.get(java.util.Calendar.MONTH)+1) + "/" + cal.get(java.util.Calendar.DAY_OF_MONTH));
+            item.put("avgScore", cnt > 0 ? sum / cnt : 0);
+            item.put("count", cnt);
+            trend7.add(item);
+            cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
+        }
+        result.put("trend7", trend7);
+
+        // 3. 各模块最佳成绩
+        int[] best = new int[9];
+        for (StudentScoreLogEntity l : all) {
+            int t = l.getSourceType() != null ? l.getSourceType() : 0;
+            int s = l.getScore() != null ? l.getScore() : 0;
+            if (s > best[t]) best[t] = s;
+        }
+        Map<String, Object> bestScores = new LinkedHashMap<>();
+        bestScores.put("follow", best[4]);
+        bestScores.put("quiz", best[6]);
+        bestScores.put("analogy", best[7]);
+        bestScores.put("review", best[8]);
+        result.put("bestScores", bestScores);
+
+        // 4. 累计学习天数
+        result.put("totalDays", activeDays.size());
+
+        // 5. 每日一句（基于最近学过的古诗，AI推荐）
+        String dailyQuote = "学而时习之，不亦说乎。";
+        if (!all.isEmpty()) {
+            // 取最近学过的诗名
+            StringBuilder poems = new StringBuilder();
+            java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+            for (int i = all.size()-1; i >= 0 && seen.size() < 3; i--) {
+                String t = all.get(i).getPoetryTitle();
+                if (t != null && !t.isEmpty() && seen.add(t)) poems.append("《").append(t).append("》");
+            }
+            String aiPrompt = "学生最近学了" + poems + "。请推荐一句适合的古诗名言作为每日激励，7个字以内，只返回纯文本。";
+            java.util.List<AIChatUtil.Message> aiMsgs = new java.util.ArrayList<>();
+            aiMsgs.add(new AIChatUtil.Message("system", "你是古诗词导师，只返回一句古诗名言。"));
+            aiMsgs.add(new AIChatUtil.Message("user", aiPrompt));
+            try {
+                AIChatUtil.ChatResult aiCr = AIChatUtil.chatWithMessages(aiMsgs, 0.7, 100);
+                if (aiCr != null && aiCr.getContent() != null && !aiCr.getContent().isEmpty()) {
+                    dailyQuote = aiCr.getContent().trim();
+                }
+            } catch (Exception e) {}
+        }
+        result.put("dailyQuote", dailyQuote);
+        return R.ok().put("data", result);
+    }
+
     /** AI 综合评估报告 — 4模块统计 + 雷达 + 趋势 + AI导师点评 */
     @RequestMapping("/comprehensiveReport")
     public R comprehensiveReport(HttpServletRequest request) {
