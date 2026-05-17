@@ -3,8 +3,8 @@
 		<div class="app-contain">
 			<div class="course_hero">
 				<div class="hero_main">
-					<div class="hero_badge">古诗词库</div>
-					<div class="hero_title">按年级管理乡村儿童古诗词学习内容</div>
+					<div class="hero_badge">古诗词列表</div>
+					<div class="hero_title">按年级浏览乡村儿童古诗词</div>
 					<div class="hero_desc">在这里统一维护 1-6 年级古诗词资源，老师布置背诵任务时会直接复用这些数据。</div>
 				</div>
 				<div class="hero_stats">

@@ -25,9 +25,9 @@
 .quiz-options { display: flex; flex-direction: column; gap: 16rpx; }
 .quiz-option { padding: 22rpx 28rpx; border-radius: 16rpx; font-size: 30rpx; border: 2rpx solid #e8e0d0; background: #fdfbf6; color: #4a4030; transition: all .2s; }
 .quiz-option:active { transform: scale(.98); }
-.quiz-option.correct { background: #e8f5e9; border-color: #81c784; color: #2e7d32; }
-.quiz-option.wrong { background: #fdecea; border-color: #e57373; color: #c62828; }
-.quiz-option.dimmed { opacity: .4; }
+.quiz-option.correct { background: #2e7d32; border-color: #1b5e20; color: #fff; font-weight: 700; box-shadow: 0 4rpx 16rpx rgba(46,125,50,.35); transform: scale(1.02); }
+.quiz-option.wrong { background: #c62828; border-color: #b71c1c; color: #fff; font-weight: 700; box-shadow: 0 4rpx 16rpx rgba(198,40,40,.35); transform: scale(1.02); }
+.quiz-option.dimmed { opacity: .35; transform: scale(.97); }
 
 /* 解析 */
 .quiz-analysis { margin-top: 24rpx; padding: 20rpx 24rpx; background: #fff8e1; border-radius: 14rpx; border-left: 6rpx solid #ffb74d; animation: fadeIn .3s; }

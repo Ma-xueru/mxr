@@ -29,9 +29,30 @@
         <view class="feihua-stats" wx:if="{{fhlProfile}}">
           <text class="feihua-stat">最高分：{{fhlProfile.maxScore || 0}}</text>
           <text class="feihua-stat">段位：{{fhlProfile.title || '诗词书童'}}</text>
+          <text class="feihua-rank-btn" catchtap="showRankPopup">🏆 班级荣誉榜</text>
         </view>
       </view>
       <text class="feihua-arrow">→</text>
+    </view>
+  </view>
+
+  <!-- 班级排行弹窗 -->
+  <view class="rank-overlay" wx:if="{{showRank}}" bindtap="hideRankPopup">
+    <view class="rank-popup" catchtap="">
+      <view class="rank-header">
+        <text class="rank-title">{{rankClassName}} · 飞花令战力榜</text>
+        <text class="rank-close" bindtap="hideRankPopup">✕</text>
+      </view>
+      <scroll-view class="rank-list" scroll-y wx:if="{{rankList.length}}">
+        <view class="rank-item" wx:for="{{rankList}}" wx:key="index">
+          <view class="rank-left">
+            <view class="rank-num rank-{{index < 3 ? (index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze') : 'normal'}}">{{index + 1}}</view>
+            <text class="rank-name">{{item.username || '佚名'}}</text>
+          </view>
+          <text class="rank-score">{{item.maxScore || 0}} 分</text>
+        </view>
+      </scroll-view>
+      <view class="rank-empty" wx:else><text>暂无对战记录，去飞花令大战一场吧～</text></view>
     </view>
   </view>
 

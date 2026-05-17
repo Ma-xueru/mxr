@@ -7,7 +7,7 @@ Page({
     showResult: false, resultData: null,
     inputWarning: ''
   },
-  _timer: null, _animTimer: null,
+  _timer: null, _animTimer: null, _recorder: null, recording: false,
 
   onLoad() { this.resetGame() },
 
@@ -17,13 +17,15 @@ Page({
     wx.request({ url: baseURL + '/game/reset?sessionId=default', method: 'GET', header: { Token: wx.getStorageSync('token') } })
     wx.request({ url: baseURL + '/game/init?keyword=' + kw + '&sessionId=default', method: 'GET', header: { Token: wx.getStorageSync('token') } })
     this._stopTimer()
+    var welcome = '飞花令开始！关键字是「' + kw + '」，请说出含此字的古诗词句，你有三次机会～'
     this.setData({
       keyword: kw, messages: [
-        { from: 'ai', text: '飞花令开始！关键字是「' + kw + '」，请说出含此字的古诗词句～\n你有 ❤️❤️❤️ 三次机会', source: '', comment: '', typing: false }
+        { from: 'ai', text: welcome, source: '', comment: '', typing: false }
       ], waiting: false, inputText: '', score: 0, combo: 0,
       lives: 3, showResult: false, resultData: null, roundCount: 1,
       timerSeconds: 30, timerDisplay: '30'
     })
+    this._ttsPlay(welcome)
     this._startTimer()
   },
 
@@ -49,7 +51,7 @@ Page({
         var data = (res.data && res.data.data) || {}
         var msgs = that.data.messages
         msgs.push({ from: 'ai', text: '⏰ 超时！' + (data.reason || ''), source: '', comment: '', typing: false })
-        if (data.aiPoem) msgs.push({ from: 'ai', text: data.aiPoem, source: data.source || '', comment: '', typing: false })
+        if (data.aiPoem) { msgs.push({ from: 'ai', text: data.aiPoem, source: data.source || '', comment: data.aiComment || '', typing: false }); that._ttsPlay(data.aiPoem + (data.aiComment ? '。' + data.aiComment : '')) }
         that.setData({ messages: msgs, lives: data.lives || 0, score: data.score || 0 })
         if (data.gameOver) { that._showSettlement() }
         else { that.setData({ combo: 0 }); that._startTimer() }
@@ -61,6 +63,46 @@ Page({
   onInput(e) {
     var val = e.detail.value
     this.setData({ inputText: val, inputWarning: '' })
+  },
+
+  // 录音：按下开始
+  startRecord() {
+    var that = this
+    var rec = wx.getRecorderManager()
+    this._recorder = rec
+    rec.onStart(function () { that.setData({ recording: true }) })
+    rec.onStop(function (res) {
+      that.setData({ recording: false })
+      if (!res.tempFilePath) return
+      wx.showLoading({ title: '识别中...' })
+      wx.uploadFile({
+        url: (wx.getStorageSync('baseURL') || '') + '/voice/chat',
+        filePath: res.tempFilePath, name: 'audio',
+        header: { Token: wx.getStorageSync('token') },
+        success: function(upRes) {
+          wx.hideLoading()
+          try {
+            var data = JSON.parse(upRes.data)
+            var text = (data.data && data.data.recognized) || ''
+            if (text) {
+              that.setData({ inputText: text, inputWarning: '' })
+              wx.showToast({ title: '识别成功', icon: 'success', duration: 800 })
+              // 自动发送
+              setTimeout(function () { if (that.data.inputText === text) that.sendPoem() }, 300)
+            } else { wx.showToast({ title: '没听清，请重试', icon: 'none' }) }
+          } catch (e) { wx.showToast({ title: '识别失败', icon: 'none' }) }
+        },
+        fail: function () { wx.hideLoading(); wx.showToast({ title: '网络错误', icon: 'none' }) }
+      })
+    })
+    rec.onError(function () { that.setData({ recording: false }) })
+    rec.start({ duration: 10000, sampleRate: 16000, numberOfChannels: 1, encodeBitRate: 48000, format: 'aac' })
+  },
+
+  // 录音：松开停止
+  stopRecord() {
+    this.setData({ recording: false })
+    if (this._recorder) { try { this._recorder.stop() } catch (e) {}; this._recorder = null }
   },
 
   sendPoem() {
@@ -85,7 +127,7 @@ Page({
     wx.request({
       url: baseURL + '/game/fei-hua-ling',
       method: 'GET',
-      data: { keyword: this.data.keyword, userPoem: text, sessionId: 'default' },
+      data: { keyword: this.data.keyword, userPoem: text, sessionId: 'default', characterId: (getApp().globalData.selectedCharacterId) || '' },
       header: { Token: wx.getStorageSync('token') },
       success: function(res) {
         var data = (res.data && res.data.data) || {}
@@ -94,12 +136,17 @@ Page({
           msgs[msgs.length-1].valid = false
           msgs[msgs.length-1].reason = data.reason || '无效输入'
         }
-        msgs.push({ from: 'ai', typing: false, text: data.aiPoem || 'AI休息中～', source: data.source || '', comment: data.aiComment || '' })
+        var aiText = data.aiPoem || ''
+        msgs.push({ from: 'ai', typing: false, text: aiText || 'AI休息中～', source: data.source || '', comment: data.aiComment || '' })
         that.setData({
           messages: msgs, waiting: false, lives: data.lives || 0,
           roundCount: (data.roundCount || 0) + 1, score: data.score || 0,
           combo: data.combo || 0, scrollToId: 'chat-bottom'
         })
+        // 自动朗读AI对句 + 趣味点评
+        var ttsFull = aiText
+        if (data.aiComment) ttsFull += '。' + data.aiComment
+        if (ttsFull) that._ttsPlay(ttsFull)
         if (data.gameOver) { that._showSettlement() }
         else { that._startTimer() }
       },
@@ -114,31 +161,69 @@ Page({
   _showSettlement() {
     this._stopTimer()
     var that = this
+    var finalScore = this.data.score  // 用前端已累计的分数兜底
     var baseURL = wx.getStorageSync('baseURL') || ''
     wx.request({
       url: baseURL + '/game/settlement?sessionId=default', method: 'GET',
       header: { Token: wx.getStorageSync('token') },
       success: function(res) {
         var data = (res.data && res.data.data) || {}
+        var score = data.score || finalScore || 0
+        data.score = score
         that.setData({ showResult: true, resultData: data })
-        that._animateScore(data.score || 0)
+        that._animateScore(score)
+      },
+      fail: function() {
+        // 结算接口挂了也不影响展示
+        that.setData({ showResult: true, resultData: { score: finalScore, rounds: that.data.roundCount, maxCombo: that.data.combo, rankPct: 50, title: finalScore >= 60 ? '翰林学士' : '诗词书童', keyword: that.data.keyword } })
+        that._animateScore(finalScore)
       }
     })
   },
 
   _animateScore(target) {
+    if (!target || target <= 0) return
     var that = this
-    var current = 0, step = Math.max(1, Math.floor(target / 30))
+    var current = 0, step = Math.max(1, Math.floor(target / 25))
     clearInterval(this._animTimer)
+    var d = that.data.resultData || {}
+    d.score = 0; that.setData({ resultData: d })
     this._animTimer = setInterval(function() {
       current += step
       if (current >= target) { current = target; clearInterval(that._animTimer) }
-      var d = that.data.resultData || {}
-      d.score = current; that.setData({ resultData: d })
-    }, 50)
+      var dd = that.data.resultData || {}
+      dd.score = current; that.setData({ resultData: dd })
+    }, 60)
   },
 
   closeResult() { wx.navigateBack() },
+
+  // 手动点击小喇叭重播
+  playAudio(e) {
+    var text = e.currentTarget.dataset.text
+    if (text) this._ttsPlay(text)
+  },
+
+  // 自动/手动 TTS 播放
+  _ttsPlay(text) {
+    if (!text) return
+    var that = this
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/followread/tts',
+      method: 'POST',
+      data: { text: text },
+      header: { Token: wx.getStorageSync('token'), 'Content-Type': 'application/json' },
+      success: function(res) {
+        var ttsUrl = (res.data && res.data.data) || ''
+        if (!ttsUrl) return
+        if (ttsUrl.indexOf('http') !== 0) ttsUrl = baseURL + ttsUrl
+        var audio = wx.createInnerAudioContext()
+        audio.src = ttsUrl
+        audio.play()
+      }
+    })
+  },
 
   exitGame() {
     if (this.data.score > 0 && !this.data.showResult) { this._showSettlement() }

@@ -10,7 +10,10 @@ Page({
         userid:"",
         list: [],
         currentList: [],
-        name: ""
+        name: "",
+        showRank: false,
+        rankClassName: '',
+        rankList: []
     },
     async onLoad(options) {
         let nowTable = wx.getStorageSync("nowTable");
@@ -161,6 +164,26 @@ Page({
     },
 
     toFeiHuaLing() { wx.navigateTo({ url: '/pages/game/feihualing' }) },
+
+    showRankPopup() {
+      this.setData({ showRank: true })
+      var ui = getApp().globalData.userInfo || {}
+      var cn = ui.classname || '我的班级'
+      this.setData({ rankClassName: cn })
+      var that = this
+      var baseURL = wx.getStorageSync('baseURL') || ''
+      wx.request({
+        url: baseURL + '/game/leaderboard', method: 'GET',
+        header: { Token: wx.getStorageSync('token') },
+        success: function(res) {
+          if (res.data && res.data.code === 0) {
+            that.setData({ rankList: (res.data.data || []).slice(0, 10) })
+          }
+        }
+      })
+    },
+
+    hideRankPopup() { this.setData({ showRank: false }) },
 
     searhandler() {
         const result = this.data.list.filter((item, index) => {

@@ -1,28 +1,60 @@
 <view class="tc-container">
   <view class="tc-header">
-    <text class="tc-title">🤖 我的 AI 名师团</text>
-    <text class="tc-subtitle">选择一位老师，开启个性化学习之旅</text>
+    <text class="tc-title">🌟 我的 AI 名师团</text>
+    <text class="tc-subtitle">选一位个性角色，开启专属诗词之旅</text>
   </view>
 
   <view class="tc-list">
-    <view class="tc-card {{selectedId === item._id ? 'selected' : ''}}" wx:for="{{teachers}}" wx:key="_id" bindtap="selectTeacher" data-id="{{item._id}}" data-index="{{index}}">
-      <view class="tc-card-glow" wx:if="{{selectedId === item._id}}"></view>
-      <view class="tc-selected-badge" wx:if="{{selectedId === item._id}}">正在教学</view>
-      <image class="tc-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+    <view class="tc-card {{selectedId === item.id ? 'selected' : ''}}" wx:for="{{characters}}" wx:key="id" style="border-left: 6rpx solid {{item.color}}">
+      <view class="tc-selected-badge" wx:if="{{selectedId === item.id}}">当前导师</view>
+      <view class="tc-avatar-wrap" style="background: {{item.color}}">
+        <text class="tc-avatar-emoji">{{item.emoji}}</text>
+      </view>
       <view class="tc-info">
         <text class="tc-name">{{item.name}}</text>
-        <text class="tc-personality">{{item.personality}}</text>
+        <text class="tc-title-sub">{{item.title}}</text>
         <view class="tc-tags">
-          <text class="tc-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+          <text class="tc-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag" style="background:{{item.color}}20;color:{{item.color}}">{{tag}}</text>
         </view>
+        <text class="tc-desc">{{item.shortDesc}}</text>
       </view>
-      <view class="tc-select-btn {{selectedId === item._id ? 'active' : ''}}" catchtap="selectTeacher" data-id="{{item._id}}" data-index="{{index}}">
-        {{selectedId === item._id ? '✓ 已选中' : '就选他/她教我'}}
+      <view class="tc-actions">
+        <view class="tc-select-btn {{selectedId === item.id ? 'active' : ''}}" catchtap="selectCharacter" data-id="{{item.id}}" data-index="{{index}}" style="{{selectedId === item.id ? 'background:'+item.color : ''}}">
+          {{selectedId === item.id ? '✓ 授课中' : '就选TA'}}
+        </view>
+        <view class="tc-detail-btn" catchtap="showDetail" data-index="{{index}}">详情</view>
       </view>
     </view>
   </view>
 
-  <view class="tc-current" wx:if="{{currentTeacher}}">
-    <text>当前教师：{{currentTeacher.name}} · {{currentTeacher.modelKey}}</text>
+  <!-- 详情弹窗 -->
+  <view class="detail-overlay" wx:if="{{showDetail}}" bindtap="closeDetail">
+    <view class="detail-popup" catchtap="" style="border-top: 6rpx solid {{detailChar.color}}">
+      <view class="detail-header">
+        <view class="detail-avatar" style="background:{{detailChar.color}}"><text>{{detailChar.emoji}}</text></view>
+        <view class="detail-name-row">
+          <text class="detail-name">{{detailChar.name}}</text>
+          <text class="detail-title">{{detailChar.title}}</text>
+        </view>
+        <text class="detail-close" bindtap="closeDetail">✕</text>
+      </view>
+      <scroll-view class="detail-body" scroll-y>
+        <view class="detail-block">
+          <text class="detail-label">🎭 个性风格</text>
+          <text class="detail-text">{{detailChar.detail.style}}</text>
+        </view>
+        <view class="detail-block">
+          <text class="detail-label">🎤 我的音色</text>
+          <text class="detail-text">{{detailChar.detail.voice}}</text>
+        </view>
+        <view class="detail-block">
+          <text class="detail-label">💬 对话风格</text>
+          <text class="detail-text">{{detailChar.detail.dialogNote}}</text>
+        </view>
+      </scroll-view>
+      <view class="detail-footer">
+        <button class="detail-confirm" style="background:{{detailChar.color}}" bindtap="confirmSelect">就选TA教我</button>
+      </view>
+    </view>
   </view>
 </view>

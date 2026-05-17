@@ -82,8 +82,9 @@ Component({
     // ===== 发送到后端 =====
     _sendToAI(audioPath) {
       var that = this
+      var cid = (getApp().globalData.selectedCharacterId) || ''
       wx.uploadFile({
-        url: baseURL + '/voice/chat',
+        url: baseURL + '/voice/chat?characterId=' + encodeURIComponent(cid),
         filePath: audioPath,
         name: 'audio',
         header: { Token: wx.getStorageSync('token') },

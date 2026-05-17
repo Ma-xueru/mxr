@@ -185,6 +185,21 @@ public class RecitationtaskController {
             accountSet.add(String.valueOf(payload.get("studentaccount")).trim());
         }
 
+        // 支持多班级（classnames）和单班级（classname）两种参数
+        Object classnamesObj = payload.get("classnames");
+        if (classnamesObj instanceof List) {
+            for (Object cn : (List<?>) classnamesObj) {
+                if (cn != null && StringUtils.hasText(String.valueOf(cn))) {
+                    String cnStr = String.valueOf(cn).trim();
+                    List<StudentEntity> classStudents = studentService.selectList(new EntityWrapper<StudentEntity>().eq("classname", cnStr));
+                    for (StudentEntity item : classStudents) {
+                        if (item != null && StringUtils.hasText(item.getStudentaccount())) {
+                            accountSet.add(item.getStudentaccount());
+                        }
+                    }
+                }
+            }
+        }
         String classname = payload.get("classname") == null ? "" : String.valueOf(payload.get("classname")).trim();
         if (StringUtils.hasText(classname)) {
             List<StudentEntity> classStudents = studentService.selectList(new EntityWrapper<StudentEntity>().eq("classname", classname));

@@ -1,4 +1,4 @@
-
+﻿
 <template>
 	<div>
 		<div class="app-contain">
@@ -7,7 +7,7 @@
 					<div>
 						<div class="overview_badge">学生管理</div>
 						<div class="overview_title">学生账号与学习身份统一维护</div>
-						<div class="overview_desc">集中查看年级、班级、勋章和错题本，让班级分配与学生管理更清晰。</div>
+						<div class="overview_desc">集中查看年级和班级，让班级分配与学生管理更清晰。</div>
 					</div>
 					<div class="overview_stat">
 						<div class="overview_stat_label">当前学生数</div>
@@ -26,10 +26,6 @@
 					<div class="overview_card green">
 						<div class="overview_value">{{ studentStats.classCount }}</div>
 						<div class="overview_label">涉及班级</div>
-					</div>
-					<div class="overview_card blue">
-						<div class="overview_value">{{ studentStats.medalTotal }}</div>
-						<div class="overview_label">勋章总数</div>
 					</div>
 				</div>
 			</div>
@@ -136,17 +132,6 @@
 					</template>
 				</el-table-column>
 				<el-table-column
-					 :resizable='true' 
-					 :sortable='true' 
-					 align="left" 
-					 header-align="left"
-					 prop="medalcount"
-					label="勋章数量">
-					<template #default="scope">
-						<span class="count_badge">{{scope.row.medalcount || 0}}</span>
-					</template>
-				</el-table-column>
-				<el-table-column
 					 :resizable='true'
 					 align="left"
 					 header-align="left"
@@ -156,20 +141,6 @@
 						<span :style="{ color: scope.row.permissionstatus === '禁用' ? '#f56c6c' : '#19a97b', fontWeight: '700' }">
 							{{scope.row.permissionstatus || '启用'}}
 						</span>
-					</template>
-				</el-table-column>
-				<el-table-column label="头像" width="120" :resizable='true' :sortable='true' align="left" header-align="left">
-					<template #default="scope">
-						<div v-if="scope.row.avatar">
-							<el-image v-if="scope.row.avatar.substring(0,4)=='http'" preview-teleported
-								:preview-src-list="[scope.row.avatar.split(',')[0]]"
-								:src="scope.row.avatar.split(',')[0]" style="width:100px;height:100px"></el-image>
-							<el-image v-else preview-teleported
-								:preview-src-list="[$config.url+scope.row.avatar.split(',')[0]]"
-								:src="$config.url+scope.row.avatar.split(',')[0]" style="width:100px;height:100px">
-							</el-image>
-						</div>
-						<div v-else>无图片</div>
 					</template>
 				</el-table-column>
 				<el-table-column
@@ -201,7 +172,7 @@
 							{{ scope.row.permissionstatus === '禁用' ? '启用权限' : '禁用权限' }}
 						</el-button>
 						<el-button v-if="btnAuth('student','分配')" type="success" @click="mystudentCrossAddOrUpdateHandler(scope.row,'cross','','','')">分配</el-button>
-						<el-button type="danger" @click="wrongbookClick(scope.row)">错题本</el-button>
+						<el-button type="primary" @click="$router.push('/studentPortrait?studentaccount=' + scope.row.studentaccount)">画像</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -291,7 +262,6 @@
 	const studentStats = ref({
 		enabled: 0,
 		classCount: 0,
-		medalTotal: 0
 	})
 	const listChange = (row) =>{
 		nextTick(()=>{
@@ -328,19 +298,17 @@
 	const buildStudentStats = (rows=[]) => {
 		const classSet = new Set()
 		let enabled = 0
-		let medalTotal = 0
 		rows.forEach(item => {
 			if ((item.permissionstatus || '启用') !== '禁用') enabled += 1
 			if (item.classname) classSet.add(item.classname)
-			medalTotal += Number(item.medalcount || 0)
 		})
 		studentStats.value = {
 			enabled,
 			classCount: classSet.size,
-			medalTotal
 		}
 	}
 	//删
+
 	const wrongbookClick = (row) => { context?.$http({ url: 'teacher/studentWrongbook', method: 'get', params: { studentaccount: row.studentaccount } }).then(res => { wrongbookData.value = res.data.data; wrongbookVisible.value = true }) }
 	const delClick = (id) => {
 		let ids = ref([])

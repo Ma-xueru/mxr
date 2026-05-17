@@ -47,10 +47,12 @@ public class VoiceChatController {
     // 对话历史（按用户session存储，保留最近10轮）
     private static final ConcurrentHashMap<String, List<AIChatUtil.Message>> historyMap = new ConcurrentHashMap<>();
 
-    private static final String SYSTEM_PROMPT = "你是一个幽默的百科小老师。回答要生动有趣，可以加入一些有趣的科学事实或历史小故事。逻辑要清晰，可以用'第一、第二'来拆解。如果孩子问古诗，请尝试把诗句描绘成一幅画讲给他们听。字数100-150字。禁止负面暴力成人内容。";
+    private static final String SYSTEM_PROMPT_DEFAULT = "你是一个幽默的百科小老师。回答要生动有趣，可以加入一些有趣的科学事实或历史小故事。逻辑要清晰，可以用'第一、第二'来拆解。如果孩子问古诗，请尝试把诗句描绘成一幅画讲给他们听。字数100-150字。禁止负面暴力成人内容。";
 
     @RequestMapping("/chat")
-    public R chat(@RequestParam("audio") MultipartFile audio, HttpServletRequest request) {
+    public R chat(@RequestParam("audio") MultipartFile audio,
+                  @RequestParam(required = false) String characterId,
+                  HttpServletRequest request) {
         if (audio == null || audio.isEmpty()) return R.error("请说话");
         try {
             // 1. 保存音频
@@ -68,8 +70,8 @@ public class VoiceChatController {
                 return R.ok().put("data", mapOf("reply", "我没听清，再说一遍好吗？"));
             }
 
-            // 3. 豆包对话（带历史记忆）
-            String reply = chatWithDoubao(recognized, request);
+            // 3. AI对话（带历史记忆 + 角色提示词）
+            String reply = chatWithDoubao(recognized, characterId, request);
             System.out.println("[语音助手] 回复: " + reply);
 
             // 4. TTS (V3优先，失败回退V1)
@@ -90,17 +92,23 @@ public class VoiceChatController {
         }
     }
 
-    private String chatWithDoubao(String userText, HttpServletRequest request) {
+    private String chatWithDoubao(String userText, String characterId, HttpServletRequest request) {
         try {
             String uid = "voice_" + (StringUtils.hasText(request.getSession().getAttribute("username") + "")
                 ? request.getSession().getAttribute("username") : request.getSession().getId());
 
             // 获取或创建历史
             List<AIChatUtil.Message> msgs = historyMap.get(uid);
+            // 获取角色专属 System Prompt
+            String charPrompt = com.cl.utils.CharacterPromptUtil.assistantPrompt(characterId);
             if (msgs == null) {
                 msgs = new ArrayList<>();
-                msgs.add(new AIChatUtil.Message("system", SYSTEM_PROMPT));
+                msgs.add(new AIChatUtil.Message("system", charPrompt));
                 historyMap.put(uid, msgs);
+            } else if (!msgs.isEmpty() && "system".equals(msgs.get(0).getRole())) {
+                // 动态替换角色提示词：删旧补新
+                msgs.remove(0);
+                msgs.add(0, new AIChatUtil.Message("system", charPrompt));
             }
 
             // 添加用户消息
@@ -160,13 +168,15 @@ public class VoiceChatController {
             System.out.println("[生图] prompt=" + prompt.substring(0, Math.min(120, prompt.length())));
 
             String apiKey = AIRecitationReviewUtil.getApiKey();
-            String model = "doubao-seedream-5-0-260128";
+            String model = "doubao-seedream-4-5-251128";
             String body = new org.json.JSONObject()
                 .put("model", model)
                 .put("prompt", prompt)
-                .put("size", "2560x1440")
-                .put("output_format", "png")
-                .put("watermark", false)
+                .put("size", "2K")
+                .put("response_format", "url")
+                .put("sequential_image_generation", "disabled")
+                .put("stream", false)
+                .put("watermark", true)
                 .toString();
 
             java.net.URL url = new java.net.URL("https://ark.cn-beijing.volces.com/api/v3/images/generations");

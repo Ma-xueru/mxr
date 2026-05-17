@@ -18,6 +18,7 @@ import exampaperlist from '@/views/exam/exampaperlist/list'
 import examination from '@/views/exam/exampaperlist/examination'
 import examrecord from '@/views/exam/examrecord/list'
 import examfailrecord from '@/views/exam/examfailrecord/list'
+import studentPortrait from '@/views/teacher/StudentPortrait.vue'
 import teacherDashboard from '@/views/teacher/dashboard'
 import teacherCenter from '@/views/teacher/center'
 import course from '@/views/course/list'
@@ -56,6 +57,11 @@ export const routes = [{
 				path: '/teacherCenter',
 			name: '教师个人中心',
 			component: teacherCenter
+		}
+		,{
+			path: '/studentPortrait',
+			name: '综合素质画像',
+			component: studentPortrait
 		}
 		,{
 			path: '/news',

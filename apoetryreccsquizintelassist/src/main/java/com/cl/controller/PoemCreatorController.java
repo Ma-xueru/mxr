@@ -323,7 +323,7 @@ public class PoemCreatorController {
     // ========== AI 作诗 (DeepSeek Reasoning) ==========
     @IgnoreAuth
     @RequestMapping("/compose")
-    public R compose(@RequestParam String scene) {
+    public R compose(@RequestParam String scene, @RequestParam(required = false) String characterId) {
         if (!StringUtils.hasText(scene)) return R.error("请输入场景描述");
         try {
             String prompt = "你是一位充满童趣的古代大诗人。请根据以下场景，为小学生创作一首五言或七言诗。\n" +
@@ -332,7 +332,7 @@ public class PoemCreatorController {
                 "3.提供一段'诗人老师说'用大白话解释诗意 4.标明[诗名][正文][诗人老师说]各部分。";
 
             List<AIChatUtil.Message> msgs = new ArrayList<>();
-            msgs.add(new AIChatUtil.Message("system", "你是AI小诗人，专门为小学生创作通俗优美的古诗。"));
+            msgs.add(new AIChatUtil.Message("system", com.cl.utils.CharacterPromptUtil.poetPrompt(characterId)));
             msgs.add(new AIChatUtil.Message("user", prompt));
 
             // 开启 reasoning 深度思考模式

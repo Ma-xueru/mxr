@@ -45,8 +45,8 @@ public class GameController {
         for (String kw : new String[]{"雨","雪","夜","红","白","金","玉","柳","心","梦"}) KW_RARITY.put(kw, 1.3);
     }
 
-    // AI 裁判 System Prompt
-    private static final String JUDGE_PROMPT = "你是中国古诗词大赛的严格裁判。请验证用户输入的诗词句。\n" +
+    // AI 裁判 System Prompt — 基础版，运行时根据characterId动态注入
+    private static final String JUDGE_PROMPT_BASE = "你是中国古诗词大赛的严格裁判。请验证用户输入的诗词句。\n" +
         "判罚准则：\n1. 必须是中国真实古诗词名句（不能是用户自己编的或现代白话）\n" +
         "2. 必须准确包含指定的关键字\n3. 如果用户输入\"你好\"、\"emm\"、\"c\"等无意义内容，判定为非法输入\n" +
         "4. 如果用户输错了字（如\"我\"应为\"卧\"），判定为无效并指出正确写法\n\n" +
@@ -67,7 +67,7 @@ public class GameController {
         return R.ok().put("data", r);
     }
 
-    /** 飞花令 — 多级校验 + 生命值 + 计分 */
+    /** 飞花令 — 多级校验 + AI对句(含错误批注) + 计分 */
     @IgnoreAuth @RequestMapping("/fei-hua-ling")
     public R feiHuaLing(@RequestParam Map<String, Object> params) {
         String keyword = String.valueOf(params.getOrDefault("keyword", ""));
@@ -78,89 +78,65 @@ public class GameController {
         if (!StringUtils.hasText(userPoem)) return R.error("请输入诗句");
 
         GameState gs = STATES.computeIfAbsent(sessionId, k -> { GameState g = new GameState(); g.keyword = keyword; g.startTime = System.currentTimeMillis(); g.lastRoundTime = g.startTime; return g; });
+        boolean valid = true;
+        String failReason = "";
 
-        // ===== Layer 1: 非中文/乱码 前端已拦截, 后端兜底 =====
+        // ===== Layer 1: 非中文 =====
         if (userPoem.length() < 2 || !userPoem.matches(".*[\\u4e00-\\u9fa5].*")) {
-            gs.lives--;
-            Map<String, Object> r = buildResult(gs, keyword, false, "请输入中文古诗词句", "", "", "", getFallback(keyword), getFallbackSource(keyword));
-            if (gs.lives <= 0) r.put("gameOver", true);
-            return R.ok().put("data", r);
+            gs.lives--; valid = false; failReason = "请输入中文古诗词句";
+        }
+        // ===== Layer 2: 关键字 =====
+        else if (!userPoem.contains(keyword)) {
+            gs.lives--; gs.combo = 0; valid = false; failReason = "诗句不包含关键字「" + keyword + "」";
+        }
+        // ===== Layer 3: 重复 =====
+        else {
+            String poemKey = userPoem.replaceAll("[，。！？、；：\\s]", "");
+            if (gs.usedPoems.contains(poemKey)) {
+                gs.lives--; gs.combo = 0; valid = false; failReason = "这句诗已经用过啦，请换一句～";
+            }
         }
 
-        // ===== Layer 2: 关键字校验 (本地, 不消耗 AI) =====
-        if (!userPoem.contains(keyword)) {
-            gs.lives--; gs.combo = 0;
-            Map<String, Object> r = buildResult(gs, keyword, false, "诗句不包含关键字「" + keyword + "」", "", "", "", getFallback(keyword), getFallbackSource(keyword));
-            if (gs.lives <= 0) r.put("gameOver", true);
-            return R.ok().put("data", r);
-        }
-
-        // ===== Layer 3: 重复校验 (本地, 不消耗 AI) =====
-        String poemKey = userPoem.replaceAll("[，。！？、；：\\s]", "");
-        if (gs.usedPoems.contains(poemKey)) {
-            gs.lives--; gs.combo = 0;
-            Map<String, Object> r = buildResult(gs, keyword, false, "这句诗已经用过啦，请换一句～", "", "", "", getFallback(keyword), getFallbackSource(keyword));
-            if (gs.lives <= 0) r.put("gameOver", true);
-            return R.ok().put("data", r);
-        }
-
-        // ===== Layer 4: AI 真实性校验 =====
+        // ===== 统一调用AI生成对句和批注(正确/错误都有) =====
         StringBuilder histStr = new StringBuilder();
-        for (String h : gs.chatHistory) {
-            if (histStr.length() < 500) histStr.append(h).append("；");
-        }
+        for (String h : gs.chatHistory) { if (histStr.length() < 500) histStr.append(h).append("；"); }
+        String prompt = "关键字：「" + keyword + "」\n历史：" + histStr + "\n用户输入：「" + userPoem + "」"
+            + (valid ? "\n请判定并接一句含「" + keyword + "」的古诗。" : "\n用户回答有误(" + failReason + ")，请用幽默语气指出并接一句含「" + keyword + "」的示范古诗。");
 
-        String prompt = "关键字：「" + keyword + "」\n历史：" + histStr + "\n用户输入：「" + userPoem + "」\n请按照裁判准则判定，并接一句含「" + keyword + "」的古诗。";
+        String characterId = String.valueOf(params.getOrDefault("characterId", ""));
+        String judgePrompt = com.cl.utils.CharacterPromptUtil.feihualingPrompt(characterId);
 
-        List<AIChatUtil.Message> msgs = new ArrayList<>();
-        msgs.add(new AIChatUtil.Message("system", JUDGE_PROMPT));
-        msgs.add(new AIChatUtil.Message("user", prompt));
-        AIChatUtil.ChatResult cr = AIChatUtil.chatWithMessages(msgs, 0.5, 600);
-        String resp = cr != null ? cr.getContent() : null;
-        System.out.println("[飞花令] AI(" + (resp != null ? resp.length() : 0) + "): " + (resp != null ? resp.substring(0, Math.min(250, resp.length())) : "NULL"));
-
-        boolean isValid = true;
-        String reason = "";
-        String aiPoem = "";
-        String source = "";
-        String aiComment = "";
-
-        if (resp != null && !resp.isEmpty()) {
-            try {
-                String json = resp.trim();
-                int s = json.indexOf('{'), e = json.lastIndexOf('}');
+        String aiPoem = getFallback(keyword), source = getFallbackSource(keyword), aiComment = failReason;
+        try {
+            List<AIChatUtil.Message> msgs = new ArrayList<>();
+            msgs.add(new AIChatUtil.Message("system", judgePrompt));
+            msgs.add(new AIChatUtil.Message("user", prompt));
+            AIChatUtil.ChatResult cr = AIChatUtil.chatWithMessages(msgs, 0.5, 600);
+            String resp = cr != null ? cr.getContent() : null;
+            if (resp != null && !resp.isEmpty()) {
+                String json = resp.trim(); int s = json.indexOf('{'), e = json.lastIndexOf('}');
                 if (s >= 0 && e > s) json = json.substring(s, e + 1);
                 org.json.JSONObject obj = new org.json.JSONObject(json);
-                isValid = obj.optBoolean("isValid", true);
-                reason = obj.optString("reason", "");
-                aiPoem = obj.optString("aiPoem", "");
-                source = obj.optString("source", "");
-                aiComment = obj.optString("aiComment", "");
-            } catch (Exception ex) { System.out.println("[飞花令] JSON异常: " + ex.getMessage()); }
-        }
-
+                aiPoem = obj.optString("aiPoem", aiPoem);
+                source = obj.optString("source", source);
+                aiComment = obj.optString("aiComment", aiComment);
+            }
+        } catch (Exception ex) { aiComment = failReason.isEmpty() ? aiComment : failReason; }
         if (aiPoem.isEmpty()) { aiPoem = getFallback(keyword); source = getFallbackSource(keyword); }
 
-        // ===== 计分与状态更新 =====
-        if (isValid) {
+        // ===== 计分：只有答对才+10 =====
+        if (valid) {
+            String poemKey = userPoem.replaceAll("[，。！？、；：\\s]", "");
             gs.usedPoems.add(poemKey);
             gs.chatHistory.add(userPoem); gs.chatHistory.add(aiPoem);
             if (gs.chatHistory.size() > 16) { gs.chatHistory.remove(0); gs.chatHistory.remove(0); }
-            gs.roundCount++;
-            gs.combo++;
+            gs.roundCount++; gs.combo++;
             if (gs.combo > gs.maxCombo) gs.maxCombo = gs.combo;
-            double rarity = KW_RARITY.getOrDefault(keyword, 1.0);
-            int base = (int) Math.round(10 * rarity);
-            int bonus = gs.combo >= 5 ? (int) Math.round(base * 0.2) : 0;
-            gs.score += base + bonus;
-            gs.lastRoundTime = System.currentTimeMillis();
-        } else {
-            gs.lives--; gs.combo = 0;
-            if (isValid) { gs.usedPoems.add(poemKey); gs.roundCount++; } // 永远不会到这里因为isValid=false
+            gs.score += 10;
         }
+        gs.lastRoundTime = System.currentTimeMillis();
 
-        Map<String, Object> r = buildResult(gs, keyword, isValid, reason, aiPoem, source,
-                aiComment, aiPoem, source);
+        Map<String, Object> r = buildResult(gs, keyword, valid, valid ? "" : failReason, aiPoem, source, aiComment, aiPoem, source);
         if (gs.lives <= 0) r.put("gameOver", true);
         return R.ok().put("data", r);
     }

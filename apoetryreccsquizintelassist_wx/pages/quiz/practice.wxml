@@ -1,4 +1,4 @@
-<view class="quiz-page">
+﻿<view class="quiz-page">
   <!-- 加载中 -->
   <view class="quiz-loading" wx:if="{{loading}}">
     <text class="quiz-loading-icon">🤖</text>
@@ -16,7 +16,7 @@
     <view class="quiz-card">
       <view class="quiz-question">{{questions[currentIndex].question}}</view>
       <view class="quiz-options">
-        <view class="quiz-option {{item.status}}" wx:for="{{questions[currentIndex].options}}" wx:key="index" data-index="{{index}}" bindtap="selectOption">{{item}}</view>
+        <view class="quiz-option {{questions[currentIndex].status[index] || ''}}" wx:for="{{questions[currentIndex].options}}" wx:key="index" data-index="{{index}}" bindtap="selectOption">{{item}}</view>
       </view>
       <view class="quiz-analysis" wx:if="{{showAnalysis}}">
         <text class="quiz-analysis-label">📖 解析</text>

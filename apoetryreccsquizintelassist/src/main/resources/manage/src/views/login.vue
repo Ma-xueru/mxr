@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<div>
 		<div class="login_view">
 			<el-form :model="loginForm" class="login_form">
@@ -55,7 +55,7 @@
 			teacherMenu.backMenu.splice(1, 0, { child: [{ appFrontIcon: "cuIcon-full", buttons: ["新增","查看","修改","删除"], menu: "学生管理", menuJump: "列表", tableName: "student" }], fontClass: "icon-common38", menu: "学生管理", unicode: "&#xeeb2;" })
 		}
 		if (!teacherMenu.backMenu.some(g => g.child && g.child.some(c => c.tableName === 'course'))) {
-			teacherMenu.backMenu.splice(2, 0, { child: [{ appFrontIcon: "cuIcon-pay", buttons: ["查看","查看评论"], menu: "古诗文库", menuJump: "列表", tableName: "course" }], fontClass: "icon-common49", menu: "古诗文库管理", unicode: "&#xef3d;" })
+			teacherMenu.backMenu.splice(2, 0, { child: [{ appFrontIcon: "cuIcon-pay", buttons: ["查看"], menu: "古诗词查看", menuJump: "列表", tableName: "course" }], fontClass: "icon-common49", menu: "古诗词查看", unicode: "&#xef3d;" })
 		}
 		if (!teacherMenu.backMenu.some(g => g.child && g.child.some(c => c.tableName === 'recitationtask'))) {
 			const taskGroup = teacherMenu.backMenu.find(g => (g.menu||'').includes('学习任务') || (g.menu||'').includes('成绩信息'))

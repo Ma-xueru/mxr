@@ -29,6 +29,7 @@
         <text class="fh-text" wx:else>{{item.text}}</text>
         <text class="fh-source" wx:if="{{item.source}}">—— {{item.source}}</text>
         <text class="fh-comment" wx:if="{{item.comment}}">💬 {{item.comment}}</text>
+        <view class="fh-speaker" wx:if="{{!item.typing && item.text}}" bindtap="playAudio" data-text="{{item.text}}">🔊</view>
       </view>
     </view>
     <view id="chat-bottom"></view>
@@ -36,6 +37,9 @@
 
   <!-- 输入区 -->
   <view class="fh-input-bar">
+    <view class="fh-mic {{recording ? 'recording' : ''}}" bindtouchstart="startRecord" bindtouchend="stopRecord">
+      <text>🎤</text>
+    </view>
     <input class="fh-input" placeholder="输入含「{{keyword}}」字的诗句..." value="{{inputText}}" bindinput="onInput" confirm-type="send" bindconfirm="sendPoem" maxlength="100" />
     <button class="fh-send-btn" bindtap="sendPoem" disabled="{{!inputText || waiting}}">{{waiting ? '...' : '发送'}}</button>
   </view>

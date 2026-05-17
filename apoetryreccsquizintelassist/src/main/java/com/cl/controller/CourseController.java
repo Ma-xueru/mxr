@@ -141,6 +141,7 @@ public class CourseController {
      */
     @RequestMapping("/save")
     public R save(@RequestBody CourseEntity course, HttpServletRequest request){
+         if (!isAdmin(request)) return R.error("仅管理员可操作");
     	course.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
     	//ValidatorUtils.validateEntity(course);
         courseService.insert(course);
@@ -152,6 +153,7 @@ public class CourseController {
      */
     @RequestMapping("/add")
     public R add(@RequestBody CourseEntity course, HttpServletRequest request){
+         if (!isAdmin(request)) return R.error("仅管理员可操作");
     	course.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
     	//ValidatorUtils.validateEntity(course);
         courseService.insert(course);
@@ -164,6 +166,7 @@ public class CourseController {
     @RequestMapping("/update")
     @Transactional
     public R update(@RequestBody CourseEntity course, HttpServletRequest request){
+         if (!isAdmin(request)) return R.error("仅管理员可操作");
         //ValidatorUtils.validateEntity(course);
         course.setAddtime(new Date());
         courseService.updateById(course);//全部更新
@@ -215,7 +218,8 @@ public class CourseController {
      * 删除
      */
     @RequestMapping("/delete")
-    public R delete(@RequestBody Long[] ids){
+    public R delete(@RequestBody Long[] ids, HttpServletRequest request){
+         if (!isAdmin(request)) return R.error("仅管理员可操作");
         courseService.deleteBatchIds(Arrays.asList(ids));
         return R.ok();
     }
@@ -262,4 +266,9 @@ public class CourseController {
 		return R.ok().put("count", count);
 	}
 
+
+    private boolean isAdmin(HttpServletRequest request) {
+        String tableName = (String) request.getSession().getAttribute("tableName");
+        return "admin".equals(tableName);
+    }
 }

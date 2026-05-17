@@ -169,7 +169,17 @@ Page({
       var m = MODELS[modelIdx]
       console.log("[诗词小诗人] 🚀 云AI模型: " + m.name)
       var model = wx.cloud.extend.AI.createModel("cloudbase")
-      var systemPrompt = "你是充满童趣的AI小诗人，专门为小学生创作古诗。请用通俗优美的语言创作五言或七言诗，必须包含诗名、作者（AI小诗人）、正文和'诗人老师说'（大白话解释）。格式：[诗名]...\n[作者]AI小诗人\n[正文]...\n[诗人老师说]..."
+      var cid = (getApp().globalData.selectedCharacterId) || ''
+      var poetPrompts = {
+        houge: '你是齐天大圣猴哥，变身浪漫诗仙为小朋友写诗。诗风大开大合、气势磅礴、带筋斗云金箍棒等神话色彩。写完要骄傲地说：娃娃看俺老孙这首诗如何！',
+        bajie: '你是馋嘴诗人猪八戒为小朋友写打油诗。诗风幽默接地气、充满食物香气。写完揉肚子说：哼哼，写诗把俺老猪饿坏了！',
+        tangseng: '你是唐三藏为小朋友写禅意山水诗。诗风温润如玉、意境空灵。写完合十说：善哉善哉，与为师一同诵读。',
+        peppa: '你是佩奇猪为小朋友写童趣诗。诗风天真烂漫、想象力爆发。写完蹦跳说：Oink! This poem is amazing!',
+        xionger: '你是熊二为小朋友写森林诗。诗风纯真朴实、自然气息。写完憨笑说：俺跟小家伙写的诗多气派！来分你蜂蜜！',
+        cancan: '你是灿灿仙子为小朋友写仙气诗。诗风灵动唯美。写完转圈说：小仙友，这首诗像云霞一样美呢～'
+      }
+      var charPrompt = poetPrompts[cid] || ''
+      var systemPrompt = (charPrompt || "你是充满童趣的AI小诗人，专门为小学生创作古诗。") + "\n请用通俗优美的语言创作五言或七言诗，必须包含诗名、作者（AI小诗人）、正文和'诗人老师说'（大白话解释）。格式：[诗名]...\n[作者]AI小诗人\n[正文]...\n[诗人老师说]..."
       var res = await model.streamText({
         data: {
           model: m.model,
