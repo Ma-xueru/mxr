@@ -20,9 +20,12 @@ Page({
 
   onLoad() {
     this._initTeachers()
+    var welcomeText = '你好！我是AI诗词小诗人，拍一张风景照，或者输入几个关键词，我就能为你写一首诗'
     this.setData({ messages: [
       { from: 'ai', text: '你好！我是AI诗词小诗人🌸\n拍一张风景照，或者输入几个关键词，我就能为你写一首诗～' }
     ]})
+    // 自动播放欢迎语音
+    this._ttsPlay(welcomeText)
   },
 
   _initTeachers() {
@@ -242,6 +245,25 @@ Page({
         }
       })
     }
+  },
+
+  _ttsPlay(text) {
+    if (!text) return
+    var that = this
+    wx.request({
+      url: baseURL + '/poem-creator/tts', method: 'POST', timeout: 30000,
+      data: { text: text },
+      success(res) {
+        if (res.data && res.data.data) {
+          var url = baseURL + res.data.data
+          if (that._ttsAudio) { try { that._ttsAudio.destroy() } catch(ex) {} }
+          var audio = wx.createInnerAudioContext()
+          that._ttsAudio = audio
+          audio.src = url; audio.autoplay = true
+          audio.onError(function() {})
+        }
+      }
+    })
   },
 
   playTTS(e) {

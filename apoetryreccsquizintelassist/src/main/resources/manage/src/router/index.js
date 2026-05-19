@@ -11,7 +11,7 @@ import exampaper from '@/views/exampaper/list'
 import mystudent from '@/views/mystudent/list'
 import admin from '@/views/admin/list'
 import forum from '@/views/forum/list'
-import transcript from '@/views/transcript/list'
+
 import config from '@/views/config/list'
 import feedback from '@/views/feedback/list'
 import exampaperlist from '@/views/exam/exampaperlist/list'
@@ -107,11 +107,6 @@ export const routes = [{
 			path: '/forum',
 			name: '学习社区',
 			component: forum
-		}
-		,{
-			path: '/transcript',
-			name: '成绩信息',
-			component: transcript
 		}
 		,{
 			path: '/config',

@@ -27,6 +27,52 @@
       </div>
     </div>
 
+    <!-- 预警横幅 -->
+    <div class="warn_bar" v-if="dashboard.warningStudents && dashboard.warningStudents.length">
+      <span class="warn_icon">⚠️</span>
+      <span>{{ dashboard.warningStudents.length }} 人 3 天未学习：</span>
+      <span v-for="(w, i) in dashboard.warningStudents.slice(0,5)" :key="i" class="warn_name">{{ w.studentname }}({{ w.classname }}){{ i < Math.min(dashboard.warningStudents.length,5)-1 ? '、' : '' }}</span>
+      <span v-if="dashboard.warningStudents.length > 5">等</span>
+    </div>
+
+    <!-- 本周趋势小条 -->
+    <div class="week_bar" v-if="dashboard.thisWeekCount !== undefined">
+      <span>本周自学 <b>{{ dashboard.thisWeekCount || 0 }}</b> 次</span>
+      <span class="week_trend"> vs 上周 {{ dashboard.lastWeekCount || 0 }} <b :style="{color: (dashboard.weekTrend||'').startsWith('↑')?'#4CAF50':'#e88a6e'}">{{ dashboard.weekTrend }}</b></span>
+    </div>
+
+    <!-- 新增可视化：模块占比 + 活跃趋势 -->
+    <div class="viz_two_cols">
+      <div class="chart_section half">
+        <h3>各模块占比</h3>
+        <div ref="pieChartRef" class="echart_box"></div>
+      </div>
+      <div class="chart_section half">
+        <h3>近7天活跃趋势</h3>
+        <div ref="lineChartRef" class="echart_box"></div>
+      </div>
+    </div>
+
+    <!-- 学生活跃度TOP10 -->
+    <div class="chart_section" v-if="dashboard.topStudents && dashboard.topStudents.length">
+      <h3>学生活跃度 TOP10</h3>
+      <div ref="barChartRef" class="echart_box" style="height:320px"></div>
+    </div>
+
+    <!-- 今日学习动态 -->
+    <div class="feed_section" v-if="dashboard.todayActivities && dashboard.todayActivities.length">
+      <h3>今日学习动态</h3>
+      <div class="feed_list">
+        <div class="feed_item" v-for="(item, idx) in dashboard.todayActivities.slice(0,10)" :key="idx">
+          <span class="feed_dot" :style="{background: item.type==='跟读'?'#4CAF50':item.type==='测验'?'#FF9800':item.type==='举一反三'?'#9C27B0':'#2196F3'}"></span>
+          <span class="feed_name">{{ item.studentname }}</span>
+          <span class="feed_action">{{ item.type }}《{{ item.poetryTitle }}》</span>
+          <span class="feed_score">{{ item.score }}分</span>
+          <span class="feed_time">{{ item.timeAgo }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 班级达标率排行 -->
     <div class="chart_section" v-if="dashboard.classStats && dashboard.classStats.length">
       <h3>所带班级背诵达标率排行</h3>
@@ -71,9 +117,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, getCurrentInstance } from 'vue'
+import { ref, onMounted, getCurrentInstance, nextTick, inject } from 'vue'
 const context = getCurrentInstance()?.appContext.config.globalProperties
-const dashboard = ref({ teachername:'', classCount:0, classnames:'', totalStudents:0, ongoingTasks:0, submitRate:0, todayTotal:0, todayDone:0, classStats:[], recentActivities:[] })
+const echarts = inject('echarts') || context?.$echarts
+const dashboard = ref({ teachername:'', classCount:0, classnames:'', totalStudents:0, ongoingTasks:0, submitRate:0, todayTotal:0, todayDone:0, classStats:[], recentActivities:[], modulePie:[], trend7:[], topStudents:[], todayActivities:[] })
+
+const pieChartRef = ref(null); const lineChartRef = ref(null); const barChartRef = ref(null)
+let pieChart, lineChart, barChart
 
 const barColor = (rate) => {
   if (rate >= 80) return 'linear-gradient(90deg, #58B86F, #82D68F)'
@@ -81,9 +131,69 @@ const barColor = (rate) => {
   return 'linear-gradient(90deg, #E85D5D, #FF8A72)'
 }
 
+const renderCharts = () => {
+  nextTick(() => {
+    const d = dashboard.value
+    if (!echarts) return
+
+    // 环形图 — 各模块占比
+    if (pieChartRef.value && d.modulePie && d.modulePie.length) {
+      if (pieChart) pieChart.dispose()
+      pieChart = echarts.init(pieChartRef.value)
+      const total = d.modulePie.reduce((s, i) => s + i.value, 0)
+      pieChart.setOption({
+        tooltip: { trigger: 'item', formatter: '{b}: {c}次 ({d}%)' },
+        series: [{
+          type: 'pie', radius: ['50%','72%'], center: ['50%','50%'],
+          label: { show: false },
+          emphasis: { label: { show: true, fontSize:14, fontWeight:'bold' } },
+          data: d.modulePie.filter(i => i.value > 0).map(i => ({
+            value: i.value, name: i.name,
+            itemStyle: { color: i.name==='跟读'?'#4CAF50':i.name==='测验'?'#FF9800':i.name==='举一反三'?'#9C27B0':'#2196F3' }
+          }))
+        }],
+        graphic: total > 0 ? [{ type:'text', left:'center', top:'42%', style:{ text: '共'+total+'次', fontSize:14, fontWeight:'bold', fill:'#3f3424' } }] : []
+      })
+    }
+
+    // 折线图 — 近7天活跃趋势
+    if (lineChartRef.value && d.trend7 && d.trend7.length) {
+      if (lineChart) lineChart.dispose()
+      lineChart = echarts.init(lineChartRef.value)
+      lineChart.setOption({
+        grid: { top:10, right:10, bottom:20, left:30 },
+        xAxis: { type:'category', data: d.trend7.map(i => i.date), axisLabel:{fontSize:10} },
+        yAxis: { type:'value', minInterval:1, axisLabel:{fontSize:10} },
+        series: [{ type:'line', data: d.trend7.map(i => i.count), smooth:true,
+          lineStyle:{color:'#4CAF50',width:2}, itemStyle:{color:'#4CAF50'},
+          areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(76,175,80,.2)'},{offset:1,color:'rgba(76,175,80,0)'}]}} }]
+      })
+    }
+
+    // 条形图 — TOP10
+    if (barChartRef.value && d.topStudents && d.topStudents.length) {
+      if (barChart) barChart.dispose()
+      barChart = echarts.init(barChartRef.value)
+      const names = d.topStudents.map(i => i.name).reverse()
+      const counts = d.topStudents.map(i => i.count).reverse()
+      barChart.setOption({
+        grid: { top:4, right:20, bottom:20, left:80 },
+        xAxis: { type:'value', axisLabel:{fontSize:10} },
+        yAxis: { type:'category', data: names, axisLabel:{fontSize:11} },
+        series: [{ type:'bar', data: counts, barWidth:16,
+          itemStyle: { borderRadius:[0,6,6,0], color: { type:'linear',x:0,y:0,x2:1,y2:0,
+            colorStops: [{offset:0,color:'#81C784'},{offset:1,color:'#4CAF50'}] } } }]
+      })
+    }
+  })
+}
+
 onMounted(() => {
   context?.$http({ url: 'teacher/dashboard', method: 'get' }).then(res => {
-    if (res.data.code === 0) dashboard.value = res.data.data
+    if (res.data.code === 0) {
+      dashboard.value = res.data.data
+      renderCharts()
+    }
   })
 })
 </script>
@@ -94,7 +204,14 @@ onMounted(() => {
 .welcome_bar h2 { margin:0; color:#3f3424; }
 .grade_tag { padding:4px 14px; border-radius:20px; background:linear-gradient(135deg,#fef3c7,#fde68a); color:#92400e; font-size:13px; font-weight:600; }
 
-.stat_cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+.stat_cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+
+.warn_bar { background:linear-gradient(135deg,#FFF3E0,#FFE0B2); border:1px solid #FFB74D; border-radius:12px; padding:12px 18px; margin-bottom:14px; font-size:13px; color:#e65100; display:flex; align-items:center; flex-wrap:wrap; gap:4px; }
+.warn_icon { font-size:18px; }
+.warn_name { font-weight:600; }
+
+.week_bar { display:flex; justify-content:space-between; align-items:center; padding:8px 18px; margin-bottom:14px; background:#fff; border-radius:12px; border:1px solid #efe5cd; font-size:13px; color:#5b503f; }
+.week_trend { font-size:13px; }
 .stat_card { padding:24px; border-radius:16px; border:1px solid #efe5cd; }
 .stat_header { font-size:13px; color:#9a8d73; margin-bottom:8px; font-weight:500; }
 .stat_big_value { font-size:36px; font-weight:700; color:#3f3424; }
@@ -119,4 +236,19 @@ onMounted(() => {
 .quick_actions h3, .recent_section h3 { color:#5b503f; margin:0 0 12px; }
 .action_btns { display:flex; gap:12px; flex-wrap:wrap; }
 .recent_section { background:#fff; border-radius:16px; padding:20px; border:1px solid #efe5cd; }
+
+.viz_two_cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:28px; }
+.chart_section.half { min-height:320px; }
+.echart_box { width:100%; height:280px; }
+
+.feed_section { background:#fff; border-radius:16px; padding:20px; margin-bottom:28px; border:1px solid #efe5cd; }
+.feed_section h3 { margin:0 0 14px; color:#3f3424; }
+.feed_list { display:flex; flex-direction:column; gap:10px; }
+.feed_item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #f5f0e0; font-size:13px; color:#5b503f; }
+.feed_item:last-child { border-bottom:none; }
+.feed_dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.feed_name { font-weight:600; color:#3f3424; min-width:50px; }
+.feed_action { flex:1; color:#6d5d40; }
+.feed_score { font-weight:700; }
+.feed_time { color:#aaa; font-size:12px; min-width:60px; text-align:right; }
 </style>

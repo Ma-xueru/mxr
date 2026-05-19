@@ -1,165 +1,55 @@
-.content {
-  padding: 24rpx;
-  background: linear-gradient(180deg, #E9F8FF 0%, #F2FBF1 48%, #FFF8DC 100%);
-  min-height: 100vh;
-}
+.detail-page { min-height: 100vh; background: #f5f0e8; padding: 0 30rpx 40rpx; }
 
-.hero-box {
-  background: linear-gradient(135deg, #FFF8DC 0%, #E9F8FF 48%, #F2FBF1 100%);
-  border-radius: 28rpx;
-  padding: 30rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 12rpx 28rpx rgba(88, 184, 111, 0.12);
-}
+/* 头部古诗卡片 */
+.poem-card { background: linear-gradient(135deg,#1B5E20,#2E7D32,#388E3C); border-radius: 28rpx; padding: 40rpx 32rpx; margin-top: 20rpx; }
+.poem-title { font-size: 48rpx; font-weight: 900; color: #fff; letter-spacing: 4rpx; }
+.poem-sub { font-size: 24rpx; color: rgba(255,255,255,.75); margin-top: 16rpx; line-height: 1.6; }
+.poem-teacher { font-size: 22rpx; color: rgba(255,255,255,.55); margin-top: 10rpx; }
 
-.hero-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #333;
-}
+/* 分段标签 */
+.section-label { font-size: 28rpx; font-weight: 700; color: #3d3532; margin: 28rpx 0 16rpx; padding-left: 12rpx; border-left: 4rpx solid #4CAF50; }
 
-.hero-status {
-  margin-top: 16rpx;
-  display: inline-block;
-  padding: 10rpx 20rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #58B86F 0%, #56BDE8 100%);
-  color: #fff;
-  font-size: 24rpx;
-}
+/* 得分圆环 */
+.score-card { display: flex; flex-direction: column; align-items: center; padding: 40rpx 0 20rpx; }
+.score-ring { width: 200rpx; height: 200rpx; border-radius: 50%; border: 10rpx solid #4CAF50; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg,#E8F5E9,#fff); box-shadow: 0 8rpx 32rpx rgba(76,175,80,.2); }
+.score-num { font-size: 72rpx; font-weight: 900; color: #2E7D32; line-height: 1; }
+.score-unit { font-size: 28rpx; color: #4CAF50; margin-top: 4rpx; }
+.score-desc { font-size: 26rpx; color: #999; margin-top: 16rpx; }
 
-.detail-box {
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: 24rpx;
-  padding: 12rpx 24rpx;
-  box-shadow: 0 12rpx 28rpx rgba(88, 184, 111, 0.1);
-}
+/* 维度卡片 */
+.dim-card { background: #fff; border-radius: 24rpx; padding: 28rpx; margin-top: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,.04); }
+.dim-item { margin-bottom: 24rpx; }
+.dim-item:last-child { margin-bottom: 0; }
+.dim-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10rpx; }
+.dim-name { font-size: 28rpx; font-weight: 700; color: #333; }
+.dim-score { font-size: 28rpx; font-weight: 800; color: #4CAF50; }
+.dim-bar-bg { height: 10rpx; background: #f0f0f0; border-radius: 5rpx; overflow: hidden; margin-bottom: 10rpx; }
+.dim-bar-fill { height: 100%; border-radius: 5rpx; background: linear-gradient(90deg,#66BB6A,#43A047); }
+.dim-comment { font-size: 24rpx; color: #888; line-height: 1.6; }
+.dim-encourage { font-size: 24rpx; color: #FF9800; margin-top: 6rpx; }
 
-.detail-item-box {
-  display: flex;
-  padding: 22rpx 0;
-  border-bottom: 1rpx solid #D7ECCD;
-}
+/* 总体评价 */
+.overall-card { background: #fff; border-radius: 24rpx; padding: 28rpx; margin-top: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,.04); }
+.overall-label { font-size: 26rpx; font-weight: 700; color: #333; margin-bottom: 12rpx; }
+.overall-text { font-size: 26rpx; color: #666; line-height: 1.8; }
 
-.detail-item-box:last-child {
-  border-bottom: none;
-}
+/* 识别文本 */
+.recognize-card { background: #f7f8fa; border-radius: 24rpx; padding: 28rpx; margin-top: 20rpx; }
+.recognize-label { font-size: 24rpx; font-weight: 700; color: #888; margin-bottom: 12rpx; }
+.recognize-text { font-size: 26rpx; color: #555; line-height: 1.8; font-style: italic; }
 
-.detail-item-label {
-  width: 160rpx;
-  color: #2F8F5B;
-  font-size: 28rpx;
-}
+/* 任务信息 */
+.info-card { background: #fff; border-radius: 24rpx; padding: 28rpx; margin-top: 20rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,.04); }
+.info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 16rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 26rpx; color: #999; flex-shrink: 0; width: 140rpx; }
+.info-value { font-size: 26rpx; color: #333; flex: 1; text-align: right; line-height: 1.6; }
+.info-value.teacher-text { color: #2E7D32; font-style: italic; }
 
-.detail-item-text {
-  flex: 1;
-  color: #666;
-  font-size: 28rpx;
-  line-height: 1.7;
-}
+/* 音频播放条 */
+.audio-card { margin-top: 16rpx; padding: 20rpx 0; }
+.audio-label { font-size: 22rpx; color: #999; margin-bottom: 12rpx; }
+/* 完成时间 */
+.finish-time { text-align: center; font-size: 22rpx; color: #bbb; margin-top: 30rpx; padding-bottom: 20rpx; }
 
-.detail-item-audio {
-  align-items: flex-start;
-}
-
-.detail-item-audio audio {
-  width: 100%;
-  margin-top: 6rpx;
-}
-
-.score-text { color: #5fb959; font-weight: 700; font-size: 32rpx !important; }
-.small-text { font-size: 24rpx !important; color: #999 !important; }
-.teacher-text { color: #d84fa9 !important; font-weight: 600; }
-
-/* AI报告卡片 */
-.report-card {
-  background: #fff;
-  border-radius: 24rpx;
-  padding: 28rpx 24rpx;
-  margin-bottom: 24rpx;
-  border: 2rpx solid #d4e8c5;
-}
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24rpx;
-}
-.report-title {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #2f5e1a;
-}
-.report-badge {
-  font-size: 20rpx;
-  color: #fff;
-  background: linear-gradient(135deg, #6dbd72, #4a9e4f);
-  padding: 6rpx 16rpx;
-  border-radius: 999rpx;
-}
-
-.score-circle-wrap {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 28rpx;
-}
-.score-circle {
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #5fb959, #3d8b3d);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 32rpx rgba(95,185,89,0.3);
-}
-.score-num {
-  font-size: 56rpx;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1;
-}
-.score-label {
-  font-size: 22rpx;
-  color: rgba(255,255,255,0.85);
-  margin-top: 6rpx;
-}
-
-.dim-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-  margin-bottom: 24rpx;
-}
-.dim-item { }
-.dim-top {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8rpx;
-}
-.dim-name { font-size: 26rpx; font-weight: 600; color: #3f3424; }
-.dim-score { font-size: 26rpx; font-weight: 700; color: #5fb959; }
-.dim-bar-bg {
-  height: 10rpx;
-  background: #f0f0f0;
-  border-radius: 5rpx;
-  overflow: hidden;
-  margin-bottom: 8rpx;
-}
-.dim-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #5fb959, #82d186);
-  border-radius: 5rpx;
-}
-.dim-comment { font-size: 24rpx; color: #666; line-height: 1.6; }
-.dim-encourage { font-size: 24rpx; color: #e7a63c; font-weight: 600; margin-top: 4rpx; }
-
-.report-summary {
-  background: linear-gradient(135deg, #fff8e2 0%, #f5fcf6 100%);
-  border-radius: 16rpx;
-  padding: 20rpx;
-  border: 1rpx solid #e8dca0;
-}
-.summary-label { font-size: 24rpx; font-weight: 700; color: #7b5b17; margin-bottom: 8rpx; }
-.summary-text { font-size: 26rpx; color: #5b503f; line-height: 1.8; }
+.bottom-space { height: 120rpx; }

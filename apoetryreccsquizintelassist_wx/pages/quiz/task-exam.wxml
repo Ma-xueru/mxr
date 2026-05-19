@@ -15,10 +15,19 @@
     <view class="te-card">
       <view class="te-question">{{questions[currentIndex].question}}</view>
       <view class="te-options">
-        <view class="te-opt" wx:for="{{questions[currentIndex].options}}" wx:for-index="i" wx:key="i" data-index="{{i}}" bindtap="selectOption">
+        <view class="te-opt {{questions[currentIndex].status === 'correct' && i === questions[currentIndex].selected ? 'correct' : ''}} {{questions[currentIndex].status === 'wrong' && i === questions[currentIndex].selected ? 'wrong' : ''}} {{questions[currentIndex].status === 'wrong' && i === questions[currentIndex].answer ? 'correct' : ''}} {{questions[currentIndex].status && i !== questions[currentIndex].selected && i !== questions[currentIndex].answer ? 'dimmed' : ''}}" wx:for="{{questions[currentIndex].options}}" wx:for-index="i" wx:key="i" data-index="{{i}}" bindtap="selectOption">
           <text class="te-opt-letter">{{['A','B','C','D'][i]}}</text>
           <text>{{item}}</text>
         </view>
+      </view>
+      <view class="te-analysis" wx:if="{{showAnalysis}}">
+        <text class="te-analysis-label">📖 解析</text>
+        <text class="te-analysis-text">{{questions[currentIndex].analysis}}</text>
+      </view>
+      <view class="te-next" wx:if="{{answered}}">
+        <button class="te-next-btn" bindtap="nextQuestion">
+          {{currentIndex < questions.length - 1 ? '下一题 →' : '提交答案'}}
+        </button>
       </view>
     </view>
   </view>

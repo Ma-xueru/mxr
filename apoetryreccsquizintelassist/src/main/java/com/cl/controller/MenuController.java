@@ -54,7 +54,7 @@ public class MenuController {
     @Autowired
     private MenuService menuService;
 
-    /** 确保跟读记录和测验管理菜单项存在 */
+    /** 确保自主学习管理和测验管理菜单项存在 */
     private void ensureExtraMenus(PageUtils page) {
         if (page == null || page.getList() == null) return;
         for (Object row : page.getList()) {
@@ -84,34 +84,36 @@ public class MenuController {
                     if (child != null) {
                         for (int k = child.size() - 1; k >= 0; k--) {
                             String tn = child.getJSONObject(k).getString("tableName");
-                            if ("coursereserve".equals(tn) || "reservecancel".equals(tn) || "mystudent".equals(tn) || "forum".equals(tn) || "discussforum".equals(tn) || "feedback".equals(tn) || "examquestion".equals(tn) || "exampaper".equals(tn) || "news".equals(tn) || "examrecord".equals(tn) || "examfailrecord".equals(tn)) {
+                            if ("coursereserve".equals(tn) || "reservecancel".equals(tn) || "mystudent".equals(tn) || "forum".equals(tn) || "discussforum".equals(tn) || "feedback".equals(tn) || "examquestion".equals(tn) || "exampaper".equals(tn) || "news".equals(tn) || "examrecord".equals(tn) || "examfailrecord".equals(tn) || "transcript".equals(tn)) {
                                 child.remove(k);
                             }
                         }
-                        if (child.size() == 0 && !"学习任务管理".equals(gname) && !"成绩信息管理".equals(gname)) {
+                        if (child.size() == 0 && !"学习任务管理".equals(gname)) {
                             backMenu.remove(j);
                         }
                     }
                 }
-                // 第二遍：添加跟读记录和测验管理
+                // 第二遍：添加自主学习管理和测验管理
                 for (int j = 0; j < backMenu.size(); j++) {
                     com.alibaba.fastjson.JSONObject group = backMenu.getJSONObject(j);
                     String name = group.getString("menu");
-                    if ("学习任务管理".equals(name) || "成绩信息管理".equals(name)) {
-                        group.put("menu", "学习任务管理");
+                    if ("学习任务管理".equals(name)) {
                         com.alibaba.fastjson.JSONArray child = group.getJSONArray("child");
                         if (child == null) continue;
                         boolean hasFollow = false, hasQuiz = false;
                         for (int k = 0; k < child.size(); k++) {
                             String tn = child.getJSONObject(k).getString("tableName");
-                            if ("followreadrecord".equals(tn)) hasFollow = true;
+                            if ("followreadrecord".equals(tn)) {
+                                child.getJSONObject(k).put("menu", "自主学习管理");
+                                hasFollow = true;
+                            }
                             if ("quiztask".equals(tn)) hasQuiz = true;
                         }
                         if (!hasFollow) {
                             com.alibaba.fastjson.JSONObject item = new com.alibaba.fastjson.JSONObject();
                             item.put("appFrontIcon", "cuIcon-group");
                             item.put("buttons", java.util.Arrays.asList("查看","删除"));
-                            item.put("menu", "跟读记录");
+                            item.put("menu", "自主学习管理");
                             item.put("menuJump", "列表");
                             item.put("tableName", "followreadrecord");
                             child.add(item);
@@ -124,6 +126,20 @@ public class MenuController {
                             item.put("menuJump", "列表");
                             item.put("tableName", "quiztask");
                             child.add(item);
+                        }
+                    }
+                }
+                // 第三遍：教师角色 — classinfo 只能查看和修改（不能新增/删除）
+                if ("teacher".equals(role.getString("roleName"))) {
+                    for (int j = 0; j < backMenu.size(); j++) {
+                        com.alibaba.fastjson.JSONObject group = backMenu.getJSONObject(j);
+                        com.alibaba.fastjson.JSONArray child = group.getJSONArray("child");
+                        if (child == null) continue;
+                        for (int k = 0; k < child.size(); k++) {
+                            String tn = child.getJSONObject(k).getString("tableName");
+                            if ("classinfo".equals(tn)) {
+                                child.getJSONObject(k).put("buttons", java.util.Arrays.asList("查看","修改"));
+                            }
                         }
                     }
                 }

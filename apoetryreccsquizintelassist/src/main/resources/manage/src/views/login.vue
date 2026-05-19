@@ -61,9 +61,8 @@
 			const taskGroup = teacherMenu.backMenu.find(g => (g.menu||'').includes('学习任务') || (g.menu||'').includes('成绩信息'))
 			if (taskGroup) {
 				taskGroup.menu = '学习任务管理'
-				if (!taskGroup.child.some(c => c.tableName === 'transcript')) taskGroup.child.push({ appFrontIcon: "cuIcon-attentionfavor", buttons: ["查看","修改","删除","成绩统计","新增"], menu: "成绩信息", menuJump: "列表", tableName: "transcript" })
 			} else {
-				teacherMenu.backMenu.push({ child: [{ appFrontIcon: "cuIcon-book", buttons: ["新增","查看","修改","删除"], menu: "背诵任务", menuJump: "列表", tableName: "recitationtask" }, { appFrontIcon: "cuIcon-edit", buttons: ["新增","查看","修改","删除"], menu: "测验管理", menuJump: "列表", tableName: "quiztask" }, { appFrontIcon: "cuIcon-group", buttons: ["查看","删除"], menu: "跟读记录", menuJump: "列表", tableName: "followreadrecord" }], fontClass: "icon-common31", menu: "学习任务管理", unicode: "&#xee48;" })
+				teacherMenu.backMenu.push({ child: [{ appFrontIcon: "cuIcon-book", buttons: ["新增","查看","修改","删除"], menu: "背诵任务", menuJump: "列表", tableName: "recitationtask" }, { appFrontIcon: "cuIcon-edit", buttons: ["新增","查看","修改","删除"], menu: "测验管理", menuJump: "列表", tableName: "quiztask" }, { appFrontIcon: "cuIcon-group", buttons: ["查看","删除"], menu: "自主学习管理", menuJump: "列表", tableName: "followreadrecord" }], fontClass: "icon-common31", menu: "学习任务管理", unicode: "&#xee48;" })
 			}
 		}
 		return menuTree
@@ -170,9 +169,9 @@
 			method: "get",
 			params: params
 		}).then(res => {
-			menus.value = normalizeTeacherTaskMenu(ensureAdminMenus(ensureTeacherMenus(JSON.parse(res.data.data.list[0].menujson))))
+			const list = res.data?.data?.list; let raw = null; try { if (list && list.length && list[0].menujson) raw = JSON.parse(list[0].menujson) } catch(e) {}; menus.value = raw ? normalizeTeacherTaskMenu(ensureAdminMenus(ensureTeacherMenus(raw))) : []
 			context?.$toolUtil.storageSet("menus", JSON.stringify(menus.value))
-			context?.$router.push('/')
+			const roleType = context?.$toolUtil.storageGet("roleType"); context?.$router.push(roleType === 'TEACHER' ? '/teacherDashboard' : '/')
 		})
 	}
 

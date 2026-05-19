@@ -101,7 +101,7 @@ public class GameController {
         StringBuilder histStr = new StringBuilder();
         for (String h : gs.chatHistory) { if (histStr.length() < 500) histStr.append(h).append("；"); }
         String prompt = "关键字：「" + keyword + "」\n历史：" + histStr + "\n用户输入：「" + userPoem + "」"
-            + (valid ? "\n请判定并接一句含「" + keyword + "」的古诗。" : "\n用户回答有误(" + failReason + ")，请用幽默语气指出并接一句含「" + keyword + "」的示范古诗。");
+            + (valid ? "\naiPoem必须包含「" + keyword + "」字，必须是真实的古诗词句。" : "\n用户回答有误(" + failReason + ")，请用幽默语气指出。aiPoem必须包含「" + keyword + "」字，必须是真实的古诗词句。");
 
         String characterId = String.valueOf(params.getOrDefault("characterId", ""));
         String judgePrompt = com.cl.utils.CharacterPromptUtil.feihualingPrompt(characterId);
@@ -122,7 +122,7 @@ public class GameController {
                 aiComment = obj.optString("aiComment", aiComment);
             }
         } catch (Exception ex) { aiComment = failReason.isEmpty() ? aiComment : failReason; }
-        if (aiPoem.isEmpty()) { aiPoem = getFallback(keyword); source = getFallbackSource(keyword); }
+        if (aiPoem.isEmpty() || !aiPoem.contains(keyword)) { aiPoem = getFallback(keyword); source = getFallbackSource(keyword); }
 
         // ===== 计分：只有答对才+10 =====
         if (valid) {
@@ -337,10 +337,13 @@ public class GameController {
         return s;
     }
 
-    /** 错题本 */
-    @IgnoreAuth @RequestMapping("/wrongbook")
-    public R wrongbook() {
+    /** 错题本 — 仅返回当前学生自己的错题 */
+    @RequestMapping("/wrongbook")
+    public R wrongbook(HttpServletRequest request) {
+        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
+        String username = String.valueOf(request.getSession().getAttribute("username"));
         EntityWrapper<QuizRecordEntity> ew = new EntityWrapper<>();
+        if ("student".equals(tableName)) ew.eq("studentaccount", username);
         ew.isNotNull("wrong_list_json").ne("wrong_list_json", "[]").orderBy("addtime", false);
         List<QuizRecordEntity> list = quizRecordDao.selectList(ew);
         List<Map<String, Object>> wrongList = new ArrayList<>();

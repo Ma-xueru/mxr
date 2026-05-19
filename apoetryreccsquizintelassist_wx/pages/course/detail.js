@@ -27,66 +27,55 @@ Page({
     await this.loadPoem()
   },
 
-  async onShow() {
-    this.setData({ token: wx.getStorageSync('token') })
-    if (this.data.id) { this.loadFollowRead(); this.loadQuizHistory() }
-  },
+  async onShow() {},
 
   async loadPoem() {
-    if (!this.data.id) return
-    var res = await detail("course", this.data.id)
-    var data = res.data || {}
-    this.setData({ detailList: data })
-
-    var content = data.content || ''
-    var contentPinyin = data.contentpinyin || ''
-    var author = data.authorName || data.author_name || ''
-    var dynasty = data.grade || ''
-
-    // Split pinyin by verse lines (||| separator)
-    var pinyinVerseLines = contentPinyin ? contentPinyin.split('|||').filter(function(l) { return l.trim() }) : []
-
-    // Split content by newline to get verse lines
-    var verseLines = content.split(/\n/).filter(function(l) { return l.trim() })
-    var poemLines = []
-
-    // For each verse line, split by punctuation for display
-    verseLines.forEach(function(verseLine, vi) {
-      var subLines = verseLine.split(/[，。，。！？；：、]/).filter(function(s) { return s.trim() })
-      var versePinyins = pinyinVerseLines[vi] ? splitPinyin(pinyinVerseLines[vi]) : []
-      var pinyinIdx = 0
-
-      subLines.forEach(function(sub) {
-        var clean = sub.replace(/[，。！？；：、\s]/g, '')
-        var chars = clean.split('')
-        var subPinyins = versePinyins.slice(pinyinIdx, pinyinIdx + chars.length)
-        while (subPinyins.length < chars.length) subPinyins.push('')
-        pinyinIdx += chars.length
-        poemLines.push({ chars: chars, pinyins: subPinyins })
-      })
-    })
-
-    // Parse annotations and translation
-    var annText = data.annotations || ''
-    var annotations = annText.split(/[；;\n]/).filter(function(s) { return s.trim() })
-    var translation = data.translation || ''
-
-    this.setData({
-      poem: {
-        title: data.coursetitle || '',
-        dynasty: dynasty || data.grade || '',
-        author: author,
-        lines: poemLines,
-        annotations: annotations,
-        translation: translation
+    if (!this.data.token) return
+    var that = this
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/course/detail/' + this.data.id,
+      method: 'GET', header: { Token: this.data.token },
+      success: function(res) {
+        if (res.data && res.data.code === 0) {
+          var detail = res.data.data || {}
+          that.setData({ detailList: detail })
+          that.parsePoem(detail)
+          that.checkAndLoadImage()
+        }
       }
     })
+  },
 
-    // Load last follow-read
-    this.loadFollowRead()
-    this.loadQuizHistory()
-    // Load poem image from cloud DB
-    this.checkAndLoadImage()
+  parsePoem(detail) {
+    var poem = {
+      title: detail.coursetitle || '',
+      dynasty: detail.dynasty || '',
+      author: detail.author || '',
+      lines: [],
+      annotations: [],
+      translation: detail.translation || ''
+    }
+    if (detail.content) {
+      var rawLines = detail.content.split(/[\n。？?！!，,；;]/).map(function(l) { return l.trim() }).filter(function(l) { return l })
+      var pinyinText = detail.contentpinyin || detail.pinyin || ''
+      var allPinyins = splitPinyin(pinyinText)
+      var pinyinIdx = 0
+      poem.lines = rawLines.map(function(line) {
+        var chars = line.replace(/[\s，。！？；：、""''《》（）\(\)\[\]【】\d]/g, '').split('')
+        var pinyins = []
+        for (var i = 0; i < chars.length; i++) {
+          if (chars[i].match(/[一-龥]/)) {
+            pinyins.push(allPinyins[pinyinIdx] || '')
+            pinyinIdx++
+          } else {
+            pinyins.push('')
+          }
+        }
+        return { chars: chars, pinyins: pinyins }
+      })
+    }
+    this.setData({ poem: poem })
   },
 
   checkAndLoadImage() {
@@ -98,32 +87,25 @@ Page({
         if (res.data && res.data.length > 0 && res.data[0].imageUrl) {
           var stored = res.data[0].imageUrl
           if (stored.indexOf('cloud://') === 0) {
-            // 云存储fileID → 临时URL显示 + 同步到后端MySQL
             wx.cloud.getTempFileURL({ fileList: [stored] }).then(function(urlRes) {
-              var tmpUrl = (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) || stored
-              that.setData({ imageUrl: tmpUrl, imageLoading: false })
-              // 同步 cloud:// fileID 到后端
-              that._syncImageToBackend(stored)
+              var tmp = (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) || stored
+              that.setData({ imageUrl: tmp, imageLoading: false })
             }).catch(function() { that.setData({ imageUrl: stored, imageLoading: false }) })
           } else if (stored.indexOf('/file/') !== -1 || stored.indexOf('http') === 0) {
-            that._uploadToCloudStorage(stored)
+            that._uploadToCloudStorage(stored.indexOf('http') === 0 ? stored : (wx.getStorageSync('baseURL') || '') + stored)
           } else {
             that.setData({ imageUrl: stored, imageLoading: false })
           }
-        } else {
-          that.generateImage()
-        }
-      })
-      .catch(function() { that.generateImage() })
+        } else { that.generateImage() }
+      }).catch(function() { that.generateImage() })
   },
 
-  // 把 cloud:// fileID 同步到后端 MySQL
-  _syncImageToBackend(fileID) {
+  _syncImageToBackend(imagePath) {
     var baseURL = wx.getStorageSync('baseURL') || ''
     wx.request({ url: baseURL + '/course/update', method: 'POST',
       header: { Token: wx.getStorageSync('token'), 'Content-Type': 'application/json' },
-      data: JSON.stringify({ id: Number(this.data.id), picture: fileID }),
-      success: function() { console.log('[封面] 已同步 cloud:// fileID') }
+      data: JSON.stringify({ id: Number(this.data.id), picture: imagePath }),
+      success: function() {}
     })
   },
 
@@ -141,11 +123,9 @@ Page({
       success: function(res) {
         if (res.data && res.data.code === 0 && res.data.data && res.data.data.imageUrl) {
           var backendUrl = baseURL + res.data.data.imageUrl
-          // 下载 → 上传云存储 → 写云数据库
+          // 下载后端图片 → 上传微信云存储 → 写云数据库
           that._uploadToCloudStorage(backendUrl)
-        } else {
-          that.setData({ imageLoading: false })
-        }
+        } else { that.setData({ imageLoading: false }) }
       },
       fail: function() { that.setData({ imageLoading: false }) }
     })
@@ -154,26 +134,25 @@ Page({
   _uploadToCloudStorage(backendUrl) {
     var that = this
     var pid = Number(this.data.id)
-    // 1. 从后端下载图片到本地临时文件
+    var baseURL = wx.getStorageSync('baseURL') || ''
     wx.downloadFile({
       url: backendUrl,
       success: function(dfRes) {
-        if (dfRes.statusCode !== 200) { that.generateImage(); return }
-        // 2. 上传到微信云存储
+        if (dfRes.statusCode !== 200) { that.setData({ imageLoading: false }); return }
+        if (!wx.cloud) { that.setData({ imageUrl: backendUrl, imageLoading: false }); return }
         wx.cloud.uploadFile({
           cloudPath: 'poem_images/' + pid + '.png',
           filePath: dfRes.tempFilePath,
           success: function(upRes) {
             var fileID = upRes.fileID
             that.setData({ imageUrl: fileID, imageLoading: false })
-            // 3. 同步 cloud:// fileID 到后端 MySQL（后端代理转 HTTPS）
-            var baseURL = wx.getStorageSync('baseURL') || ''
+            // 同步到后端 MySQL（存 /file/ 路径，内网穿透也能看到）
+            var imagePath = res.data.data.imageUrl  // /file/xxx.png
             wx.request({ url: baseURL + '/course/update', method: 'POST',
               header: { Token: wx.getStorageSync('token'), 'Content-Type': 'application/json' },
-              data: JSON.stringify({ id: pid, picture: fileID }),
-              success: function() { console.log('[封面] 已同步 course.picture='+fileID) }
+              data: JSON.stringify({ id: pid, picture: imagePath })
             })
-            // 4. 写云数据库（小程序端展示用）
+            // 写云数据库
             var db = wx.cloud.database()
             db.collection('poem_assets').where({ courseId: pid }).limit(1).get()
               .then(function(qRes) {
@@ -184,83 +163,10 @@ Page({
                 }
               }).catch(function() {})
           },
-          fail: function() { that.generateImage() }
+          fail: function() { that.setData({ imageUrl: backendUrl, imageLoading: false }) }
         })
       },
-      fail: function() { that.generateImage() }
+      fail: function() { that.setData({ imageLoading: false }) }
     })
   },
-
-  loadFollowRead() {
-    var that = this
-    var baseURL = wx.getStorageSync('baseURL') || ''
-    wx.request({
-      url: baseURL + '/followread/records?courseid=' + this.data.id + '&page=1&limit=1',
-      method: 'GET', header: { Token: wx.getStorageSync('token') },
-      success: function(res) {
-        var list = (res.data && res.data.data && res.data.data.list) || []
-        var history = []
-        list.forEach(function(r) {
-          var rd = null
-          try { rd = JSON.parse(r.reportjson || '{}') } catch(e) {}
-          var dims = (rd && rd.dimensions) ? rd.dimensions.map(function(d) {
-            return { name: d.name, score: d.score }
-          }) : []
-          var t = r.addtime
-          if (t && t.length > 10) t = t.substring(0, 16)
-          history.push({ score: r.totalscore, dims: dims, time: t || '', fullReport: rd })
-        })
-        that.setData({ followHistory: history })
-      }
-    })
-  },
-
-  viewFollowReport(e) {
-    var idx = e.currentTarget.dataset.index
-    var item = this.data.followHistory[idx]
-    if (item && item.fullReport) {
-      this.setData({ followReport: item.fullReport, showFollowReport: true })
-    }
-  },
-
-  closeFollowReport() {
-    this.setData({ showFollowReport: false })
-  },
-
-  loadQuizHistory() {
-    var that = this
-    var baseURL = wx.getStorageSync('baseURL') || ''
-    wx.request({
-      url: baseURL + '/quiz/records?courseid=' + this.data.id + '&limit=1',
-      method: 'GET', header: { Token: wx.getStorageSync('token') },
-      success: function(res) {
-        var list = (res.data && res.data.data && res.data.data.list) || []
-        var history = []
-        list.forEach(function(r) {
-          var t = r.addtime
-          if (t && t.length > 10) t = t.substring(0, 16)
-          history.push({ score: r.score, correct: r.correctCount, total: r.questionsCount, duration: r.duration, time: t || '' })
-        })
-        that.setData({ quizHistory: history })
-      }
-    })
-  },
-
-  startQuiz() {
-    var id = this.data.id
-    var title = this.data.detailList.coursetitle || this.data.poem.title || ''
-    var content = this.data.detailList.content || ''
-    if (!content) { wx.showToast({ title: '缺少古诗内容', icon: 'none' }); return }
-    wx.navigateTo({ url: '/pages/quiz/practice?id=' + id + '&title=' + encodeURIComponent(title) + '&content=' + encodeURIComponent(content) })
-  },
-
-  goToCenter() {
-    wx.switchTab({ url: '/pages/center/center' })
-  },
-
-  startFollowRead() {
-    var id = this.data.id
-    if (!id) return wx.showToast({ title: '请先加载古诗', icon: 'none' })
-    wx.navigateTo({ url: '/pages/followread/practice?id=' + id })
-  }
 })

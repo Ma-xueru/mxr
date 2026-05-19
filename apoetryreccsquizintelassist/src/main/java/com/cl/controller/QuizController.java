@@ -89,8 +89,7 @@ public class QuizController {
         return R.ok().put("data", new PageUtils(list, total, limit, page));
     }
 
-    /** 错题本 — 返回所有错题（按学生过滤） */
-    @IgnoreAuth
+    /** 错题本 — 返回当前学生自己的错题 */
     @RequestMapping("/wrongbook")
     public R wrongbook(HttpServletRequest request) {
         EntityWrapper<QuizRecordEntity> ew = new EntityWrapper<>();
@@ -161,9 +160,9 @@ public class QuizController {
         Map<String, Integer> totalCount = new LinkedHashMap<>();
         for (String d : dims) { wrongCount.put(d, 0); totalCount.put(d, 0); }
 
-        // 能力值: 初始100，每个错题扣分
+        // 能力值: 无数据时初始0分
         Map<String, Integer> ability = new LinkedHashMap<>();
-        for (String d : dims) ability.put(d, 100);
+        for (String d : dims) ability.put(d, 0);
 
         for (QuizRecordEntity r : all) {
             try {
@@ -177,7 +176,9 @@ public class QuizController {
             } catch (Exception e) { /* skip */ }
         }
 
-        // 能力值 = max(0, 100 - 错题数 * 15)
+        // 能力值 = 100 - 错题数 × 15，最低0
+        int totalWrong = 0;
+        for (int v : wrongCount.values()) totalWrong += v;
         for (String d : dims) {
             int wc = wrongCount.getOrDefault(d, 0);
             ability.put(d, Math.max(0, 100 - wc * 15));
@@ -462,8 +463,13 @@ public class QuizController {
         }
 
         // 保存到 student_score_log
+        String cls = null;
+        try {
+            StudentEntity stu = studentDao.selectList(new EntityWrapper<StudentEntity>().eq("studentaccount", studentaccount).last("LIMIT 1")).stream().findFirst().orElse(null);
+            if (stu != null && StringUtils.hasText(stu.getClassname())) cls = stu.getClassname();
+        } catch (Exception e) {}
         int s = score;
-        writeScoreLog(studentaccount, studentname, null,
+        writeScoreLog(studentaccount, studentname, cls,
             courseid, poemTitle, sourceType, s, aiReport, null, null);
 
         Map<String, Object> result = new LinkedHashMap<>();

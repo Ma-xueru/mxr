@@ -3,13 +3,49 @@
     <text class="tl-empty-icon">📋</text>
     <text class="tl-empty-text">暂无待完成的测验</text>
   </view>
-  <view class="tl-card" wx:for="{{list}}" wx:key="taskId" bindtap="startExam" data-index="{{index}}">
-    <view class="tl-card-icon">📝</view>
-    <view class="tl-card-info">
-      <text class="tl-card-title">{{item.taskTitle}}</text>
-      <text class="tl-card-desc">{{item.courseTitle}} · {{item.questions.length}}道题</text>
+
+  <view class="tl-card {{item.status === 'completed' ? 'done' : 'pending'}}" wx:for="{{list}}" wx:key="taskId" wx:for-item="item" bindtap="startExam" data-index="{{index}}">
+    <!-- 顶部行：类型标签 + 完成状态 -->
+    <view class="card-top">
+      <view class="card-badge quiz">测验</view>
+      <view class="card-status {{item.status==='completed'?'done':'pending'}}">
+        <view class="status-dot"></view>
+        <text>{{item.status === 'completed' ? '已完成' : '待完成'}}</text>
+      </view>
     </view>
-    <view class="tl-tag {{item.status === 'completed' ? 'done' : 'pending'}}">{{item.status === 'completed' ? '已完成 ' + (item.latestScore || '') + '分' : '未完成'}}</view>
-    <text class="tl-card-arrow" wx:if="{{item.status !== 'completed'}}">→</text>
+
+    <!-- 测验标题 -->
+    <view class="card-poem">{{item.taskTitle}}</view>
+
+    <!-- 信息行 -->
+    <view class="card-info">{{item.courseTitle}}</view>
+
+    <!-- 元信息三列 -->
+    <view class="card-meta">
+      <view class="card-meta-item">
+        <text class="meta-label">题目数</text>
+        <text class="meta-value">{{item.questions ? item.questions.length : 0}}道</text>
+      </view>
+      <view class="card-meta-item">
+        <text class="meta-label">得分</text>
+        <text class="meta-value score {{item.latestScore ? (item.latestScore>=80?'high':'mid') : 'none'}}">{{item.latestScore || '待评分'}}</text>
+      </view>
+      <view class="card-meta-item">
+        <text class="meta-label">截止</text>
+        <text class="meta-value">{{item.deadline || '长期有效'}}</text>
+      </view>
+    </view>
+
+    <!-- 操作 -->
+    <view class="card-actions">
+      <button
+        wx:if="{{item.status !== 'completed'}}"
+        class="action-btn primary quiz-btn"
+        data-index="{{index}}"
+        bindtap="startExam">
+        开始测验
+      </button>
+      <text class="action-link done-text" wx:else>查看详情</text>
+    </view>
   </view>
 </view>

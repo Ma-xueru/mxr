@@ -5,21 +5,21 @@
 				<el-row :gutter="20">
 					<el-col :span="12">
 						<el-form-item label="年级" prop="grade">
-							<el-select class="list_sel" v-model="form.grade" placeholder="请选择年级" :disabled="!isAdd||disabledForm.grade">
+							<el-select class="list_sel" v-model="form.grade" placeholder="请选择年级" :disabled="!isAdd||disabledForm.grade||isTeacher">
 								<el-option v-for="item in gradeLists" :key="item" :label="item" :value="item"></el-option>
 							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :span="12">
 						<el-form-item label="班级名称" prop="classname">
-							<el-input class="list_inp" v-model="form.classname" placeholder="例如：三年级1班" :readonly="!isAdd||disabledForm.classname"></el-input>
+							<el-input class="list_inp" v-model="form.classname" placeholder="例如：三年级1班" :readonly="!isAdd||disabledForm.classname||isTeacher"></el-input>
 						</el-form-item>
 					</el-col>
 
 
 					<el-col :span="24">
 						<el-form-item label="班级说明" prop="classdesc">
-							<el-input class="list_inp" type="textarea" :rows="4" v-model="form.classdesc" placeholder="请输入班级说明" :readonly="!isAdd||disabledForm.classdesc"></el-input>
+							<el-input class="list_inp" type="textarea" :rows="4" v-model="form.classdesc" placeholder="请输入班级说明" :readonly="disabledForm.classdesc"></el-input>
 						</el-form-item>
 					</el-col>
 
@@ -38,6 +38,7 @@
 <script setup>
 import { ref, computed, watch, getCurrentInstance, defineEmits, defineExpose } from 'vue'
 const context = getCurrentInstance()?.appContext.config.globalProperties
+const isTeacher = computed(() => context?.$toolUtil.storageGet('roleType') === 'TEACHER')
 const emit = defineEmits(['formModelChange'])
 const tableName = 'classinfo'
 const formName = '班级'

@@ -1,63 +1,79 @@
-<view class="detail-container">
-  <view class="content">
-    <view class="hero-box">
-      <view class="hero-title">{{detailList.tasktitle || '背诵任务'}}</view>
-      <view class="hero-status" wx:if="{{detailList.completionstatus=='已完成'}}" style="background:#5fb959">已完成</view>
-      <view class="hero-status" wx:else>待完成</view>
+<view class="detail-page">
+  <!-- 头部古诗卡片 -->
+  <view class="poem-card">
+    <view class="poem-title">{{detailList.coursetitles || '未指定古诗'}}</view>
+    <view class="poem-sub">任务要求：{{detailList.taskcontent || '请完成以下古诗背诵'}}</view>
+    <view class="poem-teacher" wx:if="{{detailList.teachername}}">指导教师：{{detailList.teachername}}</view>
+  </view>
+
+  <!-- AI测评报告 -->
+  <block wx:if="{{aiReport}}">
+    <view class="section-label">AI 背诵测评报告</view>
+
+    <!-- 得分圆环 -->
+    <view class="score-card">
+      <view class="score-ring">
+        <view class="score-num">{{aiReport.totalScore || detailList.kaoshichengji || 0}}</view>
+        <view class="score-unit">分</view>
+      </view>
+      <view class="score-desc">综合得分</view>
     </view>
 
-    <!-- AI测评报告 -->
-    <view class="report-card" wx:if="{{aiReport}}">
-      <view class="report-header">
-        <view class="report-title">AI 背诵测评报告</view>
-        <view class="report-badge">火山引擎 AI</view>
-      </view>
-      <view class="score-circle-wrap">
-        <view class="score-circle">
-          <view class="score-num">{{aiReport.totalScore}}</view>
-          <view class="score-label">综合得分</view>
+    <!-- 维度详情 -->
+    <view class="dim-card">
+      <view class="section-label" style="margin-top:0">各维度评分</view>
+      <view class="dim-item" wx:for="{{aiReport.dimensions}}" wx:key="name">
+        <view class="dim-top">
+          <text class="dim-name">{{item.name}}</text>
+          <text class="dim-score">{{item.score}}分</text>
         </view>
-      </view>
-      <view class="dim-list">
-        <view class="dim-item" wx:for="{{aiReport.dimensions}}" wx:key="name">
-          <view class="dim-top">
-            <text class="dim-name">{{item.name}}</text>
-            <text class="dim-score">{{item.score}}分</text>
-          </view>
-          <view class="dim-bar-bg"><view class="dim-bar-fill" style="width:{{item.score}}%"></view></view>
-          <view class="dim-comment">{{item.comment}}</view>
-          <view class="dim-encourage">{{item.encourage}}</view>
-        </view>
-      </view>
-      <view class="report-summary" wx:if="{{aiReport.overallComment}}">
-        <view class="summary-label">总体评价</view>
-        <view class="summary-text">{{aiReport.overallComment}}</view>
+        <view class="dim-bar-bg"><view class="dim-bar-fill" style="width:{{item.score}}%"></view></view>
+        <view class="dim-comment">{{item.comment}}</view>
+        <view class="dim-encourage" wx:if="{{item.encourage}}">✨ {{item.encourage}}</view>
       </view>
     </view>
 
-    <!-- 任务详情 -->
-    <view class="detail-box">
-      <view class="detail-item-box"><view class="detail-item-label">学生</view><view class="detail-item-text">{{detailList.studentname}}（{{detailList.studentaccount}}）</view></view>
-      <view class="detail-item-box"><view class="detail-item-label">指定古诗</view><view class="detail-item-text">{{detailList.coursetitles || '老师暂未指定'}}</view></view>
-      <view class="detail-item-box"><view class="detail-item-label">任务要求</view><view class="detail-item-text">{{detailList.taskcontent}}</view></view>
-      <view class="detail-item-box"><view class="detail-item-label">截止日期</view><view class="detail-item-text">{{detailList.deadline}}</view></view>
-      <view class="detail-item-box" wx:if="{{detailList.recitationaudio}}">
-        <view class="detail-item-label">背诵录音</view>
-        <view class="detail-item-text"><audio src="{{baseURL}}{{detailList.recitationaudio}}" controls></audio></view>
-      </view>
-      <view class="detail-item-box" wx:if="{{detailList.kaoshichengji}}">
-        <view class="detail-item-label">背诵得分</view><view class="detail-item-text score-text">{{detailList.kaoshichengji}}分</view>
-      </view>
-      <view class="detail-item-box" wx:if="{{detailList.recognizedtext}}">
-        <view class="detail-item-label">识别文本</view><view class="detail-item-text small-text">{{detailList.recognizedtext}}</view>
-      </view>
-      <view class="detail-item-box" wx:if="{{detailList.teachercomment}}">
-        <view class="detail-item-label">教师评语</view><view class="detail-item-text teacher-text">{{detailList.teachercomment}}</view>
-      </view>
-      <view class="detail-item-box" wx:if="{{detailList.teachername}}">
-        <view class="detail-item-label">教师</view><view class="detail-item-text">{{detailList.teachername}}</view>
-      </view>
-      <view class="detail-item-box"><view class="detail-item-label">完成时间</view><view class="detail-item-text">{{detailList.completiontime || '未完成'}}</view></view>
+    <!-- 总体评价 -->
+    <view class="overall-card" wx:if="{{aiReport.overallComment}}">
+      <view class="overall-label">总体评价</view>
+      <view class="overall-text">{{aiReport.overallComment}}</view>
+    </view>
+
+    <!-- 识别文本 -->
+    <view class="recognize-card" wx:if="{{detailList.recognizedtext}}">
+      <view class="recognize-label">🎙️ AI 识别文本</view>
+      <view class="recognize-text">"{{detailList.recognizedtext}}"</view>
+    </view>
+  </block>
+
+  <!-- 任务信息卡片 -->
+  <view class="info-card">
+    <view class="section-label" style="margin-top:0">任务信息</view>
+
+    <view class="info-row">
+      <text class="info-label">学生</text>
+      <text class="info-value">{{detailList.studentname}}（{{detailList.studentaccount}}）</text>
+    </view>
+
+    <view class="info-row">
+      <text class="info-label">截止日期</text>
+      <text class="info-value">{{detailList.deadline || '长期有效'}}</text>
+    </view>
+
+    <view class="info-row" wx:if="{{detailList.teachercomment}}">
+      <text class="info-label">教师评语</text>
+      <text class="info-value teacher-text">{{detailList.teachercomment}}</text>
     </view>
   </view>
+
+  <!-- 完成时间 -->
+  <view class="finish-time" wx:if="{{detailList.completiontime}}">
+    完成时间：{{detailList.completiontime}}
+  </view>
+
+  <view class="finish-time" wx:else>
+    待完成
+  </view>
+
+  <view class="bottom-space"></view>
 </view>

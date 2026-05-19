@@ -18,6 +18,32 @@
         </div>
       </div>
 
+      <!-- 班级对比看板 -->
+      <div class="compare_panel" v-if="classCompare.length > 1">
+        <div class="compare_title">🏆 班级对比看板</div>
+        <el-table :data="classCompare" border stripe size="small">
+          <el-table-column label="排名" width="60" align="center">
+            <template #default="s"><el-tag :type="s.row.rank===1?'danger':s.row.rank===2?'warning':'info'" size="small">#{{ s.row.rank }}</el-tag></template>
+          </el-table-column>
+          <el-table-column prop="classname" label="班级" width="120"></el-table-column>
+          <el-table-column prop="studentCount" label="人数" width="70" align="center"></el-table-column>
+          <el-table-column label="均分" width="80" align="center">
+            <template #default="s"><b :style="{color:s.row.avgScore>=70?'#4CAF50':s.row.avgScore>=40?'#FF9800':'#999'}">{{ s.row.avgScore }}</b></template>
+          </el-table-column>
+          <el-table-column label="完成率" width="160">
+            <template #default="s">
+              <div style="display:flex;align-items:center;gap:6px">
+                <el-progress :percentage="s.row.completeRate" :stroke-width="8" :color="s.row.completeRate>=80?'#6fc47d':s.row.completeRate>=40?'#e7ba63':'#e88a6e'" />
+                <span style="font-size:12px;white-space:nowrap;color:#888">{{ s.row.taskDone }}/{{ s.row.taskTotal }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="activityCount" label="活跃度" width="80" align="center">
+            <template #default="s"><el-tag :type="s.row.activityCount>=10?'success':s.row.activityCount>=3?'warning':'info'" size="small">{{ s.row.activityCount }}次</el-tag></template>
+          </el-table-column>
+        </el-table>
+      </div>
+
       <el-table v-loading="loading" :data="studentList" border stripe>
         <el-table-column label="序号" width="60" align="center">
           <template #default="scope">{{ scope.$index + 1 }}</template>
@@ -123,6 +149,7 @@ const echarts = inject('echarts')
 
 const loading = ref(false)
 const studentList = ref([])
+const classCompare = ref([])
 const overview = ref({ totalAll: 0, totalFollow: 0, totalQuiz: 0, totalAnalogy: 0, totalReview: 0 })
 
 const drawerVisible = ref(false); const drawerStudent = ref('')
@@ -232,7 +259,13 @@ const renderRadar = () => {
   })
 }
 
-onMounted(() => loadStudents())
+const loadComparison = () => {
+  context?.$http({ url: 'teacher/classComparison', method: 'get' }).then(res => {
+    if (res.data && res.data.code === 0) classCompare.value = res.data.data.classes || []
+  })
+}
+
+onMounted(() => { loadStudents(); loadComparison() })
 </script>
 
 <style lang="scss" scoped>
@@ -247,6 +280,8 @@ onMounted(() => loadStudents())
 .overview_card.purple { background: #f3e5f5; }
 .overview_card.blue { background: #e3f2fd; }
 .overview_value { font-size: 24px; font-weight: 700; color: #3f3424; }
+.compare_panel { margin-bottom: 16px; padding: 18px 22px; background: #fffdf7; border-radius: 16px; border: 1px solid #efe5cd; }
+.compare_title { font-size: 17px; font-weight: 700; color: #3f3424; margin-bottom: 12px; }
 .overview_label { font-size: 11px; color: #9a8d73; margin-top: 2px; }
 
 .history_list_title { font-size: 14px; font-weight: 700; color: #3f3424; margin-bottom: 10px; padding: 8px 0; border-bottom: 1px solid #efe5cd; }

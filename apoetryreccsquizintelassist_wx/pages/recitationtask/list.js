@@ -126,10 +126,11 @@ Page({
     if (this.data.tasktitle) params.tasktitle = '%' + this.data.tasktitle + '%'
     if (this.data.completionstatus) params.completionstatus = '%' + this.data.completionstatus + '%'
     const res = await page("recitationtask", params)
+    var listData2 = (res.data.list || []).filter(function(item) { return item.taskType !== 2 })
     this.setData({
-      goodsListData: res.data.list || [],
-      questList: res.data.list || [],
-      allData: res.data.list || [],
+      goodsListData: listData2,
+      questList: listData2,
+      allData: listData2,
       total: res.total || 0,
       pageNum: 2,
       flag: (res.data.list || []).length < (res.total || 0),
@@ -160,7 +161,7 @@ Page({
     this.setData(isAuthObj)
     const res = await page("recitationtask", obj)
     if (res.code == 0) {
-      const listData = (res.data.list || []).map(item => item)
+      var listData = (res.data.list || []).filter(function(item) { return item.taskType !== 2 })
       this.setData({
         goodsListData: listData,
         questList: listData,

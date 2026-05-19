@@ -30,7 +30,13 @@ Page({
           }
         } catch (e) {}
       }
-      this.setData({ detailList: data, aiReport: report })
+      // 编码音频URL中的中文文件名
+      var audioUrl = ''
+      if (data.recitationaudio) {
+        var parts = data.recitationaudio.split('/')
+        audioUrl = this.data.baseURL + parts.map(function(p) { return encodeURIComponent(p) }).join('/')
+      }
+      this.setData({ detailList: data, aiReport: report, audioUrl: audioUrl })
     }
   }
 })

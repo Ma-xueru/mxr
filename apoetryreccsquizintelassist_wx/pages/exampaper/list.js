@@ -67,7 +67,7 @@ Page({
             var dpr = wx.getSystemInfoSync().pixelRatio
             canvas.width = w * dpr; canvas.height = h * dpr; ctx.scale(dpr, dpr)
 
-            var cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 30
+            var cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 52
             var n = dims.length, step = Math.PI * 2 / n
             var colors = ['#e57373','#64B5F6','#FFB74D','#81C784']
 
@@ -93,25 +93,28 @@ Page({
             // 数据区
             ctx.beginPath()
             for (var i = 0; i < n; i++) {
-                var val = (ability[dims[i]] || 50) / 100
+                var val = (ability[dims[i]] || 0) / 100
                 var angle = step * i - Math.PI / 2
                 var x = cx + r * val * Math.cos(angle), y = cy + r * val * Math.sin(angle)
                 i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
             }
             ctx.closePath()
-            ctx.fillStyle = 'rgba(129,199,132,0.2)'; ctx.fill()
-            ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 2; ctx.stroke()
+            ctx.fillStyle = 'rgba(129,199,132,0.15)'; ctx.fill()
+            ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 1.5; ctx.stroke()
 
-            // 数据点+标签
+            // 数据点（微小空心圆）+ 标签（向外偏移）
             for (var i = 0; i < n; i++) {
-                var val = (ability[dims[i]] || 50) / 100
+                var val = (ability[dims[i]] || 0) / 100
                 var angle = step * i - Math.PI / 2
                 var x = cx + r * val * Math.cos(angle), y = cy + r * val * Math.sin(angle)
-                ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.arc(x, y, 5, 0, 2*Math.PI); ctx.fill()
-                // 标签
-                var lx = cx + (r + 28) * Math.cos(angle), ly = cy + (r + 28) * Math.sin(angle)
-                ctx.fillStyle = '#555'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'
-                ctx.fillText(dims[i] + ' ' + (ability[dims[i]]||0), lx, ly + 4)
+                // 微小空心圆
+                ctx.strokeStyle = colors[i]; ctx.lineWidth = 1.5
+                ctx.beginPath(); ctx.arc(x, y, 2.5, 0, 2*Math.PI); ctx.stroke()
+                ctx.fillStyle = '#fff'; ctx.fill()
+                // 标签 — 向外偏移
+                var lx = cx + (r + 36) * Math.cos(angle), ly = cy + (r + 36) * Math.sin(angle) + 3
+                ctx.fillStyle = '#555'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'
+                ctx.fillText(dims[i] + ' ' + (ability[dims[i]]||0), lx, ly)
             }
         })
     },

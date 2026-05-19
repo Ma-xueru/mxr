@@ -74,4 +74,14 @@ app.config.globalProperties.$http = http // ajax请求方法
 
 app.use(store)
 app.use(router)
+
+// 教师登录后自动跳转工作台
+router.beforeEach((to, from, next) => {
+  if (to.path === '/') {
+    const roleType = localStorage.getItem('roleType')
+    if (roleType === 'TEACHER') { next('/teacherDashboard'); return }
+  }
+  next()
+})
+
 app.mount('#app')

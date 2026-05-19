@@ -62,7 +62,7 @@
 						<el-form-item label="绑定班级" prop="classname">
 							<el-select
 								class="list_sel"
-								:disabled="!isAdd||disabledForm.classname?true:false"
+								:disabled="false"
 								v-model="form.classnameArr"
 								placeholder="请选择班级"
 								multiple

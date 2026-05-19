@@ -38,7 +38,7 @@ public class QuizTaskController {
         List<RecitationtaskEntity> all = recitationtaskDao.selectList(ew);
         Map<String, Map<String, Object>> groups = new LinkedHashMap<>();
         for (RecitationtaskEntity t : all) {
-            String key = (t.getCoursetitles()==null?"":"") + "|" + (t.getTasktitle()==null?"":"") + "|" + (t.getTeacheraccount()==null?"":"");
+            String key = t.getCourseids() != null ? t.getCourseids() : (t.getCoursetitles() != null ? t.getCoursetitles() : String.valueOf(t.getId()));
             Map<String, Object> g = groups.get(key);
             if (g == null) {
                 g = new LinkedHashMap<>();
@@ -481,8 +481,13 @@ public class QuizTaskController {
             AIChatUtil.ChatResult aiCr = AIChatUtil.chatWithMessages(aiMsgs, 0.5, 800);
             aiReport = aiCr != null ? aiCr.getContent() : "";
             if (aiReport != null) { int s = aiReport.indexOf('{'), e = aiReport.lastIndexOf('}'); if (s>=0&&e>s) aiReport = aiReport.substring(s,e+1); }
-            // 强制裁剪为3个维度
             aiReport = enforceThreeDimensions(aiReport);
+            // AI调用失败时兜底生成报告
+            if (aiReport == null || aiReport.isEmpty() || !aiReport.contains("dimensions")) {
+                aiReport = buildDefaultReport(score, correct, total);
+            }
+        } else {
+            aiReport = buildDefaultReport(score, correct, total);
         }
 
         // 保存记录
@@ -547,6 +552,20 @@ public class QuizTaskController {
             if (report != null && !report.isEmpty() && result.isEmpty()) return report;
             return result;
         } catch (Exception e) { return report; }
+    }
+
+    private String buildDefaultReport(int score, int correct, int total) {
+        int s = Math.max(0, Math.min(100, score));
+        String comment80 = "掌握扎实，表现优秀！";
+        String comment60 = "基本掌握，仍有提升空间。";
+        String comment40 = "基础薄弱，需要加强学习。";
+        String c = s >= 80 ? comment80 : s >= 60 ? comment60 : comment40;
+        return "{\"dimensions\":[" +
+            "{\"name\":\"知识掌握度\",\"score\":" + s + ",\"comment\":\"" + c + "\"}," +
+            "{\"name\":\"答题准确率\",\"score\":" + s + ",\"comment\":\"" + c + "\"}," +
+            "{\"name\":\"理解深度\",\"score\":" + s + ",\"comment\":\"" + c + "\"}]," +
+            "\"suggestion\":\"" + (s >= 80 ? "表现优异！继续挑战更高难度。" : s >= 60 ? "建议针对错题进行专项练习。" : "建议重新学习相关古诗，打好基础。") + "\"," +
+            "\"overallComment\":\"答对" + correct + "/" + total + "题，得分" + score + "分。\"}";
     }
 
     private String cleanJson(String resp) {

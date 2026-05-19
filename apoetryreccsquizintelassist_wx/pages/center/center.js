@@ -20,8 +20,25 @@ Page({
     correctRate: 0,    // 正确率
     wordCount: 0,      // 正确次数数
     isStudent: false,
+    showAvatarPicker: false,
+    selectedAvatarIndex: -1,
+    avatarPool: [
+      { src: 'file/儒雅小书生.png', name: '儒雅小书生', bg: 'linear-gradient(135deg,#B3E5FC,#81D4FA)' },
+      { src: 'file/活泼小侠客.png', name: '活泼小侠客', bg: 'linear-gradient(135deg,#FFCDD2,#EF9A9A)' },
+      { src: 'file/机灵小书童.png', name: '机灵小书童', bg: 'linear-gradient(135deg,#FFE0B2,#FFCC80)' },
+      { src: 'file/优雅小才女.png', name: '优雅小才女', bg: 'linear-gradient(135deg,#F3E5F5,#CE93D8)' },
+      { src: 'file/福气小福娃.png', name: '福气小福娃', bg: 'linear-gradient(135deg,#FFE0B2,#FFB74D)' },
+      { src: 'file/自然小仙子.png', name: '自然小仙子', bg: 'linear-gradient(135deg,#C8E6C9,#A5D6A7)' },
+      { src: 'file/抱书萌萌兔.png', name: '抱书萌萌兔', bg: 'linear-gradient(135deg,#BBDEFB,#90CAF9)' },
+      { src: 'file/祥云福运龙.png', name: '祥云福运龙', bg: 'linear-gradient(135deg,#FFF9C4,#FFF176)' },
+      { src: 'file/绿野小仙子.png', name: '绿野小仙子', bg: 'linear-gradient(135deg,#C8E6C9,#81C784)' }
+    ],
     ownMedalCount: 0,
     classMedalCount: 0,
+    weeklyHeat: [],
+    trend7: [],
+    bestScores: { follow: 0, quiz: 0, analogy: 0, review: 0 },
+    totalDays: 0,
     weeklyStudyData: [],
     reviewRecommendations: [],
     weakPointSummary: '',
@@ -48,6 +65,41 @@ Page({
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady() {},
+
+  onAvatarTap() {
+    this.setData({ showAvatarPicker: true, selectedAvatarIndex: -1 })
+  },
+  closeAvatarPicker() {
+    this.setData({ showAvatarPicker: false })
+  },
+  noop() {},
+  selectAvatar(e) {
+    this.setData({ selectedAvatarIndex: e.currentTarget.dataset.idx })
+  },
+  confirmAvatar() {
+    var that = this
+    var idx = this.data.selectedAvatarIndex
+    if (idx < 0) { wx.showToast({ title: '请先选择一个头像', icon: 'none' }); return }
+    var avatar = this.data.avatarPool[idx]
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    // 更新 student 表的 avatar 字段
+    var updatedInfo = Object.assign({}, this.data.userInfo, { avatar: avatar.src })
+    wx.request({
+      url: baseURL + '/student/update', method: 'POST',
+      header: { 'Content-Type': 'application/json', Token: wx.getStorageSync('token') },
+      data: JSON.stringify(updatedInfo),
+      success: function(res) {
+        if (res.data && res.data.code === 0) {
+          getApp().globalData.userInfo = updatedInfo
+          that.setData({ userInfo: updatedInfo, showAvatarPicker: false })
+          wx.showToast({ title: '头像设置成功！', icon: 'success' })
+        } else {
+          wx.showToast({ title: '保存失败，请重试', icon: 'none' })
+        }
+      },
+      fail: function() { wx.showToast({ title: '网络错误', icon: 'none' }) }
+    })
+  },
 
   toDetail() {
     wx.navigateTo({
@@ -80,6 +132,7 @@ Page({
     // 获取学习统计数据
     if (this.data.userInfo.id) {
       await this.getStudyStats();
+      this.loadHomeStats();
     }
   },
 
@@ -155,6 +208,26 @@ Page({
       })
     }
   },
+  loadHomeStats() {
+    var that = this
+    var baseURL = wx.getStorageSync('baseURL') || ''
+    wx.request({
+      url: baseURL + '/followread/homeStats', method: 'GET',
+      header: { Token: wx.getStorageSync('token') },
+      success: function(res) {
+        if (res.data && res.data.code === 0) {
+          var d = res.data.data
+          that.setData({
+            weeklyHeat: d.weeklyHeat || [],
+            trend7: d.trend7 || [],
+            bestScores: d.bestScores || { follow: 0, quiz: 0, analogy: 0, review: 0 },
+            totalDays: d.totalDays || 0
+          })
+        }
+      }
+    })
+  },
+
   async getClassMedalCount(classname) {
     if (!classname) return 0
     try {

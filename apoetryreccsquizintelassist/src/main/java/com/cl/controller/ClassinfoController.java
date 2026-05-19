@@ -8,6 +8,7 @@ import com.cl.utils.MPUtil;
 import com.cl.utils.PageUtils;
 import com.cl.utils.R;
 import org.apache.commons.lang3.StringUtils;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,7 +72,10 @@ public class ClassinfoController {
     }
 
     @RequestMapping("/save")
-    public R save(@RequestBody ClassinfoEntity classinfo) {
+    public R save(@RequestBody ClassinfoEntity classinfo, HttpServletRequest request) {
+        if ("teacher".equals(String.valueOf(request.getSession().getAttribute("tableName")))) {
+            return R.error("教师无权新增班级");
+        }
         if (StringUtils.isBlank(classinfo.getClassname())) {
             return R.error("班级名称不能为空");
         }
@@ -81,7 +85,10 @@ public class ClassinfoController {
     }
 
     @RequestMapping("/add")
-    public R add(@RequestBody ClassinfoEntity classinfo) {
+    public R add(@RequestBody ClassinfoEntity classinfo, HttpServletRequest request) {
+        if ("teacher".equals(String.valueOf(request.getSession().getAttribute("tableName")))) {
+            return R.error("教师无权新增班级");
+        }
         if (StringUtils.isBlank(classinfo.getClassname())) {
             return R.error("班级名称不能为空");
         }
@@ -92,13 +99,31 @@ public class ClassinfoController {
 
     @RequestMapping("/update")
     @Transactional
-    public R update(@RequestBody ClassinfoEntity classinfo) {
+    public R update(@RequestBody ClassinfoEntity classinfo, HttpServletRequest request) {
+        if ("teacher".equals(String.valueOf(request.getSession().getAttribute("tableName")))) {
+            // 教师只能修改自己所教班级的说明
+            java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
+            if (classnames == null || !classnames.contains(classinfo.getClassname())) {
+                return R.error("只能修改自己所教班级的说明");
+            }
+            // 仅允许更新 classdesc 字段
+            ClassinfoEntity existing = classinfoService.selectById(classinfo.getId());
+            if (existing != null) {
+                existing.setClassdesc(classinfo.getClassdesc());
+                classinfoService.updateById(existing);
+                return R.ok();
+            }
+            return R.error("班级不存在");
+        }
         classinfoService.updateById(classinfo);
         return R.ok();
     }
 
     @RequestMapping("/delete")
-    public R delete(@RequestBody Long[] ids) {
+    public R delete(@RequestBody Long[] ids, HttpServletRequest request) {
+        if ("teacher".equals(String.valueOf(request.getSession().getAttribute("tableName")))) {
+            return R.error("教师无权删除班级");
+        }
         classinfoService.deleteBatchIds(Arrays.asList(ids));
         return R.ok();
     }

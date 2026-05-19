@@ -3,7 +3,9 @@ Page({
     loading: true, finished: false,
     taskId: '', courseTitle: '', courseId: '',
     questions: [], currentIndex: 0,
-    answers: [], score: 0, correctCount: 0, totalQuestions: 0,
+    answered: false, showAnalysis: false, selectedIndex: -1,
+    correctCount: 0, wrongList: [],
+    score: 0, totalQuestions: 0,
     aiReport: null
   },
 
@@ -14,9 +16,13 @@ Page({
     if (data.status === 'completed') {
       this.loadSavedResult(data.taskId)
     } else {
+      // 给每个题目加上 status 和正确答案索引
+      var questions = data.questions.map(function(q) {
+        q.status = ''; return q
+      })
       this.setData({
         taskId: data.taskId, courseTitle: data.courseTitle, courseId: data.courseId,
-        questions: data.questions, totalQuestions: data.questions.length, loading: false
+        questions: questions, totalQuestions: questions.length, loading: false
       })
     }
   },
@@ -43,13 +49,45 @@ Page({
   },
 
   selectOption(e) {
+    if (this.data.answered) return
     var idx = e.currentTarget.dataset.index
-    var answers = this.data.answers
-    answers.push({ qId: this.data.questions[this.data.currentIndex].id, selected: idx })
+    var q = this.data.questions[this.data.currentIndex]
+    var correctAnswer = q.answer !== undefined ? q.answer : q.correctAnswer
+    var isCorrect = idx === correctAnswer
+    var questions = this.data.questions.slice()
+    var qCopy = Object.assign({}, questions[this.data.currentIndex])
+    qCopy.status = isCorrect ? 'correct' : 'wrong'
+    qCopy.selected = idx
+    questions[this.data.currentIndex] = qCopy
+
+    var correctCount = this.data.correctCount + (isCorrect ? 1 : 0)
+    var wrongList = this.data.wrongList.slice()
+    if (!isCorrect) {
+      wrongList.push({
+        question: q.content || q.question,
+        options: q.options,
+        answer: correctAnswer,
+        analysis: q.analysis,
+        selected: idx
+      })
+    }
+    this.setData({
+      questions: questions,
+      answered: true,
+      showAnalysis: !isCorrect,
+      selectedIndex: idx,
+      correctCount: correctCount,
+      wrongList: wrongList
+    })
+  },
+
+  nextQuestion() {
     if (this.data.currentIndex < this.data.questions.length - 1) {
-      this.setData({ currentIndex: this.data.currentIndex + 1, answers })
+      this.setData({
+        currentIndex: this.data.currentIndex + 1,
+        answered: false, showAnalysis: false, selectedIndex: -1
+      })
     } else {
-      this.setData({ answers })
       this.submitAnswers()
     }
   },
@@ -59,6 +97,9 @@ Page({
     var that = this
     var ui = getApp().globalData.userInfo || {}
     var baseURL = wx.getStorageSync('baseURL') || ''
+    var answers = this.data.questions.map(function(q) {
+      return { qId: q.id, selected: q.selected !== undefined ? q.selected : -1 }
+    })
     wx.request({
       url: baseURL + '/quiztask/submit', method: 'POST',
       header: { 'Content-Type': 'application/json', Token: wx.getStorageSync('token') },
@@ -67,7 +108,7 @@ Page({
         courseTitle: this.data.courseTitle,
         studentaccount: ui.studentaccount || wx.getStorageSync('nickname'),
         studentname: ui.studentname || wx.getStorageSync('nickname') || '',
-        answers: this.data.answers
+        answers: answers
       }),
       success: function(res) {
         if (res.data.code === 0) {
@@ -84,7 +125,10 @@ Page({
           that.setData({ loading: false })
         }
       },
-      fail: function(e) { that.setData({ loading: false }); wx.showModal({ title: '网络错误', content: e.errMsg || '连接失败', showCancel: false }) }
+      fail: function(e) {
+        that.setData({ loading: false })
+        wx.showModal({ title: '网络错误', content: e.errMsg || '连接失败', showCancel: false })
+      }
     })
   },
 
@@ -100,11 +144,10 @@ Page({
       var w = res[0].width, h = res[0].height
       var dpr = wx.getSystemInfoSync().pixelRatio
       canvas.width = w * dpr; canvas.height = h * dpr; ctx.scale(dpr, dpr)
-      var cx = w/2, cy = h/2, r = Math.min(w,h)/2 - 30
+      var cx = w/2, cy = h/2, r = Math.min(w,h)/2 - 48
       var n = dims.length, step = Math.PI*2/n
       var colors = ['#e57373','#64B5F6','#FFB74D','#81C784']
 
-      // 网格
       for (var lv = 1; lv <= 5; lv++) {
         var lr = r * lv / 5
         ctx.beginPath()
@@ -114,29 +157,26 @@ Page({
         }
         ctx.closePath(); ctx.strokeStyle = '#e8e0d0'; ctx.lineWidth = 0.5; ctx.stroke()
       }
-      // 轴线
       for (var i = 0; i < n; i++) {
         ctx.beginPath(); ctx.moveTo(cx,cy)
         ctx.lineTo(cx + r*Math.cos(step*i-Math.PI/2), cy + r*Math.sin(step*i-Math.PI/2))
         ctx.strokeStyle = '#e8e0d0'; ctx.stroke()
       }
-      // 数据
       ctx.beginPath()
       for (var i = 0; i < n; i++) {
-        var val = (dims[i].score || 50) / 100
+        var val = (dims[i].score || 0) / 100
         var a = step*i - Math.PI/2, x = cx + r*val*Math.cos(a), y = cy + r*val*Math.sin(a)
         i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
       }
-      ctx.closePath(); ctx.fillStyle = 'rgba(129,199,132,0.2)'; ctx.fill()
-      ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 2; ctx.stroke()
-      // 标签
+      ctx.closePath(); ctx.fillStyle = 'rgba(129,199,132,0.15)'; ctx.fill()
+      ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 1.5; ctx.stroke()
       for (var i = 0; i < n; i++) {
-        var val = (dims[i].score || 50) / 100
+        var val = (dims[i].score || 0) / 100
         var a = step*i - Math.PI/2
         ctx.fillStyle = colors[i%4]
-        ctx.beginPath(); ctx.arc(cx + r*val*Math.cos(a), cy + r*val*Math.sin(a), 4, 0, 2*Math.PI); ctx.fill()
-        ctx.fillStyle = '#555'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'
-        ctx.fillText(dims[i].name + ' ' + (dims[i].score||0), cx + (r+28)*Math.cos(a), cy + (r+28)*Math.sin(a)+4)
+        ctx.beginPath(); ctx.arc(cx + r*val*Math.cos(a), cy + r*val*Math.sin(a), 2.5, 0, 2*Math.PI); ctx.fill()
+        ctx.fillStyle = '#555'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'
+        ctx.fillText(dims[i].name + ' ' + (dims[i].score||0), cx + (r+38)*Math.cos(a), cy + (r+38)*Math.sin(a)+4)
       }
     })
   },

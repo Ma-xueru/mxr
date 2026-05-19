@@ -42,7 +42,7 @@
 					<el-col :span="24">
 						<el-form-item label="古诗词简介" prop="intro">
 							<el-input class="textarea" v-model="form.intro" placeholder="请输入古诗词简介" type="textarea"
-								:rows="3" :readonly="!isAdd || disabledForm.intro ? true : false" />
+								:rows="5" :readonly="!isAdd || disabledForm.intro ? true : false" />
 						</el-form-item>
 					</el-col>
 					<el-col :span="24">

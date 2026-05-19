@@ -99,8 +99,8 @@ Page({
     this.searhandler()
   },
   async getStudentGrade() {
-    const role = wx.getStorageSync('role')
-    if (role !== 'student') {
+    const nowTable = wx.getStorageSync('nowTable')
+    if (nowTable !== 'student') {
       this.setData({
         studentGrade: ""
       })
@@ -124,45 +124,81 @@ Page({
     return ""
   },
   buildPageParams(pageNum) {
-    return {
+    var params = {
       page: pageNum,
       limit: 100,
       order: 'desc'
     }
+    if (this.data.studentGrade) {
+      params.grade = this.data.studentGrade
+    }
+    return params
   },
-  // 批量加载云数据库图片
   loadPoemImages(list) {
-    if (!wx.cloud || !list.length) return
+    if (!list.length) return
     var that = this
-    var ids = list.map(function(item) { return Number(item.id) })
+    var poemImages = Object.assign({}, this.data.poemImages)
+    var cloudIds = []
+    var cloudMap = {}
+
+    // 1. 后端 picture 字段（HTTP公开可访问，内网穿透可用）
+    list.forEach(function(item) {
+      var pic = item.picture
+      if (pic && !poemImages[item.id]) {
+        if (pic.indexOf('cloud://') === 0) {
+          cloudIds.push(pic)
+          cloudMap[pic] = item.id
+        } else if (pic.indexOf('http') === 0) {
+          poemImages[item.id] = pic
+        } else if (pic.indexOf('/file/') === 0) {
+          poemImages[item.id] = baseURL + pic
+        }
+      }
+    })
+    // 转换 cloud:// → 临时 URL
+    if (cloudIds.length > 0) {
+      wx.cloud.getTempFileURL({ fileList: cloudIds }).then(function(urlRes) {
+        (urlRes.fileList || []).forEach(function(f) {
+          if (f.tempFileURL && cloudMap[f.fileID]) poemImages[cloudMap[f.fileID]] = f.tempFileURL
+        })
+        that.setData({ poemImages: poemImages })
+      }).catch(function() { that.setData({ poemImages: poemImages }) })
+    } else {
+      that.setData({ poemImages: poemImages })
+    }
+
+    // 2. 兜底：云数据库 poem_assets
+    if (!wx.cloud) return
+    var remaining = list.filter(function(item) { return !poemImages[item.id] }).map(function(item) { return Number(item.id) })
+    if (!remaining.length) return
     var db = wx.cloud.database()
-    db.collection('poem_assets').where({ courseId: db.command.in(ids) }).get()
+    db.collection('poem_assets').where({ courseId: db.command.in(remaining) }).get()
       .then(function(res) {
         if (!res.data || !res.data.length) return
-        var cloudIds = []
-        var map = {}
+        var cids = []
+        var cidMap = {}
         res.data.forEach(function(row) {
-          if (row.imageUrl) {
-            map[row.courseId] = row.imageUrl
-            if (row.imageUrl.indexOf('cloud://') === 0) cloudIds.push(row.imageUrl)
+          var cid = row.courseId
+          if (row.imageUrl && !poemImages[cid]) {
+            if (row.imageUrl.indexOf('cloud://') === 0) {
+              cids.push(row.imageUrl)
+              cidMap[row.imageUrl] = cid
+            } else {
+              poemImages[cid] = row.imageUrl
+            }
           }
         })
-        // 把 cloud:// fileID 转成临时URL
-        if (cloudIds.length > 0) {
-          wx.cloud.getTempFileURL({ fileList: cloudIds }).then(function(urlRes) {
-            var urlMap = {}
-            (urlRes.fileList || []).forEach(function(f) { if (f.tempFileURL) urlMap[f.fileID] = f.tempFileURL })
-            for (var k in map) {
-              map[k] = urlMap[map[k]] || map[k]
-            }
-            that.setData({ poemImages: Object.assign({}, that.data.poemImages, map) })
-          }).catch(function() {
-            that.setData({ poemImages: Object.assign({}, that.data.poemImages, map) })
-          })
+        if (cids.length > 0) {
+          wx.cloud.getTempFileURL({ fileList: cids }).then(function(urlRes) {
+            (urlRes.fileList || []).forEach(function(f) {
+              if (f.tempFileURL && cidMap[f.fileID] !== undefined) poemImages[cidMap[f.fileID]] = f.tempFileURL
+            })
+            that.setData({ poemImages: poemImages })
+          }).catch(function() { that.setData({ poemImages: poemImages }) })
         } else {
-          that.setData({ poemImages: Object.assign({}, that.data.poemImages, map) })
+          that.setData({ poemImages: poemImages })
         }
-      }).catch(function() {})
+      })
   },
 
   // 搜索处理
@@ -171,6 +207,9 @@ Page({
     const searchForm = {};
     if (name) {
       searchForm.coursetitle = name;
+    }
+    if (this.data.studentGrade) {
+      searchForm.grade = this.data.studentGrade
     }
     const res = await page('course',{
       page: 1,
