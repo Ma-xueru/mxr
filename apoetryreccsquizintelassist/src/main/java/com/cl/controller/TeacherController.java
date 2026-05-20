@@ -461,19 +461,36 @@ public class TeacherController {
         String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
         if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
         String username = (String) request.getSession().getAttribute("username");
-        String classname = (String) request.getSession().getAttribute("classname");
         String grade = (String) request.getSession().getAttribute("grade");
+        java.util.List<String> clsList = (java.util.List<String>) request.getSession().getAttribute("classnames");
         Map<String, Object> data = new LinkedHashMap<>();
-        // 查教师真实姓名
         TeacherEntity teacher = teacherService.selectOne(new EntityWrapper<TeacherEntity>().eq("teacheraccount", username));
         data.put("teachername", teacher != null && teacher.getTeachername() != null ? teacher.getTeachername() : username);
         data.put("grade", grade != null ? grade : "");
-        data.put("classname", classname != null ? classname : "");
+        data.put("classnames", clsList != null ? String.join(", ", new java.util.LinkedHashSet<>(clsList)) : "");
+        data.put("classCount", clsList != null ? clsList.size() : 0);
 
-        // 本班学生数
+        // 管辖班级学生数
         EntityWrapper<StudentEntity> se = new EntityWrapper<>();
-        if (classname != null) se.eq("classname", classname);
-        data.put("studentCount", studentService.selectCount(se));
+        if (clsList != null && !clsList.isEmpty()) se.in("classname", clsList);
+        int sc = studentService.selectCount(se);
+        data.put("studentCount", sc);
+        data.put("totalStudents", sc);
+
+        // 进行中任务 + 今日提交率
+        EntityWrapper<RecitationtaskEntity> oe = new EntityWrapper<>();
+        oe.eq("teacheraccount", username).ne("completionstatus", "已完成");
+        data.put("ongoingTasks", recitationtaskService.selectCount(oe));
+        String today = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        EntityWrapper<RecitationtaskEntity> te = new EntityWrapper<>();
+        te.eq("teacheraccount", username).like("addtime", today);
+        int tt = recitationtaskService.selectCount(te);
+        EntityWrapper<RecitationtaskEntity> td = new EntityWrapper<>();
+        td.eq("teacheraccount", username).like("addtime", today).eq("completionstatus", "已完成");
+        int tdone = recitationtaskService.selectCount(td);
+        data.put("submitRate", tt > 0 ? tdone * 100 / tt : 0);
+        data.put("todayTotal", tt);
+        data.put("todayDone", tdone);
 
         // 背诵任务统计
         EntityWrapper<RecitationtaskEntity> re = new EntityWrapper<>();
@@ -497,9 +514,8 @@ public class TeacherController {
 
         // 跟读记录统计
         EntityWrapper<FollowreadRecordEntity> fe = new EntityWrapper<>();
-        if (classname != null) {
-            // 先查本班学生账号
-            List<StudentEntity> students = studentService.selectList(new EntityWrapper<StudentEntity>().eq("classname", classname));
+        if (clsList != null && !clsList.isEmpty()) {
+            List<StudentEntity> students = studentService.selectList(new EntityWrapper<StudentEntity>().in("classname", clsList));
             if (!students.isEmpty()) {
                 List<String> accounts = students.stream().map(StudentEntity::getStudentaccount).collect(java.util.stream.Collectors.toList());
                 fe.in("studentaccount", accounts);
@@ -531,17 +547,10 @@ public class TeacherController {
         }
         data.put("recentActivities", activities);
 
-        // ===== 新增可视化数据 =====
-        java.util.List<String> clsList = (java.util.List<String>) request.getSession().getAttribute("classnames");
-        if (clsList == null || clsList.isEmpty()) {
-            if (classname != null) { clsList = new java.util.ArrayList<>(); clsList.add(classname); }
-            else clsList = new java.util.ArrayList<>();
-        }
-
-        // 1. 各模块占比数据 (sourceType: 4=跟读 6=测验 7=举一反三 8=温故知新)
-        EntityWrapper<StudentScoreLogEntity> logEw2 = new EntityWrapper<>();
-        logEw2.in("classname", clsList);
-        java.util.List<StudentScoreLogEntity> allLogs = studentScoreLogDao.selectList(logEw2);
+        // ===== 可视化数据 =====
+        EntityWrapper<StudentScoreLogEntity> logEw = new EntityWrapper<>();
+        if (clsList != null && !clsList.isEmpty()) logEw.in("classname", clsList);
+        java.util.List<StudentScoreLogEntity> allLogs = studentScoreLogDao.selectList(logEw);
         long followN = allLogs.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 4).count();
         long quizN = allLogs.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 6).count();
         long analogyN = allLogs.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 7).count();
@@ -553,33 +562,31 @@ public class TeacherController {
         pieData.add(mapOf("name","温故知新","value",reviewN));
         data.put("modulePie", pieData);
 
-        // 2. 近7天活跃趋势
         java.util.List<Map<String, Object>> trend7 = new java.util.ArrayList<>();
         java.util.Calendar cal = java.util.Calendar.getInstance();
         cal.add(java.util.Calendar.DAY_OF_MONTH, -6);
-        java.text.SimpleDateFormat dayFmt = new java.text.SimpleDateFormat("MM/dd");
+        java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("MM/dd");
         for (int i = 0; i < 7; i++) {
-            String day = dayFmt.format(cal.getTime());
+            String day = df.format(cal.getTime());
             int cnt = 0;
             for (StudentScoreLogEntity l : allLogs) {
-                if (l.getCreateTime() != null && dayFmt.format(l.getCreateTime()).equals(day)) cnt++;
+                if (l.getCreateTime() != null && df.format(l.getCreateTime()).equals(day)) cnt++;
             }
-            Map<String, Object> td = new LinkedHashMap<>();
+            java.util.Map<String, Object> td = new LinkedHashMap<>();
             td.put("date", day); td.put("count", cnt);
             trend7.add(td);
             cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
         }
         data.put("trend7", trend7);
 
-        // 3. 学生活跃度TOP10
-        Map<String, Integer> studentActivity = new LinkedHashMap<>();
+        java.util.Map<String, Integer> studentActivity = new LinkedHashMap<>();
         for (StudentScoreLogEntity l : allLogs) {
             String name = l.getStudentname() != null && !l.getStudentname().isEmpty() ? l.getStudentname() : l.getStudentaccount();
             studentActivity.merge(name, 1, Integer::sum);
         }
         java.util.List<Map<String, Object>> top10 = new java.util.ArrayList<>();
-        for (Map.Entry<String, Integer> e : studentActivity.entrySet()) {
-            Map<String, Object> item = new LinkedHashMap<>();
+        for (java.util.Map.Entry<String, Integer> e : studentActivity.entrySet()) {
+            java.util.Map<String, Object> item = new LinkedHashMap<>();
             item.put("name", e.getKey()); item.put("count", e.getValue());
             top10.add(item);
         }
@@ -587,77 +594,70 @@ public class TeacherController {
         if (top10.size() > 10) top10 = top10.subList(0, 10);
         data.put("topStudents", top10);
 
-        // 4. 今日学习动态
         java.util.List<Map<String, Object>> todayActs = new java.util.ArrayList<>();
-        String todayStr = dayFmt.format(new Date());
+        String todayStr = df.format(new java.util.Date());
         for (int i = allLogs.size() - 1; i >= 0 && todayActs.size() < 10; i--) {
             StudentScoreLogEntity l = allLogs.get(i);
-            if (l.getCreateTime() != null && dayFmt.format(l.getCreateTime()).equals(todayStr)) {
-                Map<String, Object> act = new LinkedHashMap<>();
+            if (l.getCreateTime() != null && df.format(l.getCreateTime()).equals(todayStr)) {
+                java.util.Map<String, Object> act = new LinkedHashMap<>();
                 act.put("studentname", l.getStudentname());
                 act.put("poetryTitle", l.getPoetryTitle());
                 int st = l.getSourceType() != null ? l.getSourceType() : 0;
-                String typeName = st == 4 ? "跟读" : st == 6 ? "测验" : st == 7 ? "举一反三" : st == 8 ? "温故知新" : "学习";
-                act.put("type", typeName);
+                act.put("type", st == 4 ? "跟读" : st == 6 ? "测验" : st == 7 ? "举一反三" : st == 8 ? "温故知新" : "学习");
                 act.put("score", l.getScore());
                 act.put("time", l.getCreateTime());
-                act.put("timeAgo", getTimeAgo(l.getCreateTime()));
+                long diffMin = (System.currentTimeMillis() - l.getCreateTime().getTime()) / 60000;
+                act.put("timeAgo", diffMin < 1 ? "刚刚" : diffMin < 60 ? diffMin + "分钟前" : (diffMin / 60) + "小时前");
                 todayActs.add(act);
             }
         }
         data.put("todayActivities", todayActs);
 
-        // 5. 预警：3天未学习的学生
+        // 预警：3天未学习
         java.util.List<Map<String, Object>> alerts = new java.util.ArrayList<>();
         java.util.Calendar threeDaysAgo = java.util.Calendar.getInstance();
         threeDaysAgo.add(java.util.Calendar.DAY_OF_MONTH, -3);
-        java.text.SimpleDateFormat fullDayFmt = new java.text.SimpleDateFormat("yyyy-MM-dd");
-        String threeDaysStr = fullDayFmt.format(threeDaysAgo.getTime());
-        for (String cn : clsList) {
-            EntityWrapper<StudentEntity> se = new EntityWrapper<>();
-            se.eq("classname", cn);
-            for (StudentEntity s : studentService.selectList(se)) {
-                boolean recent = allLogs.stream().anyMatch(l ->
-                    l.getStudentaccount().equals(s.getStudentaccount()) && l.getCreateTime() != null &&
-                    fullDayFmt.format(l.getCreateTime()).compareTo(threeDaysStr) >= 0);
-                if (!recent) {
-                    Map<String, Object> alert = new LinkedHashMap<>();
-                    alert.put("studentname", s.getStudentname() != null ? s.getStudentname() : s.getStudentaccount());
-                    alert.put("classname", cn);
-                    alerts.add(alert);
+        java.text.SimpleDateFormat fullFmt = new java.text.SimpleDateFormat("yyyy-MM-dd");
+        String threeDaysStr = fullFmt.format(threeDaysAgo.getTime());
+        if (clsList != null) {
+            for (String cn : clsList) {
+                EntityWrapper<StudentEntity> sse = new EntityWrapper<>();
+                sse.eq("classname", cn);
+                for (StudentEntity s : studentService.selectList(sse)) {
+                    boolean recent = allLogs.stream().anyMatch(l ->
+                        l.getStudentaccount().equals(s.getStudentaccount()) && l.getCreateTime() != null &&
+                        fullFmt.format(l.getCreateTime()).compareTo(threeDaysStr) >= 0);
+                    if (!recent) {
+                        java.util.Map<String, Object> alert = new LinkedHashMap<>();
+                        alert.put("studentname", s.getStudentname() != null ? s.getStudentname() : s.getStudentaccount());
+                        alert.put("classname", cn);
+                        alerts.add(alert);
+                    }
                 }
             }
         }
         data.put("warningStudents", alerts);
 
-        // 6. 本周 vs 上周
+        // 本周 vs 上周
         java.util.Calendar cal2 = java.util.Calendar.getInstance();
         int thisWeek = 0, lastWeek = 0;
+        int thisWk = cal2.get(java.util.Calendar.WEEK_OF_YEAR);
         for (StudentScoreLogEntity l : allLogs) {
             if (l.getCreateTime() == null) continue;
             cal2.setTime(l.getCreateTime());
-            int weekOfYear = cal2.get(java.util.Calendar.WEEK_OF_YEAR);
-            int thisWk = java.util.Calendar.getInstance().get(java.util.Calendar.WEEK_OF_YEAR);
-            if (weekOfYear == thisWk) thisWeek++;
-            else if (weekOfYear == thisWk - 1) lastWeek++;
+            int woy = cal2.get(java.util.Calendar.WEEK_OF_YEAR);
+            if (woy == thisWk) thisWeek++;
+            else if (woy == thisWk - 1) lastWeek++;
         }
         data.put("thisWeekCount", thisWeek);
         data.put("lastWeekCount", lastWeek);
-        String trend = lastWeek > 0 ? (thisWeek >= lastWeek ? "↑" + (thisWeek - lastWeek) : "↓" + (lastWeek - thisWeek)) : "新";
-        data.put("weekTrend", trend);
+        data.put("weekTrend", lastWeek > 0 ? (thisWeek >= lastWeek ? "↑" + (thisWeek - lastWeek) : "↓" + (lastWeek - thisWeek)) : "新");
 
         return R.ok().put("data", data);
     }
 
-    private Map<String, Object> mapOf(String k1, Object v1, String k2, Object v2) {
-        Map<String, Object> m = new LinkedHashMap<>(); m.put(k1, v1); m.put(k2, v2); return m;
-    }
-    private String getTimeAgo(Date d) {
-        if (d == null) return "";
-        long diff = System.currentTimeMillis() - d.getTime();
-        if (diff < 60000) return "刚刚";
-        if (diff < 3600000) return (diff / 60000) + "分钟前";
-        return (diff / 3600000) + "小时前";
+    private java.util.Map<String, Object> mapOf(String k1, Object v1, String k2, Object v2) {
+        java.util.Map<String, Object> m = new LinkedHashMap<>(); m.put(k1, v1); m.put(k2, v2); return m;
     }
 
     /** 学生错题本 — 教师查看指定学生的错题汇总 */
@@ -724,149 +724,6 @@ public class TeacherController {
 
 
 
-
-    /** 学生综合素质画像 */
-    @RequestMapping("/studentPortrait")
-    public R studentPortrait(@RequestParam String studentaccount, HttpServletRequest request) {
-        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
-        if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
-
-        Map<String, Object> data = new LinkedHashMap<>();
-        // 基础信息
-        StudentEntity stu = studentService.selectOne(new EntityWrapper<StudentEntity>().eq("studentaccount", studentaccount));
-        if (stu == null) return R.error("学生不存在");
-        data.put("studentname", stu.getStudentname());
-        data.put("studentaccount", stu.getStudentaccount());
-        data.put("grade", stu.getGrade());
-        data.put("classname", stu.getClassname());
-
-        // 班级排名
-        String cls = stu.getClassname();
-        if (StringUtils.isNotBlank(cls)) {
-            EntityWrapper<StudentEntity> clsEw = new EntityWrapper<>();
-            clsEw.eq("classname", cls);
-            int classTotal = studentService.selectCount(clsEw);
-            data.put("classTotal", classTotal);
-            data.put("overallRank", Math.min(classTotal, 1)); // 简化：默认排第1（实际需计算）
-        } else {
-            data.put("classTotal", 0); data.put("overallRank", 0);
-        }
-
-        // 模块二：班级作业统计
-        EntityWrapper<RecitationtaskEntity> taskEw = new EntityWrapper<>();
-        taskEw.eq("studentaccount", studentaccount).eq("task_type", 2);
-        int quizTotal = recitationtaskService.selectCount(taskEw);
-        taskEw = new EntityWrapper<>();
-        taskEw.eq("studentaccount", studentaccount).eq("task_type", 2).eq("completionstatus", "已完成");
-        int quizDone = recitationtaskService.selectCount(taskEw);
-        taskEw = new EntityWrapper<>();
-        taskEw.eq("studentaccount", studentaccount).eq("task_type", 1);
-        int recTotal = recitationtaskService.selectCount(taskEw);
-        taskEw = new EntityWrapper<>();
-        taskEw.eq("studentaccount", studentaccount).eq("task_type", 1).eq("completionstatus", "已完成").or().eq("completionstatus", "已评分");
-        int recDone = recitationtaskService.selectCount(taskEw);
-        data.put("recitationTotal", recTotal);
-        data.put("recitationDone", recDone);
-        data.put("recitationPassRate", recTotal > 0 ? recDone * 100 / recTotal : 0);
-        data.put("quizTotal", quizTotal);
-        data.put("quizPassed", quizDone);
-        data.put("quizPassRate", quizTotal > 0 ? quizDone * 100 / quizTotal : 0);
-
-        // 跟读最高分
-        EntityWrapper<FollowreadRecordEntity> frEw = new EntityWrapper<>();
-        frEw.eq("studentaccount", studentaccount);
-        List<FollowreadRecordEntity> frList = followreadRecordDao.selectList(frEw);
-        int followMax = 0;
-        for (FollowreadRecordEntity r : frList) if (r.getTotalscore() != null && r.getTotalscore() > followMax) followMax = r.getTotalscore();
-        data.put("followReadMaxScore", followMax);
-
-        // 模块三：自主学习统计
-        EntityWrapper<StudentScoreLogEntity> logEw = new EntityWrapper<>();
-        logEw.eq("studentaccount", studentaccount);
-        List<StudentScoreLogEntity> logs = studentScoreLogDao.selectList(logEw);
-        long followCount = logs.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 4).count();
-        long quizSelfCount = logs.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 6).count();
-        long analogyCount = logs.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 7).count();
-        long reviewCount = logs.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 8).count();
-        data.put("selfStudyPoems", followCount + quizSelfCount + analogyCount + reviewCount);
-        data.put("followReadCount", followCount);
-        data.put("reviewWrongCount", analogyCount);
-        data.put("deriveBreakCount", reviewCount);
-
-        // 雷达维度
-        long sumK = 0, sumA = 0, sumD = 0;
-        for (StudentScoreLogEntity l : logs) {
-            sumK += l.getKnowledgeScore() != null ? l.getKnowledgeScore() : 0;
-            sumA += l.getAccuracyScore() != null ? l.getAccuracyScore() : 0;
-            sumD += l.getDepthScore() != null ? l.getDepthScore() : 0;
-        }
-        int n = logs.size();
-        data.put("recitationScore", n > 0 ? (int)(sumK / n) : 0);
-        data.put("quizScore", n > 0 ? (int)(sumA / n) : 0);
-        data.put("followScore", followMax);
-        data.put("selfStudyScore", n > 0 ? (int)(sumD / n) : 0);
-        data.put("weakAdvice", n == 0 ? "暂无自学记录，建议开始自主学习" : "");
-
-        // 模块四：错题
-        EntityWrapper<QuizRecordEntity> quizWrongEw = new EntityWrapper<>();
-        quizWrongEw.eq("studentaccount", studentaccount).isNotNull("wrong_list_json").ne("wrong_list_json", "[]").orderBy("addtime", false).last("LIMIT 5");
-        List<QuizRecordEntity> wrongQuiz = quizRecordDao.selectList(quizWrongEw);
-        java.util.List<Map<String, Object>> wrongItems = new java.util.ArrayList<>();
-        for (QuizRecordEntity r : wrongQuiz) {
-            try {
-                org.json.JSONArray arr = new org.json.JSONArray(r.getWrongListJson());
-                for (int i = 0; i < arr.length(); i++) {
-                    org.json.JSONObject w = arr.getJSONObject(i);
-                    Map<String, Object> item = new LinkedHashMap<>();
-                    item.put("question", w.optString("question", "").length() > 50 ? w.optString("question", "").substring(0, 50) + "..." : w.optString("question", ""));
-                    item.put("answer", w.optInt("answer"));
-                    item.put("selected", w.optInt("selected"));
-                    item.put("poem", r.getCoursetitle());
-                    wrongItems.add(item);
-                    if (wrongItems.size() >= 3) break;
-                }
-            } catch (Exception e) {}
-            if (wrongItems.size() >= 3) break;
-        }
-        data.put("topWrongItems", wrongItems);
-
-        // 雷达分数
-        Map<String, Object> radarScores = new LinkedHashMap<>();
-        radarScores.put("知识掌握度", n > 0 ? (int)(sumK / n) : 0);
-        radarScores.put("答题准确率", n > 0 ? (int)(sumA / n) : 0);
-        radarScores.put("理解深度", n > 0 ? (int)(sumD / n) : 0);
-        radarScores.put("跟读能力", followMax);
-        data.put("radarScores", radarScores);
-
-        // 古诗总数
-        data.put("totalPoems", 75);
-
-        // 错题修复数
-        data.put("wrongFixedCount", 0);
-        data.put("weakTags", "");
-
-        // 最近任务
-        EntityWrapper<RecitationtaskEntity> recentEw = new EntityWrapper<>();
-        recentEw.eq("studentaccount", studentaccount).orderBy("releasetime", false).last("LIMIT 5");
-        List<RecitationtaskEntity> recentTasks = recitationtaskService.selectList(recentEw);
-        java.util.List<Map<String, Object>> rtList = new java.util.ArrayList<>();
-        for (RecitationtaskEntity t : recentTasks) {
-            Map<String, Object> rt = new LinkedHashMap<>();
-            rt.put("type", t.getTaskType() != null && t.getTaskType() == 2 ? "测验" : "背诵");
-            rt.put("title", t.getTasktitle());
-            rt.put("poem", t.getCoursetitles());
-            rt.put("score", t.getKaoshichengji() != null ? t.getKaoshichengji() : "-");
-            rt.put("status", t.getCompletionstatus());
-            rt.put("deadline", t.getDeadline());
-            rtList.add(rt);
-        }
-        data.put("recentTasks", rtList);
-
-        // 建议
-        data.put("suggestion", n == 0 ? "该生暂无自主学习记录，建议引导开始。" : "综合表现良好，可继续关注薄弱维度。");
-
-        return R.ok().put("data", data);
-    }
 
     /** 一次性迁移: 旧表记录 → student_score_log */
     @RequestMapping("/migrateScoreLog")
@@ -962,61 +819,6 @@ public class TeacherController {
             log.setDepthScore(fallback);
     }
 
-    /** 班级对比看板 */
-    @RequestMapping("/classComparison")
-    public R classComparison(HttpServletRequest request) {
-        String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
-        if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
-        java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
-        if (classnames == null || classnames.isEmpty()) return R.ok().put("data", new java.util.ArrayList<>());
-
-        java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
-        for (String cn : classnames) {
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("classname", cn);
-
-            // 学生数
-            EntityWrapper<StudentEntity> stuEw = new EntityWrapper<>();
-            stuEw.eq("classname", cn);
-            int studentCount = studentService.selectCount(stuEw);
-            item.put("studentCount", studentCount);
-
-            // 自主学习活跃度
-            EntityWrapper<StudentScoreLogEntity> logEw = new EntityWrapper<>();
-            logEw.eq("classname", cn);
-            java.util.List<StudentScoreLogEntity> logs = studentScoreLogDao.selectList(logEw);
-            item.put("activityCount", logs.size());
-            int sumScore = 0;
-            for (StudentScoreLogEntity l : logs) sumScore += l.getScore() != null ? l.getScore() : 0;
-            double avgScore = logs.isEmpty() ? 0 : Math.round(sumScore * 10.0 / logs.size()) / 10.0;
-            item.put("avgScore", avgScore);
-
-            // 任务完成率
-            EntityWrapper<RecitationtaskEntity> taskEw = new EntityWrapper<>();
-            taskEw.eq("classname", cn);
-            int taskTotal = recitationtaskService.selectCount(taskEw);
-            taskEw.eq("completionstatus", "已完成");
-            int taskDone = recitationtaskService.selectCount(taskEw);
-            int completeRate = taskTotal > 0 ? taskDone * 100 / taskTotal : 0;
-            item.put("taskTotal", taskTotal);
-            item.put("taskDone", taskDone);
-            item.put("completeRate", completeRate);
-
-            list.add(item);
-        }
-
-        // 按均分排名
-        list.sort((a, b) -> Double.compare((double) b.get("avgScore"), (double) a.get("avgScore")));
-        for (int i = 0; i < list.size(); i++) list.get(i).put("rank", i + 1);
-
-        // 汇总
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("classes", list);
-        result.put("totalStudents", list.stream().mapToInt(c -> (int) c.get("studentCount")).sum());
-        result.put("totalActivities", list.stream().mapToInt(c -> (int) c.get("activityCount")).sum());
-        return R.ok().put("data", result);
-    }
-
     /** 自主学习管理 — 按学生聚合大盘 */
     @RequestMapping("/autonomousStudents")
     public R autonomousStudents(HttpServletRequest request) {
@@ -1024,27 +826,12 @@ public class TeacherController {
         if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
         java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
 
-        // 先查该教师所有班级的学生，初始化聚合（含0记录学生）
-        Map<String, Map<String, Object>> agg = new LinkedHashMap<>();
-        EntityWrapper<StudentEntity> stuEw = new EntityWrapper<>();
-        if (classnames != null && !classnames.isEmpty()) stuEw.in("classname", classnames);
-        List<StudentEntity> allStudents = studentService.selectList(stuEw);
-        for (StudentEntity s : allStudents) {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("studentaccount", s.getStudentaccount());
-            m.put("studentname", s.getStudentname() != null ? s.getStudentname() : s.getStudentaccount());
-            m.put("classname", s.getClassname());
-            m.put("followCount", 0); m.put("quizCount", 0);
-            m.put("analogyCount", 0); m.put("reviewCount", 0);
-            m.put("lastActiveTime", null);
-            agg.put(s.getStudentaccount(), m);
-        }
-
-        // 查询自主学习记录并叠加
         EntityWrapper<StudentScoreLogEntity> ew = new EntityWrapper<>();
         if (classnames != null && !classnames.isEmpty()) ew.in("classname", classnames);
         List<StudentScoreLogEntity> all = studentScoreLogDao.selectList(ew);
 
+        // 按 studentaccount 聚合
+        Map<String, Map<String, Object>> agg = new LinkedHashMap<>();
         for (StudentScoreLogEntity log : all) {
             String key = log.getStudentaccount();
             agg.computeIfAbsent(key, k -> {

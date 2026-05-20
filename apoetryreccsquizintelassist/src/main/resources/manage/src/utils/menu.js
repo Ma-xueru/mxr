@@ -207,20 +207,6 @@ const menu = {
             {
               child: [
                 {
-                  appFrontIcon: "cuIcon-home",
-                  buttons: ["查看"],
-                  menu: "🏠 教师工作台",
-                  menuJump: "dashboard",
-                  tableName: "teacherDashboard",
-                },
-              ],
-              fontClass: "icon-common80",
-              menu: "🏠 教师工作台",
-              unicode: "&#xe6b4;",
-            },
-            {
-              child: [
-                {
                   appFrontIcon: "cuIcon-group",
                   buttons: ["查看", "修改"],
                   menu: "班级管理",

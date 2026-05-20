@@ -29,7 +29,6 @@
         <view class="feihua-stats" wx:if="{{fhlProfile}}">
           <text class="feihua-stat">最高分：{{fhlProfile.maxScore || 0}}</text>
           <text class="feihua-stat">段位：{{fhlProfile.title || '诗词书童'}}</text>
-          <text class="feihua-rank-btn" catchtap="showRankPopup">🏆 班级荣誉榜</text>
         </view>
       </view>
       <text class="feihua-arrow">→</text>

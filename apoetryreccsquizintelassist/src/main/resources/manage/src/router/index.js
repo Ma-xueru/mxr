@@ -20,6 +20,7 @@ import examrecord from '@/views/exam/examrecord/list'
 import examfailrecord from '@/views/exam/examfailrecord/list'
 import studentPortrait from '@/views/teacher/StudentPortrait.vue'
 import teacherDashboard from '@/views/teacher/dashboard'
+import feihualingLeaderboard from '@/views/game/feihualingLeaderboard.vue'
 import teacherCenter from '@/views/teacher/center'
 import course from '@/views/course/list'
 import recitationtask from '@/views/recitationtask/list'
@@ -48,6 +49,11 @@ export const routes = [{
 			component: () => import('../views/updatepassword.vue')
 		}
 
+		,{
+			path: '/feihualingLeaderboard',
+			name: '飞花令管理',
+			component: feihualingLeaderboard
+		}
 		,{
 			path: '/teacherDashboard',
 				name: '教师工作台',

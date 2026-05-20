@@ -42,14 +42,14 @@
             wx:if="{{showUploadButton && item.completionstatus !== '已完成'}}"
             class="action-btn primary"
             data-id="{{item.id}}"
-            bindtap="uploadAudioBtn">
+            catchtap="uploadAudioBtn">
             {{item.recitationaudio ? '重新上传' : '🎙️ 上传音频'}}
           </button>
           <text
             wx:if="{{editAuth}}"
             class="action-link"
             data-id="{{item.id}}"
-            bindtap="editBtn">修改</text>
+            catchtap="editBtn">修改</text>
         </view>
       </view>
     </view>

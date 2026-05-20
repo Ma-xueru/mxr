@@ -101,7 +101,7 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
         	            }
         	            // 向后兼容：也保留旧 classname 字段的值
         	            if (teacher.getClassname() != null && !teacher.getClassname().isEmpty() && !classnames.contains(teacher.getClassname())) {
-        	                classnames.add(teacher.getClassname());
+        	                for (String cn : teacher.getClassname().split(",")) { cn = cn.trim(); if (!cn.isEmpty() && !classnames.contains(cn)) classnames.add(cn); }
         	            }
         	            request.getSession().setAttribute("classnames", classnames);
         	            request.getSession().setAttribute("classname", classnames.isEmpty() ? teacher.getClassname() : String.join(",", classnames));

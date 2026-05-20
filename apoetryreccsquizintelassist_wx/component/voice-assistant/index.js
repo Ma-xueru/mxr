@@ -15,13 +15,13 @@ Component({
 
   methods: {
     onTouchStart(e) {
-      this.data._tx = e.touches[0].clientX
+      console.log('[精灵球] touchstart'); this.data._tx = e.touches[0].clientX
       this.data._ty = e.touches[0].clientY
       this.data._moved = false
     },
 
     onTouchEnd() {
-      if (this.data._moved) return // 拖动操作
+      console.log('[精灵球] touchend moved=' + this.data._moved); if (this.data._moved) return
       var s = this.data.state
       if (s === 'idle') {
         this.startRecord()
@@ -35,9 +35,9 @@ Component({
     onMove(e) {
       if (!e || !e.detail) return
       // 检测移动距离，超过15px算拖动
-      var dx = Math.abs((e.detail.x || 0) - (this.data._tx || 0))
-      var dy = Math.abs((e.detail.y || 0) - (this.data._ty || 0))
-      if (dx > 15 || dy > 15) this.data._moved = true
+      var x = e.detail.x, y = e.detail.y
+      if (this.data._lx !== undefined && (Math.abs(x - this.data._lx) > 2 || Math.abs(y - this.data._ly) > 2)) this.data._moved = true
+      this.data._lx = x; this.data._ly = y
     },
 
     // ===== 录音 =====

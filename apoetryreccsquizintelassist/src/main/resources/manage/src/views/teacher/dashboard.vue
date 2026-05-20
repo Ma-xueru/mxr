@@ -41,18 +41,6 @@
       <span class="week_trend"> vs 上周 {{ dashboard.lastWeekCount || 0 }} <b :style="{color: (dashboard.weekTrend||'').startsWith('↑')?'#4CAF50':'#e88a6e'}">{{ dashboard.weekTrend }}</b></span>
     </div>
 
-    <!-- 新增可视化：模块占比 + 活跃趋势 -->
-    <div class="viz_two_cols">
-      <div class="chart_section half">
-        <h3>各模块占比</h3>
-        <div ref="pieChartRef" class="echart_box"></div>
-      </div>
-      <div class="chart_section half">
-        <h3>近7天活跃趋势</h3>
-        <div ref="lineChartRef" class="echart_box"></div>
-      </div>
-    </div>
-
     <!-- 学生活跃度TOP10 -->
     <div class="chart_section" v-if="dashboard.topStudents && dashboard.topStudents.length">
       <h3>学生活跃度 TOP10</h3>
@@ -117,13 +105,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, getCurrentInstance, nextTick, inject } from 'vue'
+import { ref, onMounted, getCurrentInstance, nextTick } from 'vue'
+import * as echarts from 'echarts'
 const context = getCurrentInstance()?.appContext.config.globalProperties
-const echarts = inject('echarts') || context?.$echarts
 const dashboard = ref({ teachername:'', classCount:0, classnames:'', totalStudents:0, ongoingTasks:0, submitRate:0, todayTotal:0, todayDone:0, classStats:[], recentActivities:[], modulePie:[], trend7:[], topStudents:[], todayActivities:[] })
 
-const pieChartRef = ref(null); const lineChartRef = ref(null); const barChartRef = ref(null)
-let pieChart, lineChart, barChart
+const barChartRef = ref(null)
+let barChart
 
 const barColor = (rate) => {
   if (rate >= 80) return 'linear-gradient(90deg, #58B86F, #82D68F)'
@@ -135,40 +123,6 @@ const renderCharts = () => {
   nextTick(() => {
     const d = dashboard.value
     if (!echarts) return
-
-    // 环形图 — 各模块占比
-    if (pieChartRef.value && d.modulePie && d.modulePie.length) {
-      if (pieChart) pieChart.dispose()
-      pieChart = echarts.init(pieChartRef.value)
-      const total = d.modulePie.reduce((s, i) => s + i.value, 0)
-      pieChart.setOption({
-        tooltip: { trigger: 'item', formatter: '{b}: {c}次 ({d}%)' },
-        series: [{
-          type: 'pie', radius: ['50%','72%'], center: ['50%','50%'],
-          label: { show: false },
-          emphasis: { label: { show: true, fontSize:14, fontWeight:'bold' } },
-          data: d.modulePie.filter(i => i.value > 0).map(i => ({
-            value: i.value, name: i.name,
-            itemStyle: { color: i.name==='跟读'?'#4CAF50':i.name==='测验'?'#FF9800':i.name==='举一反三'?'#9C27B0':'#2196F3' }
-          }))
-        }],
-        graphic: total > 0 ? [{ type:'text', left:'center', top:'42%', style:{ text: '共'+total+'次', fontSize:14, fontWeight:'bold', fill:'#3f3424' } }] : []
-      })
-    }
-
-    // 折线图 — 近7天活跃趋势
-    if (lineChartRef.value && d.trend7 && d.trend7.length) {
-      if (lineChart) lineChart.dispose()
-      lineChart = echarts.init(lineChartRef.value)
-      lineChart.setOption({
-        grid: { top:10, right:10, bottom:20, left:30 },
-        xAxis: { type:'category', data: d.trend7.map(i => i.date), axisLabel:{fontSize:10} },
-        yAxis: { type:'value', minInterval:1, axisLabel:{fontSize:10} },
-        series: [{ type:'line', data: d.trend7.map(i => i.count), smooth:true,
-          lineStyle:{color:'#4CAF50',width:2}, itemStyle:{color:'#4CAF50'},
-          areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(76,175,80,.2)'},{offset:1,color:'rgba(76,175,80,0)'}]}} }]
-      })
-    }
 
     // 条形图 — TOP10
     if (barChartRef.value && d.topStudents && d.topStudents.length) {
@@ -192,7 +146,7 @@ onMounted(() => {
   context?.$http({ url: 'teacher/dashboard', method: 'get' }).then(res => {
     if (res.data.code === 0) {
       dashboard.value = res.data.data
-      renderCharts()
+      setTimeout(() => renderCharts(), 300)
     }
   })
 })
@@ -236,10 +190,6 @@ onMounted(() => {
 .quick_actions h3, .recent_section h3 { color:#5b503f; margin:0 0 12px; }
 .action_btns { display:flex; gap:12px; flex-wrap:wrap; }
 .recent_section { background:#fff; border-radius:16px; padding:20px; border:1px solid #efe5cd; }
-
-.viz_two_cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:28px; }
-.chart_section.half { min-height:320px; }
-.echart_box { width:100%; height:280px; }
 
 .feed_section { background:#fff; border-radius:16px; padding:20px; margin-bottom:28px; border:1px solid #efe5cd; }
 .feed_section h3 { margin:0 0 14px; color:#3f3424; }

@@ -1,4 +1,4 @@
-.va-root { position: fixed; right: 0; bottom: 0; z-index: 9999; width: 160rpx; height: 300rpx; pointer-events: none; }
+.va-root { position: fixed; right: 0; bottom: 0; z-index: 9999; width: 160rpx; height: 300rpx; }
 
 /* 气泡 */
 .va-bubble {
@@ -11,7 +11,7 @@
 .va-bubble.show { opacity: 1; transform: translateY(0); }
 
 /* 可拖动区域 */
-.va-movable-area { width: 160rpx; height: 300rpx; pointer-events: auto; }
+.va-movable-area { width: 160rpx; height: 300rpx; }
 .va-movable-area .va-ball { pointer-events: auto; }
 
 /* 精灵球 */

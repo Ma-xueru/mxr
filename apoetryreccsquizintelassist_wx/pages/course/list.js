@@ -99,106 +99,80 @@ Page({
     this.searhandler()
   },
   async getStudentGrade() {
-    const nowTable = wx.getStorageSync('nowTable')
-    if (nowTable !== 'student') {
-      this.setData({
-        studentGrade: ""
-      })
-      return ""
-    }
+    var nowTable = wx.getStorageSync('nowTable')
+    if (nowTable !== 'student') return ''
     try {
-      const res = await session('student')
-      if (res.code === 0 && res.data) {
-        const grade = res.data.grade || ''
-        this.setData({
-          studentGrade: grade
-        })
-        return grade
+      var res = await session('student')
+      if (res.code === 0 && res.data && res.data.grade) {
+        this.setData({ studentGrade: res.data.grade })
+        return res.data.grade
       }
-    } catch (error) {
-      console.log('获取学生年级失败', error)
-    }
-    this.setData({
-      studentGrade: ""
-    })
-    return ""
+    } catch(e) {}
+    return ''
   },
   buildPageParams(pageNum) {
-    var params = {
-      page: pageNum,
-      limit: 100,
-      order: 'desc'
-    }
-    if (this.data.studentGrade) {
-      params.grade = this.data.studentGrade
-    }
+    var params = { page: pageNum, limit: 100, order: 'desc' }
+    if (this.data.studentGrade) params.grade = this.data.studentGrade
     return params
   },
   loadPoemImages(list) {
     if (!list.length) return
     var that = this
     var poemImages = Object.assign({}, this.data.poemImages)
-    var cloudIds = []
-    var cloudMap = {}
+    var needCloud = []
 
-    // 1. 后端 picture 字段（HTTP公开可访问，内网穿透可用）
+    // 1. 优先从后端 picture 字段直接加载（已同步的 cloud:// ID）
     list.forEach(function(item) {
-      var pic = item.picture
-      if (pic && !poemImages[item.id]) {
-        if (pic.indexOf('cloud://') === 0) {
-          cloudIds.push(pic)
-          cloudMap[pic] = item.id
-        } else if (pic.indexOf('http') === 0) {
-          poemImages[item.id] = pic
-        } else if (pic.indexOf('/file/') === 0) {
-          poemImages[item.id] = baseURL + pic
+      if (item.picture && !poemImages[item.id]) {
+        if (item.picture.indexOf('cloud://') === 0) {
+          needCloud.push({ id: item.id, fid: item.picture })
+        } else if (item.picture.indexOf('http') === 0) {
+          poemImages[item.id] = item.picture
+        } else if (item.picture.indexOf('/') === 0) {
+          poemImages[item.id] = (wx.getStorageSync('baseURL') || '') + item.picture
         }
       }
     })
-    // 转换 cloud:// → 临时 URL
-    if (cloudIds.length > 0) {
-      wx.cloud.getTempFileURL({ fileList: cloudIds }).then(function(urlRes) {
-        (urlRes.fileList || []).forEach(function(f) {
-          if (f.tempFileURL && cloudMap[f.fileID]) poemImages[cloudMap[f.fileID]] = f.tempFileURL
-        })
-        that.setData({ poemImages: poemImages })
-      }).catch(function() { that.setData({ poemImages: poemImages }) })
-    } else {
-      that.setData({ poemImages: poemImages })
-    }
 
-    // 2. 兜底：云数据库 poem_assets
-    if (!wx.cloud) return
-    var remaining = list.filter(function(item) { return !poemImages[item.id] }).map(function(item) { return Number(item.id) })
-    if (!remaining.length) return
-    var db = wx.cloud.database()
-    db.collection('poem_assets').where({ courseId: db.command.in(remaining) }).get()
-      .then(function(res) {
-        if (!res.data || !res.data.length) return
-        var cids = []
-        var cidMap = {}
-        res.data.forEach(function(row) {
-          var cid = row.courseId
-          if (row.imageUrl && !poemImages[cid]) {
-            if (row.imageUrl.indexOf('cloud://') === 0) {
-              cids.push(row.imageUrl)
-              cidMap[row.imageUrl] = cid
-            } else {
-              poemImages[cid] = row.imageUrl
-            }
-          }
-        })
-        if (cids.length > 0) {
-          wx.cloud.getTempFileURL({ fileList: cids }).then(function(urlRes) {
-            (urlRes.fileList || []).forEach(function(f) {
-              if (f.tempFileURL && cidMap[f.fileID] !== undefined) poemImages[cidMap[f.fileID]] = f.tempFileURL
+    // 2. 转换后端 picture 中的 cloud:// ID
+    function convertNext(idx) {
+      if (idx >= needCloud.length) {
+        // 3. 兜底：查云数据库 poem_assets
+        if (!wx.cloud) { that.setData({ poemImages: poemImages }); return }
+        var missing = list.filter(function(item) { return !poemImages[item.id] }).map(function(item) { return Number(item.id) })
+        if (!missing.length) { that.setData({ poemImages: poemImages }); return }
+        var db = wx.cloud.database()
+        db.collection('poem_assets').where({ courseId: db.command.in(missing) }).limit(500).get()
+          .then(function(res) {
+            if (!res.data || !res.data.length) { that.setData({ poemImages: poemImages }); return }
+            var cids = []
+            res.data.forEach(function(row) {
+              if (row.imageUrl && !poemImages[row.courseId]) {
+                if (row.imageUrl.indexOf('cloud://') === 0) cids.push({ id: row.courseId, fid: row.imageUrl })
+                else poemImages[row.courseId] = row.imageUrl
+              }
             })
-            that.setData({ poemImages: poemImages })
+            if (!cids.length) { that.setData({ poemImages: poemImages }); return }
+            var ci = 0
+            function convCloud() {
+              if (ci >= cids.length) { that.setData({ poemImages: poemImages }); return }
+              var c = cids[ci]
+              wx.cloud.getTempFileURL({ fileList: [c.fid] }).then(function(r) {
+                poemImages[c.id] = (r.fileList && r.fileList[0] && r.fileList[0].tempFileURL) || ''
+                ci++; convCloud()
+              }).catch(function() { ci++; convCloud() })
+            }
+            convCloud()
           }).catch(function() { that.setData({ poemImages: poemImages }) })
-        } else {
-          that.setData({ poemImages: poemImages })
-        }
-      })
+        return
+      }
+      var item = needCloud[idx]
+      wx.cloud.getTempFileURL({ fileList: [item.fid] }).then(function(r) {
+        poemImages[item.id] = (r.fileList && r.fileList[0] && r.fileList[0].tempFileURL) || ''
+        convertNext(idx + 1)
+      }).catch(function() { convertNext(idx + 1) })
+    }
+    convertNext(0)
   },
 
   // 搜索处理
@@ -207,9 +181,6 @@ Page({
     const searchForm = {};
     if (name) {
       searchForm.coursetitle = name;
-    }
-    if (this.data.studentGrade) {
-      searchForm.grade = this.data.studentGrade
     }
     const res = await page('course',{
       page: 1,

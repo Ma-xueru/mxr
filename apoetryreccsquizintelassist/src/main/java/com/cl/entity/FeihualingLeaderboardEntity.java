@@ -10,6 +10,7 @@ public class FeihualingLeaderboardEntity implements Serializable {
     private static final long serialVersionUID = 1L;
     @TableId private String userId;
     private String username;
+    private String classname;
     private Integer maxScore;
     private Integer totalRounds;
     private Integer totalWins;
@@ -19,6 +20,7 @@ public class FeihualingLeaderboardEntity implements Serializable {
 
     public String getUserId() { return userId; } public void setUserId(String v) { this.userId = v; }
     public String getUsername() { return username; } public void setUsername(String v) { this.username = v; }
+    public String getClassname() { return classname; } public void setClassname(String v) { this.classname = v; }
     public Integer getMaxScore() { return maxScore; } public void setMaxScore(Integer v) { this.maxScore = v; }
     public Integer getTotalRounds() { return totalRounds; } public void setTotalRounds(Integer v) { this.totalRounds = v; }
     public Integer getTotalWins() { return totalWins; } public void setTotalWins(Integer v) { this.totalWins = v; }

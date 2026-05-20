@@ -11,6 +11,7 @@ import com.cl.entity.FeihualingRecordEntity;
 import com.cl.entity.FollowreadRecordEntity;
 import com.cl.entity.QuizRecordEntity;
 import com.cl.utils.AIChatUtil;
+import com.cl.utils.PageUtils;
 import com.cl.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -25,6 +26,7 @@ public class GameController {
 
     @Autowired private FeihualingRecordDao fhlRecordDao;
     @Autowired private FeihualingLeaderboardDao fhlLeaderboardDao;
+    @Autowired private com.cl.dao.StudentDao studentDao;
     @Autowired private FollowreadRecordDao followreadRecordDao;
     @Autowired private QuizRecordDao quizRecordDao;
 
@@ -190,12 +192,18 @@ public class GameController {
         fhlRecordDao.insert(rec);
 
         // 更新排行榜
+        String studentClassname = "";
+        try {
+            com.cl.entity.StudentEntity stu = studentDao.selectList(new EntityWrapper<com.cl.entity.StudentEntity>().eq("studentaccount", sessionId).last("LIMIT 1")).stream().findFirst().orElse(null);
+            if (stu != null && stu.getClassname() != null) studentClassname = stu.getClassname();
+        } catch (Exception e) {}
         FeihualingLeaderboardEntity lb = fhlLeaderboardDao.selectById(sessionId);
-        if (lb == null) { lb = new FeihualingLeaderboardEntity(); lb.setUserId(sessionId); lb.setUsername(sessionId); lb.setTotalGames(0); lb.setTotalWins(0); lb.setTotalRounds(0); }
+        if (lb == null) { lb = new FeihualingLeaderboardEntity(); lb.setUserId(sessionId); lb.setUsername(sessionId); lb.setClassname(studentClassname); lb.setTotalGames(0); lb.setTotalWins(0); lb.setTotalRounds(0); }
         lb.setTotalGames(lb.getTotalGames() + 1);
         lb.setTotalRounds(lb.getTotalRounds() + gs.roundCount);
         if (gs.score >= 50) lb.setTotalWins(lb.getTotalWins() + 1);
         if (gs.score > lb.getMaxScore()) lb.setMaxScore(gs.score);
+        if (lb.getClassname() == null || lb.getClassname().isEmpty()) lb.setClassname(studentClassname);
         lb.setTitle(title); lb.setUpdateTime(new Date());
         if (fhlLeaderboardDao.selectById(sessionId) != null) fhlLeaderboardDao.updateById(lb);
         else fhlLeaderboardDao.insert(lb);
@@ -368,6 +376,37 @@ public class GameController {
 
     @IgnoreAuth @RequestMapping("/reset")
     public R reset(@RequestParam String sessionId) { STATES.remove(sessionId); return R.ok(); }
+
+    // ========== 飞花令排行榜管理 ==========
+    @RequestMapping("/fhlLeaderboard")
+    public R fhlLeaderboard(@RequestParam Map<String, Object> params, HttpServletRequest request) {
+        EntityWrapper<FeihualingLeaderboardEntity> ew = new EntityWrapper<>();
+        ew.orderBy("max_score", false);
+        int page = Integer.parseInt(String.valueOf(params.getOrDefault("page", "1")));
+        int limit = Integer.parseInt(String.valueOf(params.getOrDefault("limit", "10")));
+        int total = fhlLeaderboardDao.selectCount(ew);
+        ew.last("LIMIT " + ((page - 1) * limit) + "," + limit);
+        PageUtils pu = new PageUtils(fhlLeaderboardDao.selectList(ew), total, limit, page);
+        return R.ok().put("data", pu);
+    }
+
+    @RequestMapping("/fhlLeaderboardDelete")
+    public R fhlLeaderboardDelete(@RequestBody Long[] ids) {
+        fhlLeaderboardDao.deleteBatchIds(java.util.Arrays.asList(ids));
+        return R.ok();
+    }
+
+    @RequestMapping("/fhlRecords")
+    public R fhlRecords(@RequestParam Map<String, Object> params) {
+        EntityWrapper<FeihualingRecordEntity> ew = new EntityWrapper<>();
+        ew.orderBy("addtime", false);
+        int page = Integer.parseInt(String.valueOf(params.getOrDefault("page", "1")));
+        int limit = Integer.parseInt(String.valueOf(params.getOrDefault("limit", "10")));
+        int total = fhlRecordDao.selectCount(ew);
+        ew.last("LIMIT " + ((page - 1) * limit) + "," + limit);
+        PageUtils pu = new PageUtils(fhlRecordDao.selectList(ew), total, limit, page);
+        return R.ok().put("data", pu);
+    }
 
     // ========== Fallback ==========
     private String getFallback(String kw) {
