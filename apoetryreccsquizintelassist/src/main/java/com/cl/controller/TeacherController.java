@@ -572,9 +572,9 @@ public class TeacherController {
             for (StudentScoreLogEntity l : allLogs) {
                 if (l.getCreateTime() != null && df.format(l.getCreateTime()).equals(day)) cnt++;
             }
-            java.util.Map<String, Object> td = new LinkedHashMap<>();
-            td.put("date", day); td.put("count", cnt);
-            trend7.add(td);
+            java.util.Map<String, Object> trendDay = new LinkedHashMap<>();
+            trendDay.put("date", day); trendDay.put("count", cnt);
+            trend7.add(trendDay);
             cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
         }
         data.put("trend7", trend7);
@@ -658,9 +658,6 @@ public class TeacherController {
 
     private java.util.Map<String, Object> mapOf(String k1, Object v1, String k2, Object v2) {
         java.util.Map<String, Object> m = new LinkedHashMap<>(); m.put(k1, v1); m.put(k2, v2); return m;
-    }
-
-    /** 学生错题本 — 教师查看指定学生的错题汇总 */
     }
 
     /** 学生错题本 — 教师查看指定学生的错题汇总 */
@@ -819,13 +816,14 @@ public class TeacherController {
             log.setDepthScore(fallback);
     }
 
-    /** 自主学习管理 — 按学生聚合大盘 */
+    /** 自主学习管理 — 按学生聚合大盘（含零记录学生） */
     @RequestMapping("/autonomousStudents")
     public R autonomousStudents(HttpServletRequest request) {
         String tableName = String.valueOf(request.getSession().getAttribute("tableName"));
         if (!"teacher".equals(tableName)) return R.error("仅教师可访问");
         java.util.List<String> classnames = (java.util.List<String>) request.getSession().getAttribute("classnames");
 
+        // 先查所有日志
         EntityWrapper<StudentScoreLogEntity> ew = new EntityWrapper<>();
         if (classnames != null && !classnames.isEmpty()) ew.in("classname", classnames);
         List<StudentScoreLogEntity> all = studentScoreLogDao.selectList(ew);
@@ -858,6 +856,28 @@ public class TeacherController {
                 if (cur == null || log.getCreateTime().after(cur)) row.put("lastActiveTime", log.getCreateTime());
             }
         }
+
+        // 补全：从 student 表查出教师管辖班级的所有学生，无日志记录的也加入列表
+        if (classnames != null && !classnames.isEmpty()) {
+            EntityWrapper<StudentEntity> se = new EntityWrapper<>();
+            se.in("classname", classnames);
+            for (StudentEntity stu : studentService.selectList(se)) {
+                String key = stu.getStudentaccount();
+                if (!agg.containsKey(key)) {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("studentaccount", stu.getStudentaccount());
+                    m.put("studentname", stu.getStudentname() != null ? stu.getStudentname() : stu.getStudentaccount());
+                    m.put("classname", stu.getClassname());
+                    m.put("followCount", 0);
+                    m.put("quizCount", 0);
+                    m.put("analogyCount", 0);
+                    m.put("reviewCount", 0);
+                    m.put("lastActiveTime", null);
+                    agg.put(key, m);
+                }
+            }
+        }
+
         List<Map<String, Object>> list = new ArrayList<>(agg.values());
         list.sort((a, b) -> {
             Date da = (Date) a.get("lastActiveTime"), db = (Date) b.get("lastActiveTime");
