@@ -14,6 +14,7 @@ import com.cl.entity.SysUserView;
 import com.cl.entity.TeacherEntity;
 import com.cl.service.TeacherService;
 import com.cl.service.TokenService;
+import com.cl.utils.PasswordUtil;
 import com.cl.utils.R;
 
 /**
@@ -44,7 +45,7 @@ public class AuthController {
             return R.error("账号不存在");
         }
 
-        if (!user.getPassword().equals(password)) {
+        if (!PasswordUtil.verify(password, user.getPassword())) {
             return R.error("账号或密码不正确");
         }
 

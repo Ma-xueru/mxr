@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-import com.cl.utils.ValidatorUtils;
+import com.cl.utils.PasswordUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,7 +63,7 @@ public class StudentController {
 	@RequestMapping(value = "/login")
 	public R login(String username, String password, String captcha, HttpServletRequest request) {
 		StudentEntity u = studentService.selectOne(new EntityWrapper<StudentEntity>().eq("studentaccount", username));
-        if(u==null || !u.getStudentpassword().equals(password)) {
+        if(u==null || !PasswordUtil.verify(password, u.getStudentpassword())) {
             return R.error("账号或密码不正确");
         }
         if("禁用".equals(u.getPermissionstatus())) {
@@ -90,6 +90,7 @@ public class StudentController {
 		}
 		Long uId = new Date().getTime();
 		student.setId(uId);
+		student.setStudentpassword(PasswordUtil.hash(student.getStudentpassword()));
         studentService.insert(student);
         return R.ok();
     }
@@ -124,9 +125,10 @@ public class StudentController {
     	if(u==null) {
     		return R.error("账号不存在");
     	}
-        u.setStudentpassword("123456");
+        String newPwd = "123456";
+        u.setStudentpassword(PasswordUtil.hash(newPwd));
         studentService.updateById(u);
-        return R.ok("密码已重置为：123456");
+        return R.ok("密码已重置为：" + newPwd);
     }
 
 
@@ -230,10 +232,11 @@ public class StudentController {
 			return R.error("用户已存在");
 		}
 		student.setId(new Date().getTime());
+		student.setStudentpassword(PasswordUtil.hash(student.getStudentpassword()));
         studentService.insert(student);
         return R.ok();
     }
-    
+
     /**
      * 前端保存
      */
@@ -251,6 +254,7 @@ public class StudentController {
 			return R.error("用户已存在");
 		}
 		student.setId(new Date().getTime());
+		student.setStudentpassword(PasswordUtil.hash(student.getStudentpassword()));
         studentService.insert(student);
         return R.ok();
     }
@@ -266,6 +270,9 @@ public class StudentController {
         //ValidatorUtils.validateEntity(student);
         fillDefaultClassname(student);
         fillDefaultPermission(student);
+        if (student.getStudentpassword() != null && !PasswordUtil.isHashed(student.getStudentpassword())) {
+            student.setStudentpassword(PasswordUtil.hash(student.getStudentpassword()));
+        }
         studentService.updateById(student);//全部更新
         return R.ok();
     }

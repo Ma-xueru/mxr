@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-import com.cl.utils.ValidatorUtils;
+import com.cl.utils.PasswordUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +30,7 @@ import com.cl.annotation.IgnoreAuth;
 
 import com.cl.dao.StudentScoreLogDao;
 import com.cl.entity.StudentScoreLogEntity;
+import com.cl.entity.AdminEntity;
 import com.cl.entity.TeacherEntity;
 import com.cl.utils.R;
 import com.cl.entity.TeacherClassEntity;
@@ -38,6 +39,7 @@ import com.cl.entity.RecitationtaskEntity;
 import com.cl.entity.FollowreadRecordEntity;
 import com.cl.entity.view.TeacherView;
 
+import com.cl.service.AdminService;
 import com.cl.service.TeacherService;
 import com.cl.service.StudentService;
 import com.cl.service.RecitationtaskService;
@@ -65,6 +67,8 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/teacher")
 public class TeacherController {
+    @Autowired
+    private AdminService adminService;
     @Autowired
     private TeacherService teacherService;
     @Autowired
@@ -95,7 +99,7 @@ public class TeacherController {
 	@RequestMapping(value = "/login")
 	public R login(String username, String password, String captcha, HttpServletRequest request) {
 		TeacherEntity u = teacherService.selectOne(new EntityWrapper<TeacherEntity>().eq("teacheraccount", username));
-        if(u==null || !u.getTeacherpassword().equals(password)) {
+        if(u==null || !PasswordUtil.verify(password, u.getTeacherpassword())) {
             return R.error("账号或密码不正确");
         }
         if("禁用".equals(u.getPermissionstatus())) {
@@ -121,6 +125,7 @@ public class TeacherController {
 		}
 		Long uId = new Date().getTime();
 		teacher.setId(uId);
+		teacher.setTeacherpassword(PasswordUtil.hash(teacher.getTeacherpassword()));
         teacherService.insert(teacher);
         syncTeacherClasses(teacher);
         return R.ok();
@@ -156,9 +161,10 @@ public class TeacherController {
     	if(u==null) {
     		return R.error("账号不存在");
     	}
-        u.setTeacherpassword("123456");
+        String newPwd = "123456";
+        u.setTeacherpassword(PasswordUtil.hash(newPwd));
         teacherService.updateById(u);
-        return R.ok("密码已重置为：123456");
+        return R.ok("密码已重置为：" + newPwd);
     }
 
 
@@ -249,6 +255,7 @@ public class TeacherController {
 			return R.error("用户已存在");
 		}
 		teacher.setId(new Date().getTime());
+		teacher.setTeacherpassword(PasswordUtil.hash(teacher.getTeacherpassword()));
         teacherService.insert(teacher);
         return R.ok();
     }
@@ -269,6 +276,7 @@ public class TeacherController {
 			return R.error("用户已存在");
 		}
 		teacher.setId(new Date().getTime());
+		teacher.setTeacherpassword(PasswordUtil.hash(teacher.getTeacherpassword()));
         teacherService.insert(teacher);
         syncTeacherClasses(teacher);
         return R.ok();
@@ -284,6 +292,9 @@ public class TeacherController {
     public R update(@RequestBody TeacherEntity teacher, HttpServletRequest request){
         //ValidatorUtils.validateEntity(teacher);
         fillDefaultPermission(teacher);
+        if (teacher.getTeacherpassword() != null && !PasswordUtil.isHashed(teacher.getTeacherpassword())) {
+            teacher.setTeacherpassword(PasswordUtil.hash(teacher.getTeacherpassword()));
+        }
         teacherService.updateById(teacher);//全部更新
         syncTeacherClasses(teacher);
         return R.ok();
@@ -893,6 +904,44 @@ public class TeacherController {
         result.put("totalReview", all.stream().filter(l -> l.getSourceType() != null && l.getSourceType() == 8).count());
         result.put("totalAll", all.size());
         return R.ok().put("data", result);
+    }
+
+    /** 一次性迁移：将明文密码转为 BCrypt 哈希 */
+    @RequestMapping("/migratePasswordHash")
+    public R migratePasswordHash() {
+        int adminCount = 0, teacherCount = 0, studentCount = 0;
+        // 管理员
+        for (AdminEntity a : adminService.selectList(new EntityWrapper<>())) {
+            try {
+                if (a.getPassword() != null && !PasswordUtil.isHashed(a.getPassword())) {
+                    a.setPassword(PasswordUtil.hash(a.getPassword()));
+                    adminService.updateById(a);
+                    adminCount++;
+                }
+            } catch (Exception e) {}
+        }
+        // 教师
+        for (TeacherEntity t : teacherService.selectList(new EntityWrapper<>())) {
+            try {
+                if (t.getTeacherpassword() != null && !PasswordUtil.isHashed(t.getTeacherpassword())) {
+                    t.setTeacherpassword(PasswordUtil.hash(t.getTeacherpassword()));
+                    teacherService.updateById(t);
+                    teacherCount++;
+                }
+            } catch (Exception e) {}
+        }
+        // 学生
+        for (StudentEntity s : studentService.selectList(new EntityWrapper<>())) {
+            try {
+                if (s.getStudentpassword() != null && !PasswordUtil.isHashed(s.getStudentpassword())) {
+                    s.setStudentpassword(PasswordUtil.hash(s.getStudentpassword()));
+                    studentService.updateById(s);
+                    studentCount++;
+                }
+            } catch (Exception e) {}
+        }
+        return R.ok().put("data", "密码迁移完成 — 管理员:" + adminCount
+            + " 教师:" + teacherCount + " 学生:" + studentCount);
     }
 
     /** 自主学习管理 — 单人全量历史 */

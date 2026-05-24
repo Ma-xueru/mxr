@@ -1,4 +1,3 @@
-
 package com.cl.controller;
 
 
@@ -29,8 +28,8 @@ import com.cl.service.AdminService;
 import com.cl.utils.CommonUtil;
 import com.cl.utils.MPUtil;
 import com.cl.utils.PageUtils;
+import com.cl.utils.PasswordUtil;
 import com.cl.utils.R;
-import com.cl.utils.ValidatorUtils;
 
 /**
  * 登录相关
@@ -38,10 +37,10 @@ import com.cl.utils.ValidatorUtils;
 @RequestMapping("admin")
 @RestController
 public class AdminController{
-	
+
 	@Autowired
 	private AdminService adminervice;
-	
+
 	@Autowired
 	private TokenService tokenService;
 
@@ -52,13 +51,13 @@ public class AdminController{
 	@RequestMapping(value = "/login")
 	public R login(String username, String password, String captcha, HttpServletRequest request) {
 		AdminEntity user = adminervice.selectOne(new EntityWrapper<AdminEntity>().eq("username", username));
-		if(user==null || !user.getPassword().equals(password)) {
+		if(user==null || !PasswordUtil.verify(password, user.getPassword())) {
 			return R.error("账号或密码不正确");
 		}
 		String token = tokenService.generateToken(user.getId(),username, "admin", user.getRole());
 		return R.ok().put("token", token);
 	}
-	
+
 	/**
 	 * 注册
 	 */
@@ -69,6 +68,7 @@ public class AdminController{
     	if(adminervice.selectOne(new EntityWrapper<AdminEntity>().eq("username", user.getUsername())) !=null) {
     		return R.error("用户已存在");
     	}
+    	user.setPassword(PasswordUtil.hash(user.getPassword()));
         adminervice.insert(user);
         return R.ok();
     }
@@ -81,7 +81,7 @@ public class AdminController{
 		request.getSession().invalidate();
 		return R.ok("退出成功");
 	}
-	
+
 	/**
      * 密码重置
      */
@@ -92,11 +92,12 @@ public class AdminController{
     	if(user==null) {
     		return R.error("账号不存在");
     	}
-    	user.setPassword("123456");
+    	String newPwd = "123456";
+    	user.setPassword(PasswordUtil.hash(newPwd));
         adminervice.update(user,null);
-        return R.ok("密码已重置为：123456");
+        return R.ok("密码已重置为：" + newPwd);
     }
-	
+
 	/**
      * 列表
      */
@@ -113,11 +114,11 @@ public class AdminController{
     @RequestMapping("/list")
     public R list( AdminEntity user){
        	EntityWrapper<AdminEntity> ew = new EntityWrapper<AdminEntity>();
-      	ew.allEq(MPUtil.allEQMapPre( user, "user")); 
+      	ew.allEq(MPUtil.allEQMapPre( user, "user"));
         return R.ok().put("data", adminervice.selectListView(ew));
     }
 
-    /**
+	/**
      * 信息
      */
     @RequestMapping("/info/{id}")
@@ -125,7 +126,7 @@ public class AdminController{
         AdminEntity user = adminervice.selectById(id);
         return R.ok().put("data", user);
     }
-    
+
     /**
      * 获取用户的session用户信息
      */
@@ -145,6 +146,7 @@ public class AdminController{
     	if(adminervice.selectOne(new EntityWrapper<AdminEntity>().eq("username", user.getUsername())) !=null) {
     		return R.error("用户已存在");
     	}
+    	user.setPassword(PasswordUtil.hash(user.getPassword()));
         adminervice.insert(user);
         return R.ok();
     }
@@ -158,6 +160,9 @@ public class AdminController{
     	AdminEntity u = adminervice.selectOne(new EntityWrapper<AdminEntity>().eq("username", user.getUsername()));
     	if(u!=null && u.getId()!=user.getId() && u.getUsername().equals(user.getUsername())) {
     		return R.error("用户名已存在。");
+    	}
+    	if (user.getPassword() != null && !PasswordUtil.isHashed(user.getPassword())) {
+    		user.setPassword(PasswordUtil.hash(user.getPassword()));
     	}
         adminervice.updateById(user);//全部更新
         return R.ok();
