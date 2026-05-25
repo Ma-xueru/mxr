@@ -3,6 +3,9 @@ package com.cl.entity;
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
 import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
 import com.baomidou.mybatisplus.enums.IdType;
@@ -20,11 +23,14 @@ public class AdminEntity implements Serializable {
 	/**
 	 * 用户账号
 	 */
+	@NotBlank(message = "用户名不能为空")
+	@Size(max = 50, message = "用户名不能超过50个字符")
 	private String username;
-	
+
 	/**
 	 * 密码
 	 */
+	@NotBlank(message = "密码不能为空")
 	private String password;
 	
 	/**

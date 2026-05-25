@@ -14,6 +14,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import com.cl.utils.PasswordUtil;
+import com.cl.utils.ValidatorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,7 +82,7 @@ public class StudentController {
 	@IgnoreAuth
     @RequestMapping("/register")
     public R register(@RequestBody StudentEntity student){
-    	//ValidatorUtils.validateEntity(student);
+    	ValidatorUtils.validateEntity(student);
         fillDefaultClassname(student);
         fillDefaultPermission(student);
     	StudentEntity u = studentService.selectOne(new EntityWrapper<StudentEntity>().eq("studentaccount", student.getStudentaccount()));
@@ -226,7 +227,7 @@ public class StudentController {
             return R.error("用户账号已存在");
         }
     	student.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
-    	//ValidatorUtils.validateEntity(student);
+    	ValidatorUtils.validateEntity(student);
     	StudentEntity u = studentService.selectOne(new EntityWrapper<StudentEntity>().eq("studentaccount", student.getStudentaccount()));
 		if(u!=null) {
 			return R.error("用户已存在");
@@ -248,7 +249,7 @@ public class StudentController {
             return R.error("用户账号已存在");
         }
     	student.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
-    	//ValidatorUtils.validateEntity(student);
+    	ValidatorUtils.validateEntity(student);
     	StudentEntity u = studentService.selectOne(new EntityWrapper<StudentEntity>().eq("studentaccount", student.getStudentaccount()));
 		if(u!=null) {
 			return R.error("用户已存在");
@@ -267,7 +268,7 @@ public class StudentController {
     @RequestMapping("/update")
     @Transactional
     public R update(@RequestBody StudentEntity student, HttpServletRequest request){
-        //ValidatorUtils.validateEntity(student);
+        ValidatorUtils.validateEntity(student);
         fillDefaultClassname(student);
         fillDefaultPermission(student);
         if (student.getStudentpassword() != null && !PasswordUtil.isHashed(student.getStudentpassword())) {

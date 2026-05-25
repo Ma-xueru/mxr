@@ -30,6 +30,7 @@ import com.cl.utils.MPUtil;
 import com.cl.utils.PageUtils;
 import com.cl.utils.PasswordUtil;
 import com.cl.utils.R;
+import com.cl.utils.ValidatorUtils;
 
 /**
  * 登录相关
@@ -64,7 +65,7 @@ public class AdminController{
 	@IgnoreAuth
 	@PostMapping(value = "/register")
 	public R register(@RequestBody AdminEntity user){
-//    	ValidatorUtils.validateEntity(user);
+    	ValidatorUtils.validateEntity(user);
     	if(adminervice.selectOne(new EntityWrapper<AdminEntity>().eq("username", user.getUsername())) !=null) {
     		return R.error("用户已存在");
     	}
@@ -142,7 +143,7 @@ public class AdminController{
      */
     @PostMapping("/save")
     public R save(@RequestBody AdminEntity user){
-//    	ValidatorUtils.validateEntity(user);
+    	ValidatorUtils.validateEntity(user);
     	if(adminervice.selectOne(new EntityWrapper<AdminEntity>().eq("username", user.getUsername())) !=null) {
     		return R.error("用户已存在");
     	}
@@ -156,7 +157,7 @@ public class AdminController{
      */
     @RequestMapping("/update")
     public R update(@RequestBody AdminEntity user){
-//        ValidatorUtils.validateEntity(user);
+        ValidatorUtils.validateEntity(user);
     	AdminEntity u = adminervice.selectOne(new EntityWrapper<AdminEntity>().eq("username", user.getUsername()));
     	if(u!=null && u.getId()!=user.getId() && u.getUsername().equals(user.getUsername())) {
     		return R.error("用户名已存在。");

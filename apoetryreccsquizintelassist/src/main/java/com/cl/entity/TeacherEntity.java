@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotations.TableName;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.lang.reflect.InvocationTargetException;
@@ -53,13 +54,14 @@ public class TeacherEntity<T> implements Serializable {
 	/**
 	 * 教师账号
 	 */
-					
+	@NotBlank(message = "教师账号不能为空")
+	@Size(max = 50, message = "教师账号不能超过50个字符")
 	private String teacheraccount;
-	
+
 	/**
 	 * 教师密码
 	 */
-					
+	@NotBlank(message = "教师密码不能为空")
 	private String teacherpassword;
 	
 	/**

@@ -160,8 +160,8 @@ public class QuizTaskController {
 
         int perPoem = Math.max(2, questionCount / poetryIds.size());
         String prompt = "针对以下古诗出" + questionCount + "道测验题（每首约" + perPoem + "题）：\n" + ctx +
-            "题型：单选题或填空题。维度：字词释义、意境理解、作者情感、格律常识、文学常识。\n" +
-            "返回JSON：[{\"poetryId\":诗ID,\"questionType\":1,\"content\":\"题?\",\"options\":{\"A\":\"\",\"B\":\"\",\"C\":\"\",\"D\":\"\"},\"correctAnswer\":\"A\",\"analysis\":\"解析\"}]。只返回JSON数组。";
+            "题型：仅限单选题（不要生成填空题）。维度：字词释义、意境理解、作者情感、格律常识、文学常识。\n" +
+            "每题必须有4个选项。返回JSON：[{\"poetryId\":诗ID,\"questionType\":1,\"content\":\"题?\",\"options\":{\"A\":\"\",\"B\":\"\",\"C\":\"\",\"D\":\"\"},\"correctAnswer\":\"A\",\"analysis\":\"解析\"}]。只返回JSON数组。";
 
         List<AIChatUtil.Message> msgs = new ArrayList<>();
         msgs.add(new AIChatUtil.Message("system", "你是特级语文教研员。严格按JSON数组返回题目，不带任何markdown标记。"));

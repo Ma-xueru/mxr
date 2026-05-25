@@ -15,6 +15,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import com.cl.utils.PasswordUtil;
+import com.cl.utils.ValidatorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,7 +118,7 @@ public class TeacherController {
 	@IgnoreAuth
     @RequestMapping("/register")
     public R register(@RequestBody TeacherEntity teacher){
-    	//ValidatorUtils.validateEntity(teacher);
+    	ValidatorUtils.validateEntity(teacher);
         fillDefaultPermission(teacher);
     	TeacherEntity u = teacherService.selectOne(new EntityWrapper<TeacherEntity>().eq("teacheraccount", teacher.getTeacheraccount()));
 		if(u!=null) {
@@ -249,7 +250,7 @@ public class TeacherController {
             return R.error("教师账号已存在");
         }
     	teacher.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
-    	//ValidatorUtils.validateEntity(teacher);
+    	ValidatorUtils.validateEntity(teacher);
     	TeacherEntity u = teacherService.selectOne(new EntityWrapper<TeacherEntity>().eq("teacheraccount", teacher.getTeacheraccount()));
 		if(u!=null) {
 			return R.error("用户已存在");
@@ -270,7 +271,7 @@ public class TeacherController {
             return R.error("教师账号已存在");
         }
     	teacher.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
-    	//ValidatorUtils.validateEntity(teacher);
+    	ValidatorUtils.validateEntity(teacher);
     	TeacherEntity u = teacherService.selectOne(new EntityWrapper<TeacherEntity>().eq("teacheraccount", teacher.getTeacheraccount()));
 		if(u!=null) {
 			return R.error("用户已存在");
@@ -290,7 +291,7 @@ public class TeacherController {
     @RequestMapping("/update")
     @Transactional
     public R update(@RequestBody TeacherEntity teacher, HttpServletRequest request){
-        //ValidatorUtils.validateEntity(teacher);
+        ValidatorUtils.validateEntity(teacher);
         fillDefaultPermission(teacher);
         if (teacher.getTeacherpassword() != null && !PasswordUtil.isHashed(teacher.getTeacherpassword())) {
             teacher.setTeacherpassword(PasswordUtil.hash(teacher.getTeacherpassword()));
